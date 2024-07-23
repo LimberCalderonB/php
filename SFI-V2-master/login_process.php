@@ -20,7 +20,8 @@ function getUserByUsernameAndPassword($conn, $username, $password) {
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (isset($_POST['username']) && isset($_POST['password'])) {
-        $conn = new mysqli("localhost", "root", "", "proyecto");
+        include_once "conexion.php";//CONEXION
+        
         if ($conn->connect_error) {
             die("Error de conexión: " . $conn->connect_error);
         }
@@ -44,29 +45,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
             switch ($_SESSION['role']) {
                 case 1: // Rol de administrador
-                    header("Location: vista_Admin/home.php");
+                    header("Location: admin/vista_Admin/home.php");
                     break;
                 case 2: // Rol de vendedor
-                    header("Location: vista-Empleado/products.php");
+                    header("Location: personal/vista-Empleado/products.php");
                     break;
                 default:
-                    header("Location: login.php?error=invalid_role");
+                    header("Location: index.php?error=invalid_role");
                     break;
             }
             exit(); 
         } else {
             
-            header("Location: login.php?error=invalid_credentials");
+            header("Location: index.php?error=invalid_credentials");
             exit();
         }
     } else {
         
-        header("Location: login.php");
+        header("Location: index.php");
         exit();
     }
 } else {
     
-    header("Location: login.php");
+    header("Location: index.php");
     exit();
 }
 ?>
