@@ -194,25 +194,22 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <option value="Activo" <?php echo $producto['estado'] == 'Activo' ? 'selected' : ''; ?>>Activo</option>
                                         <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
                                     </select>
-
                                     <div class="btn-container">
-    <div class="btn-left">
-        <button class="btn success" data-id="<?php echo $producto['idproducto']; ?>">
-            <i class="fi fi-ss-social-network"></i>
-            <span>Seleccionar</span>
-        </button>
-    </div>
-    <div class="btn-right">
-        <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
-            <i class="zmdi zmdi-edit"></i>
-        </button>
-        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
-            <i class="zmdi zmdi-delete"></i>
-        </button>
-    </div>
-</div>
-
-
+                                        <div class="btn-left">
+                                            <button class="btn success" data-id="<?php echo $producto['idproducto']; ?>">
+                                                <i class="fi fi-ss-social-network"></i>
+                                                <span>Seleccionar</span>
+                                            </button>
+                                        </div>
+                                        <div class="btn-right">
+                                            <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
+                                                <i class="zmdi zmdi-edit"></i>
+                                            </button>
+                                            <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
+                                                <i class="zmdi zmdi-delete"></i>
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <?php endforeach; ?>
@@ -226,7 +223,6 @@ $result_categorias = mysqli_query($conn, $query_categorias);
 </div>
 
 <?php 
-
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php"
 ?>

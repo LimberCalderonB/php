@@ -5,7 +5,10 @@ include_once '../modelo_admin/mod_producto.php';
 $modelo = new ModeloProducto();
 $productos = $modelo->obtenerProductos();
 ?>
-<br>
+
+                    <div class="full-width panel-tittle bg-primary text-center tittles">
+                        ALMACEN DE PRODUCTOS 
+                    </div>
 <div class="full-width divider-menu-h"></div>
 <div class="mdl-grid">
     <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
