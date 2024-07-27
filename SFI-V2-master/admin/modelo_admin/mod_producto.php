@@ -1,8 +1,7 @@
-
 <?php
-include_once 'conexion/conexionBase.php';
+include_once '../modelo_admin/conexion/conexionBase.php';
 
-class ModeloProducto extends ConexionBase {
+class ModeloProducto extends conexionBase {
 
     public function __construct() {
         parent::__construct();
@@ -13,36 +12,67 @@ class ModeloProducto extends ConexionBase {
         $this->CloseConnection();
     }
 
-    public function agregarProducto($nombre, $precio, $descuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1,$img2, $img3) {
-        $sql = "INSERT INTO producto (nombre, precio, descuento, descripcion, talla, categoria_idcategoria, estado, img1, img2, img3) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->GetConnection()->prepare($sql);
-        if ($stmt === false) {
-            return false;
-        }
-
-        $stmt->bind_param("ssdsssssss", $nombre, $precio, $descuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1,$img2, $img3);
-        
-        if ($stmt->execute()) {
-            return true;
-        } else {
-            return false;
-        }
+    public function agregarProducto($nombre, $precio, $descuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1, $img2, $img3) {
+    // Primero, inserta el producto en la tabla producto
+    $sql = "INSERT INTO producto (nombre, precio, descuento, descripcion, talla, estado, img1, img2, img3) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    $stmt = $this->GetConnection()->prepare($sql);
+    if ($stmt === false) {
+        return ['success' => false, 'error' => 'Error al preparar la consulta'];
     }
 
+    $stmt->bind_param("ssdssssss", $nombre, $precio, $descuento, $descripcion, $talla, $estado, $img1, $img2, $img3);
+    
+    if ($stmt->execute()) {
+        $idproducto = $stmt->insert_id; // Obtiene el ID del producto insertado
+        $stmt->close();
+
+        // Luego, inserta en la tabla almacen
+        if ($categoria_idcategoria !== null) {
+            $sqlAlmacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria) VALUES (?, ?)";
+            $stmtAlmacen = $this->GetConnection()->prepare($sqlAlmacen);
+            
+            if ($stmtAlmacen === false) {
+                return ['success' => false, 'error' => 'Error al preparar la consulta de almacen'];
+            }
+
+            $stmtAlmacen->bind_param("ii", $idproducto, $categoria_idcategoria);
+            
+            if ($stmtAlmacen->execute()) {
+                $stmtAlmacen->close();
+                return ['success' => true];
+            } else {
+                return ['success' => false, 'error' => 'Error al insertar en almacen'];
+            }
+        } else {
+            return ['success' => false, 'error' => 'Categoría no especificada'];
+        }
+    } else {
+        return ['success' => false, 'error' => 'Error al insertar en producto'];
+    }
+}
     public function obtenerProductos() {
-        $sql = "SELECT * FROM producto";
-        $result = $this->ExecuteQuery($sql);
-        $productos = [];
+        // Consulta modificada para agrupar por nombre, precio, talla y categoría, y sumar la cantidad y obtener la última fecha
+        $sql = "SELECT 
+                    p.nombre, 
+                    p.precio, 
+                    p.talla, 
+                    c.nombre AS categoria_nombre, 
+                    COUNT(a.producto_idproducto) AS cantidad, 
+                    MAX(p.fecha_actualizacion) AS fecha_actualizacion 
+                FROM producto p
+                JOIN almacen a ON p.idproducto = a.producto_idproducto
+                JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
+                GROUP BY p.nombre, p.precio, p.talla, c.nombre";
         
-        if ($result) {
+        $result = $this->GetConnection()->query($sql);
+        $productos = [];
+        if ($result && $result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 $productos[] = $row;
             }
-            $this->SetFreeResult($result);
         }
-
         return $productos;
     }
 }

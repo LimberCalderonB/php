@@ -206,6 +206,5 @@ $result_roles = mysqli_query($conn, $query_roles);
 <?php
 include_once "validaciones/validaciones.php";
 include_once "pie.php";
-
 mysqli_close($conn);
 ?>

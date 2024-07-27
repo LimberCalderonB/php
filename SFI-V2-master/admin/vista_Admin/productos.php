@@ -6,14 +6,17 @@ include_once "../../conexion.php";
 // Consulta para obtener las categorías
 $query_categorias = "SELECT idcategoria, nombre FROM categoria";
 $result_categorias = mysqli_query($conn, $query_categorias);
+
 ?>
 <br>
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-        <a href="#tabNewProduct" class="mdl-tabs__tab is-active">NUEVO</a>
-        <a href="#tabListProducts" class="mdl-tabs__tab">LISTA DE PRODUCTOS</a>
+    <a href="#tabListProducts" class="mdl-tabs__tab is-active">LISTA DE PRODUCTOS</a>
+        <a href="#tabNewProduct" class="mdl-tabs__tab">NUEVO</a>
+        
+        
     </div>
-    <div class="mdl-tabs__panel is-active" id="tabNewProduct">
+    <div class="mdl-tabs__panel" id="tabNewProduct">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--12-col">
                 <div class="full-width panel mdl-shadow--2dp">
@@ -80,7 +83,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                 </div>
                                 <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield">
-                                        <select class="mdl-textfield__input" name="estado">
+                                        <select class="mdl-textfield__input" name="estado" id="estado">
                                             <option value="" disabled="" selected="">Seleccionar Estado </option>
                                             <option value="Activo">Activo</option>
                                             <option value="Desactivo">Desactivo</option>
@@ -105,8 +108,6 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <label for="fileUpload3" id="fileUploadLabel3">Seleccionar Imagen 3</label>
                                     </div>
                                 </div>
-
-
                             </div>
                             <div class="mdl-cell mdl-cell--12-col text-center">
                                 <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="btn-addProduct">
@@ -120,14 +121,15 @@ $result_categorias = mysqli_query($conn, $query_categorias);
             </div>
         </div>
     </div>
-
+                                            <!--VISTA DE PRODUCTOS REGISTRADOS-->
     <?php
     if ($conn->connect_error) {
         die("Error de conexión: " . $conn->connect_error);
     }
     $sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
             FROM producto 
-            JOIN categoria ON producto.categoria_idcategoria = categoria.idcategoria";
+            JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
+            JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria";
     $result = $conn->query($sql);
     $productos = [];
     if ($result->num_rows > 0) {
@@ -136,8 +138,8 @@ $result_categorias = mysqli_query($conn, $query_categorias);
         }
     }
     $conn->close();
-    ?>
-    <div class="mdl-tabs__panel" id="tabListProducts">
+?>
+    <div class="mdl-tabs__panel is-active" id="tabListProducts">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
                 <form action="#">
@@ -175,10 +177,14 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                     </button>
                                 </div>
                                 <div class="mdl-card__supporting-text">
-                                    <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
-                                </div>
-                                <div class="mdl-card__supporting-text">
-                                    <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                                    <div class="product-info">
+                                        <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
+                                        <small class="separator">|</small>
+                                        <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                                    </div>
+                                    <div class="product-date">
+                                        <small><?php echo htmlspecialchars($producto['fecha_actualizacion']); ?></small>
+                                    </div>
                                 </div>
                                 <div class="mdl-card__actions mdl-card--border">
                                     <div>Precio: <?php echo htmlspecialchars($producto['precio']); ?></div>
@@ -188,12 +194,25 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <option value="Activo" <?php echo $producto['estado'] == 'Activo' ? 'selected' : ''; ?>>Activo</option>
                                         <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
                                     </select>
-                                    <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
-                                        <i class="zmdi zmdi-edit"></i>
-                                    </button>
-                                    <button class="mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
-                                        <i class="zmdi zmdi-delete"></i>
-                                    </button>
+
+                                    <div class="btn-container">
+    <div class="btn-left">
+        <button class="btn success" data-id="<?php echo $producto['idproducto']; ?>">
+            <i class="fi fi-ss-social-network"></i>
+            <span>Seleccionar</span>
+        </button>
+    </div>
+    <div class="btn-right">
+        <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
+            <i class="zmdi zmdi-edit"></i>
+        </button>
+        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
+            <i class="zmdi zmdi-delete"></i>
+        </button>
+    </div>
+</div>
+
+
                                 </div>
                             </div>
                             <?php endforeach; ?>
@@ -207,6 +226,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
 </div>
 
 <?php 
+
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php"
 ?>
