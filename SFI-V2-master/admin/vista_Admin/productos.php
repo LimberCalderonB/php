@@ -121,102 +121,109 @@ $result_categorias = mysqli_query($conn, $query_categorias);
             </div>
         </div>
     </div>
-                                            <!--VISTA DE PRODUCTOS REGISTRADOS-->
     <?php
-    if ($conn->connect_error) {
-        die("Error de conexión: " . $conn->connect_error);
+if ($conn->connect_error) {
+    die("Error de conexión: " . $conn->connect_error);
+}
+$sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
+        FROM producto 
+        JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
+        JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria";
+$result = $conn->query($sql);
+$productos = [];
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
     }
-    $sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
-            FROM producto 
-            JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
-            JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria";
-    $result = $conn->query($sql);
-    $productos = [];
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $productos[] = $row;
-        }
-    }
-    $conn->close();
+}
+$conn->close();
 ?>
-    <div class="mdl-tabs__panel is-active" id="tabListProducts">
-        <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
-                <form action="#">
-                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
-                        <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
-                            <i class="zmdi zmdi-search"></i>
-                        </label>
-                        <div class="mdl-textfield__expandable-holder">
-                            <input class="mdl-textfield__input" type="text" id="searchProduct">
-                            <label class="mdl-textfield__label" for="searchProduct"></label>
-                        </div>
+
+<div class="mdl-tabs__panel is-active" id="tabListProducts">
+    <div class="mdl-grid">
+        <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
+            <form action="#">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+                    <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
+                        <i class="zmdi zmdi-search"></i>
+                    </label>
+                    <div class="mdl-textfield__expandable-holder">
+                        <input class="mdl-textfield__input" type="text" id="searchProduct">
+                        <label class="mdl-textfield__label" for="searchProduct"></label>
                     </div>
-                </form>
-                <div class="full-width text-center" style="padding: 30px 0;">
-                    <?php if (!empty($productos)): ?>
-                        <?php foreach ($productos as $producto): ?>
-                            <div class="mdl-card mdl-shadow--2dp full-width product-card">
-                                <div class="mdl-card__title">
-                                    <div class="product-images">
-                                        <?php if (!empty($producto['img1'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
-                                        <?php endif; ?>
-                                        <?php if (!empty($producto['img2'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
-                                        <?php endif; ?>
-                                        <?php if (!empty($producto['img3'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
-                                        <?php endif; ?>
-                                    </div>
-                                    <button class="prev-button">
-                                        <i class="fi fi-rr-angle-small-left"></i>
-                                    </button>
-                                    <button class="next-button">
-                                        <i class="fi fi-rr-angle-small-right"></i>
-                                    </button>
+                </div>
+            </form>
+            <div class="full-width text-center" style="padding: 30px 0;">
+                <?php if (!empty($productos)): ?>
+                    <?php foreach ($productos as $producto): ?>
+                        <div class="mdl-card mdl-shadow--2dp full-width product-card">
+                            <div class="mdl-card__title">
+                                <div class="product-images">
+                                    <?php if (!empty($producto['img1'])): ?>
+                                        <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img2'])): ?>
+                                        <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img3'])): ?>
+                                        <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
+                                    <?php endif; ?>
                                 </div>
-                                <div class="mdl-card__supporting-text">
-                                    <div class="product-info">
-                                        <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
-                                        <small class="separator">|</small>
-                                        <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
-                                    </div>
-                                    <div class="product-date">
-                                        <small><?php echo htmlspecialchars($producto['fecha_actualizacion']); ?></small>
-                                    </div>
+                                <button class="prev-button">
+                                    <i class="fi fi-rr-angle-small-left"></i>
+                                </button>
+                                <button class="next-button">
+                                    <i class="fi fi-rr-angle-small-right"></i>
+                                </button>
+                            </div>
+                            <div class="mdl-card__supporting-text">
+                                <div class="product-info">
+                                    <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
+                                    <small class="separator">|</small>
+                                    <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
                                 </div>
-                                <div class="mdl-card__actions mdl-card--border">
-                                    <div>Precio: <?php echo htmlspecialchars($producto['precio']); ?></div>
-                                    
-                                    <select class="mdl-textfield__input">
-                                        <option value="" disabled="" selected="">Estado</option>
-                                        <option value="Activo" <?php echo $producto['estado'] == 'Activo' ? 'selected' : ''; ?>>Activo</option>
-                                        <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
-                                    </select>
-                                    <div class="btn-container">
-                                        <div class="btn-left">
-                                            <button class="btn success" data-id="<?php echo $producto['idproducto']; ?>">
+                                <div class="product-date">
+                                    <small><?php echo htmlspecialchars($producto['fecha_actualizacion']); ?></small>
+                                </div>
+                            </div>
+                            <div class="mdl-card__actions mdl-card--border">
+                                <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
+                                    <?php if ($producto['descuento'] > 0): ?>
+                                        <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
+                                        | Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
+                                        | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
+                                    <?php else: ?>
+                                        <?php echo htmlspecialchars($producto['precio']); ?>-Bs
+                                    <?php endif; ?>
+                                </div>
+                                <select class="mdl-textfield__input">
+                                    <option value="" disabled="" selected="">Estado</option>
+                                    <option value="Activo" <?php echo $producto['estado'] == 'Activo' ? 'selected' : ''; ?>>Activo</option>
+                                    <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
+                                </select>
+                                <div class="btn-container">
+                                <form method="post" action="pagos.php" style="display:inline;">
+                                            <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                            <button type="submit" class="btn success">
                                                 <i class="fi fi-ss-social-network"></i>
                                                 <span>Seleccionar</span>
                                             </button>
-                                        </div>
-                                        <div class="btn-right">
-                                            <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
-                                                <i class="zmdi zmdi-edit"></i>
-                                            </button>
-                                            <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
-                                                <i class="zmdi zmdi-delete"></i>
-                                            </button>
-                                        </div>
+                                        </form>
+                                    <div class="btn-right">
+                                        <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
+                                            <i class="zmdi zmdi-edit"></i>
+                                        </button>
+                                        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
+                                            <i class="zmdi zmdi-delete"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>No se encontraron productos.</p>
-                    <?php endif; ?>
-                </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p>No se encontraron productos.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -224,5 +231,27 @@ $result_categorias = mysqli_query($conn, $query_categorias);
 
 <?php 
 include_once "pie.php"; 
-include_once "validaciones/val_producto.php"
+include_once "validaciones/val_producto.php";
 ?>
+
+<style>
+    /* Ajustar el tamaño del texto */
+    .product-info small,
+    .product-date small,
+    .product-price {
+        font-size: 0.875em; /* 14px, ajusta según tus necesidades */
+    }
+
+    /* Cambiar el color del precio si hay descuento */
+    .product-price.discount {
+        color: black;
+    }
+
+    /* Estilo del precio original tachado */
+    .original-price {
+        text-decoration: line-through;
+        margin-right: 5px;
+    }
+</style>
+
+

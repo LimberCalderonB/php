@@ -392,3 +392,4 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
         transform: scale(0.98); /* Efecto de pulsación */
     }
 </style>
+<!--ESTILO DE DESCUENTO DE PRECIO-->

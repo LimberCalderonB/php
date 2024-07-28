@@ -12,6 +12,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $categoria_idcategoria = $_POST['categoria_idcategoria'] ?? null;
     $estado = $_POST['estado'] ?? '';
 
+    // Calcula el precio con descuento
+    $precioConDescuento = $precio - ($precio * ($descuento / 100));
+
     // Manejo de los archivos de imagen
     $imagenes = ['img1', 'img2', 'img3'];
     $rutasImagenes = [];
@@ -43,22 +46,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Crear instancia del modelo
     $modelo = new ModeloProducto();
-    $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1, $img2, $img3);
+    $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1, $img2, $img3);
 
     if ($resultado) {
         $_SESSION['registro'] = 'Producto agregado correctamente.';
         header("Location: ../vista_Admin/productos.php?mensaje=Producto agregado exitosamente");
     } else {
-        $_SESSION['registro'] = 'Hubo un problema al agregar el producto';
-        header("Location: ../vista_Admin/productos.php?error=Hubo un problema al agregar el producto");
+        $_SESSION['registro'] = 'Hubo un problema al agregar el producto.';
+        header("Location: ../vista_Admin/productos.php?mensaje=Error al agregar producto");
     }
-    exit();
-} else {
-    // Manejo de GET para mostrar productos
-    $modelo = new ModeloProducto();
-    $productos = $modelo->obtenerProductos();
-
-    // Incluye la vista y pasa los productos
-    include '../vista_Admin/productos.php';
 }
 ?>
