@@ -122,18 +122,35 @@ $result_categorias = mysqli_query($conn, $query_categorias);
         </div>
     </div>
     <?php
+//lista de productos
+include_once "../../conexion.php";
+
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
+
+// Obtener el término de búsqueda si está presente
+$searchTerm = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+
+// Modificar la consulta SQL para incluir el término de búsqueda
 $sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
         FROM producto 
         JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
-        JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria";
+        JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria
+        WHERE producto.nombre LIKE '%$searchTerm%' 
+        OR producto.descripcion LIKE '%$searchTerm%' 
+        OR producto.talla LIKE '%$searchTerm%' 
+        OR producto.precio LIKE '%$searchTerm%' 
+        OR categoria.nombre LIKE '%$searchTerm%'";
+
 $result = $conn->query($sql);
 $productos = [];
 if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $productos[] = $row;
+        // Excluir productos que ya están seleccionados
+        if (!isset($_SESSION['productos_seleccionados'][$row['idproducto']])) {
+            $productos[] = $row;
+        }
     }
 }
 $conn->close();
@@ -142,13 +159,14 @@ $conn->close();
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">
         <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
-            <form action="#">
+            <!--buscador--->
+            <form action="productos.php" method="get">
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
                     <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
                         <i class="zmdi zmdi-search"></i>
                     </label>
                     <div class="mdl-textfield__expandable-holder">
-                        <input class="mdl-textfield__input" type="text" id="searchProduct">
+                        <input class="mdl-textfield__input" type="text" id="searchProduct" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>">
                         <label class="mdl-textfield__label" for="searchProduct"></label>
                     </div>
                 </div>
@@ -202,13 +220,13 @@ $conn->close();
                                     <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
                                 </select>
                                 <div class="btn-container">
-                                <form method="post" action="pagos.php" style="display:inline;">
-                                            <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-                                            <button type="submit" class="btn success">
-                                                <i class="fi fi-ss-social-network"></i>
-                                                <span>Seleccionar</span>
-                                            </button>
-                                        </form>
+                                    <form method="post" action="pagos.php" style="display:inline;">
+                                        <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                        <button type="submit" class="btn success">
+                                            <i class="fi fi-ss-social-network"></i>
+                                            <span>Seleccionar</span>
+                                        </button>
+                                    </form>
                                     <div class="btn-right">
                                         <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
                                             <i class="zmdi zmdi-edit"></i>
@@ -233,25 +251,3 @@ $conn->close();
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php";
 ?>
-
-<style>
-    /* Ajustar el tamaño del texto */
-    .product-info small,
-    .product-date small,
-    .product-price {
-        font-size: 0.875em; /* 14px, ajusta según tus necesidades */
-    }
-
-    /* Cambiar el color del precio si hay descuento */
-    .product-price.discount {
-        color: black;
-    }
-
-    /* Estilo del precio original tachado */
-    .original-price {
-        text-decoration: line-through;
-        margin-right: 5px;
-    }
-</style>
-
-

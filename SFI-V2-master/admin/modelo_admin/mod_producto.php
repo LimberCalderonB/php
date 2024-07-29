@@ -77,5 +77,66 @@ class ModeloProducto extends conexionBase {
         }
         return $productos;
     }
+
+    public function obtenerProductosConDescuento() {
+        $sql = "SELECT 
+                    p.nombre, 
+                    p.precio, 
+                    p.precioConDescuento,
+                    p.talla,
+                    p.descuento,
+                    c.nombre AS categoria_nombre, 
+                    COUNT(a.producto_idproducto) AS cantidad, 
+                    MAX(p.fecha_actualizacion) AS fecha_actualizacion 
+                FROM producto p
+                JOIN almacen a ON p.idproducto = a.producto_idproducto
+                JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
+                WHERE p.descuento > 0
+                GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre, p.descuento
+                ORDER BY fecha_actualizacion DESC";
+        
+        $result = $this->GetConnection()->query($sql);
+        
+        if ($result === false) {
+            return ['success' => false, 'error' => $this->GetConnection()->error];
+        }
+    
+        $productos = [];
+        if ($result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $productos[] = $row;
+            }
+        }
+    
+        return $productos;
+    }
+    
+    
+    public function obtenerProductosSinDescuento() {
+        $sql = "SELECT 
+                    p.nombre, 
+                    p.precio, 
+                    p.precioConDescuento,
+                    p.talla, 
+                    c.nombre AS categoria_nombre, 
+                    COUNT(a.producto_idproducto) AS cantidad, 
+                    MAX(p.fecha_actualizacion) AS fecha_actualizacion 
+                FROM producto p
+                JOIN almacen a ON p.idproducto = a.producto_idproducto
+                JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
+                WHERE p.descuento = 0
+                GROUP BY p.nombre, p.precio, p.talla, c.nombre
+                ORDER BY fecha_actualizacion DESC";
+        
+        $result = $this->GetConnection()->query($sql);
+        $productos = [];
+        if ($result && $result->num_rows > 0) {
+            while ($row = $result->fetch_assoc()) {
+                $productos[] = $row;
+            }
+        }
+        return $productos;
+    }
+    
 }
 ?>

@@ -17,7 +17,7 @@ include_once "cabecera.php";
                         <th>CLIENTE</th>
                         <th>PRODUCTO</th>
                         <th>PAGO-TOTAL</th>
-                        <th>VER</th>
+                        <th>DESGARGAR FACTURA</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -26,13 +26,17 @@ include_once "cabecera.php";
                         <td>nombre</td>
                         <td>lista de productos</td>
                         <td>pago de los productos</td>
-                        <td><button class="btn-ver">DESCARGAR</button></td>
+                        <td><button class="btn-ver">DESCARGAR  
+                            <i class="fi fi-rs-down-to-line"></i></button></td>
                     </tr>
 					
                 </tbody>
             </table>
             <div class="btn-container">
-                <button class="btn-descargar">DESCARGAR FACTURAS</button>
+                <button class="btn-descargar">
+                    DESCARGAR FACTURAS   
+                    <i class="fi fi-rs-down-to-line"></i>
+                </button>
             </div>
         </div>
     </div>

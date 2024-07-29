@@ -36,14 +36,13 @@ if (isset($_GET['cancelar_id'])) {
 
 <?php include_once "cabecera.php"; ?>
 
-
 <div class="full-width panel-tittle bg-primary text-center tittles">
     PRODUCTOS SELECCIONADOS
 </div>
 <br>
 <div class="container">
     <div class="top-bar">
-        <input type="text" id="product-search" placeholder="Buscar producto..." class="product-search">
+        <input type="text" id="product-search" placeholder="Buscar cliente..." class="product-search">
         <button id="realizar-venta" class="btn btn-primary btn-realizar-venta">
             <i class="fi fi-rr-usd-circle"></i>
             REALIZAR VENTA
@@ -123,7 +122,7 @@ if (isset($_GET['cancelar_id'])) {
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 1rem;
-    width: 200px;
+    width: 400px;
 }
 
 .btn-realizar-venta {

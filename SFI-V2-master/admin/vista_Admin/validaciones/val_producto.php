@@ -393,3 +393,20 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
     }
 </style>
 <!--ESTILO DE DESCUENTO DE PRECIO-->
+
+<style>
+    .product-info small,
+    .product-date small,
+    .product-price {
+        font-size: 0.875em; 
+    }
+
+    .product-price.discount {
+        color: black;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        margin-right: 5px;
+    }
+</style>
