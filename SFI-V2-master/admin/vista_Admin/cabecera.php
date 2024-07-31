@@ -1,3 +1,48 @@
+<?php
+session_start();
+
+// Conectar a la base de datos
+$conn = new mysqli("localhost", "root", "", "proyecto");
+
+// Verificar la conexión
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+
+// Verificar si el usuario está logueado
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../index.php"); // Redirige si el usuario no está logueado
+    exit();
+}
+
+// Obtener datos del usuario
+$user_id = $_SESSION['user_id'];
+
+// Preparar y ejecutar la consulta
+$query = "SELECT p.nombre, p.apellido1, p.foto, r.nombre as rol_nombre
+          FROM usuario u
+          JOIN persona p ON u.persona_idpersona = p.idpersona
+          JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
+          JOIN rol r ON pr.rol_idrol = r.idrol
+          WHERE u.idusuario = ?";
+
+$stmt = $conn->prepare($query);
+if ($stmt === false) {
+    die('Error al preparar la consulta: ' . htmlspecialchars($conn->error));
+}
+
+// Vincular parámetros y ejecutar la consulta
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Obtener los datos del usuario
+$user_data = $result->fetch_assoc();
+
+// Cerrar la consulta y la conexión
+$stmt->close();
+$conn->close();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -24,89 +69,24 @@
 
 </head>
 <body>
-	<!-- Notifications area -->
-	<section class="full-width container-notifications">
-		<div class="full-width container-notifications-bg btn-Notification"></div>
-	    <section class="NotificationArea">
-	        <div class="full-width text-center NotificationArea-title tittles">Notificaciones <i class="zmdi zmdi-close btn-Notification"></i></div>
-	        <a href="#" class="Notification" id="notifation-unread-1">
-	            <div class="Notification-icon"><i class="zmdi zmdi-accounts-alt bg-info"></i></div>
-	            <div class="Notification-text">
-	                <p>
-	                    <i class="zmdi zmdi-circle"></i>
-	                    <strong>NUEVO USUARIO REGISTRADO</strong> 
-	                    <br>
-	                    <small>Este Momento</small>
-	                </p>
-	            </div>
-	        	<div class="mdl-tooltip mdl-tooltip--left" for="notifation-unread-1">Notificación Leida</div> 
-	        </a>
-	        <a href="#" class="Notification" id="notifation-read-1">
-	            <div class="Notification-icon"><i class="zmdi zmdi-cloud-download bg-primary"></i></div>
-	            <div class="Notification-text">
-	                <p>
-	                    <i class="zmdi zmdi-circle-o"></i>
-	                    <strong>Nueva Actualización</strong> 
-	                    <br>
-	                    <small>30 Mins Ago</small>
-	                </p>
-	            </div>
-	            <div class="mdl-tooltip mdl-tooltip--left" for="notifation-read-1">Notificación Leida</div>
-	        </a>
-	        <a href="#" class="Notification" id="notifation-unread-2">
-	            <div class="Notification-icon"><i class="zmdi zmdi-upload bg-success"></i></div>
-	            <div class="Notification-text">
-	                <p>
-	                    <i class="zmdi zmdi-circle"></i>
-	                    <strong>Nueva Actualización</strong> 
-	                    <br>
-	                    <small>31 Mins Ago</small>
-	                </p>
-	            </div>
-	            <div class="mdl-tooltip mdl-tooltip--left" for="notifation-unread-2">Notificación Leida</div>
-	        </a> 
-	        <a href="#" class="Notification" id="notifation-read-2">
-	            <div class="Notification-icon"><i class="zmdi zmdi-mail-send bg-danger"></i></div>
-	            <div class="Notification-text">
-	                <p>
-	                    <i class="zmdi zmdi-circle-o"></i>
-	                    <strong>Nuevo Email</strong> 
-	                    <br>
-	                    <small>37 Mins Ago</small>
-	                </p>
-	            </div>
-	            <div class="mdl-tooltip mdl-tooltip--left" for="notifation-read-2">Notificación Leida</div>
-	        </a>
-	        <a href="#" class="Notification" id="notifation-read-3">
-	            <div class="Notification-icon"><i class="zmdi zmdi-folder bg-primary"></i></div>
-	            <div class="Notification-text">
-	                <p>
-	                    <i class="zmdi zmdi-circle-o"></i>
-	                    <strong>Carpeta Eliminada</strong> 
-	                    <br>
-	                    <small>1 hours Ago</small>
-	                </p>
-	            </div>
-	            <div class="mdl-tooltip mdl-tooltip--left" for="notifation-read-3">Notificación Leida</div>
-	        </a>  
-	    </section>
-	</section>
+	
 	<!-- navLateral -->
 	<section class="full-width navLateral">
 		<div class="full-width navLateral-bg btn-menu"></div>
 		<div class="full-width navLateral-body">
 			<div class="full-width navLateral-body-logo text-center tittles">
-				<i class="zmdi zmdi-close btn-menu"></i> INVENTARIO
+				<i class="zmdi zmdi-close btn-menu"></i> BIENVENIDO
 			</div>
 			<figure class="full-width navLateral-body-tittle-menu">
 				<div>
-					<img src="../../assets/img/avatar-male.png" alt="Avatar" class="img-responsive">
+					<img src="<?php echo htmlspecialchars($user_data['foto']); ?>" alt="Avatar" class="img-responsive">
 				</div>
 				<figcaption>
-					<span>
-						NOMBRE COMPLETO DE ADMINISTRADOR<br>
-						<small>ADMINISTRADOR</small>
-					</span>
+				<span>
+                        <?php echo isset($user_data['nombre']) ? htmlspecialchars($user_data['nombre']) . ' ' . htmlspecialchars($user_data['apellido1']) : 'Nombre no disponible'; ?><br>
+						____________________<br>
+                        <small><?php echo isset($user_data['rol_nombre']) ? htmlspecialchars($user_data['rol_nombre']) : 'Rol no disponible'; ?></small>
+                    </span>
 				</figcaption>
 			</figure>
 			<nav class="full-width">
@@ -238,8 +218,6 @@
 			</nav>
 		</div>
 	</section>
-
-	
 	<section class="full-width pageContent">
 		<!-- navBar -->
 		<div class="full-width navBar">
@@ -248,19 +226,16 @@
 				<div class="mdl-tooltip" for="btn-menu">Esconder / Mostrar Menu</div>
 				<nav class="navBar-options-list">
 					<ul class="list-unstyle">
-						<li class="btn-Notification" id="notifications">
-							<i class="zmdi zmdi-notifications"></i>
-							<div class="mdl-tooltip" for="notifications">Notificaciones</div>
-						</li>
+						
 						<li class="btn-exit" id="exit">
 							<i class="zmdi zmdi-power"></i>
 							<div class="mdl-tooltip" for="exit">Cerrar Sesión</div>
 						</li>
-						<li class="text-condensedLight noLink" ><small>Nombre de Usuario</small></li>
+						<li class="text-condensedLight noLink" ><small>-</small></li>
 						<li class="noLink">
-							<figure>
-								<img src="../../assets/img/avatar-male.png" alt="Avatar" class="img-responsive">
-							</figure>
+						<figure>
+                                <img src="<?php echo isset($user_data['foto']) ? htmlspecialchars($user_data['foto']) : 'default-avatar.png'; ?>" alt="Avatar" class="img-responsive">
+                            </figure>
 						</li>
 					</ul>
 				</nav>
@@ -295,5 +270,3 @@
         });
     });
 </script>
-
-		

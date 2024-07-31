@@ -1,5 +1,5 @@
 <?php
-session_start(); // Iniciar sesión si no está iniciada
+ // Iniciar sesión si no está iniciada
 include_once "cabecera.php";
 
 // Mostrar mensaje de éxito si se ha registrado exitosamente una categoría
@@ -18,18 +18,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
     unset($_SESSION['registro_exitoso_categoria']); // Limpiar la sesión
 }
 ?>
-
-<section class="full-width header-well">
-    <div class="full-width header-well-icon">
-        <i class="zmdi zmdi-washing-machine"></i>
-    </div>
-    <div class="full-width header-well-text">
-        <p class="text-condensedLight">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Unde aut nulla accusantium minus corporis accusamus fuga harum natus molestias necessitatibus.
-        </p>
-    </div>
-</section>
-
+<br>
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
         <a href="#tabNewCategory" class="mdl-tabs__tab is-active">NUEVO</a>

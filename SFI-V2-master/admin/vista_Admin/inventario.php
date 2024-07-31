@@ -12,15 +12,14 @@ $productosSinDescuento = $modelo->obtenerProductosSinDescuento();
 </div>
 
 <div class="btn-container">
-    <button class="btn-descargar">
-            DESCARGAR FACTURAS   
-        <i class="fi fi-rs-down-to-line"></i>
-    </button>
-    <button class="btn-filter">
-        FILTRO
-    <i class="fi fi-rr-settings-sliders"></i>
-    </button>
+    <a href="../generarPDF/inventario_pdf.php" target="_blank">
+        <button class="btn-descargar">
+            DESCARGAR DATOS   
+            <i class="fi fi-rs-down-to-line"></i>
+        </button>
+    </a>
 </div>
+
 
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
@@ -101,110 +100,176 @@ $productosSinDescuento = $modelo->obtenerProductosSinDescuento();
 
 <?php
 include_once "pie.php";
+include_once "validaciones/val_inventario.php";
 ?>
 
+
+
 <style>
-.centered-table th,
-.centered-table td {
-    text-align: center;
+    .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
 
-.table-responsive {
-    overflow-x: auto;
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.mdl-data-table {
-    width: 100%;
-    margin: auto;
+.product-search {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    width: 400px;
 }
 
-.mdl-data-table th,
-.mdl-data-table td {
-    padding: 15px 30px;
-}
-
-.mdl-data-table th {
-    background-color: #f2f2f2;
-}
-
-.mdl-data-table tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.mdl-data-table tbody tr:hover {
-    background-color: #f1f1f1;
-}
-
-/* Estilos para el contenedor del botón */
-.btn-container {
-    text-align: right;
-    margin-top: 20px;
-}
-
-/* Estilos para el botón de descarga */
-.btn-descargar {
-    background-color: #007bff; /* Color de fondo */
-    color: #fff; /* Color del texto */
-    border: none;
+.btn-realizar-venta {
+    background-color: #176098;
+    color: white;
     padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px; /* Bordes redondeados */
-    transition: background-color 0.3s, transform 0.3s; /* Transición suave para color y tamaño */
-    display: inline-flex;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    display: flex;
     align-items: center;
 }
 
-.btn-descargar i {
-    margin-left: 10px; /* Espacio entre el texto y el ícono */
-    font-size: 18px; /* Tamaño del ícono */
+.btn-realizar-venta i {
+    margin-right: 5px;
 }
 
-/* Estilos cuando se pasa el ratón sobre el botón */
-.btn-descargar:hover {
-    background-color: #0056b3; /* Color de fondo cuando se pasa el ratón */
-    transform: scale(1.05); /* Aumenta el tamaño ligeramente */
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); /* Ajusta el ancho mínimo a 280px */
+    gap: 20px;
 }
 
-.btn-descargar:focus {
-    outline: none; /* Quitar el borde de enfoque */
+.product-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+
+.product-images {
+    position: relative;
+    width: 100%;
+    height: 200px; /* Ajusta la altura según sea necesario */
+    overflow: hidden;
+}
+
+.product-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.product-image.active {
+    display: block;
+}
+
+.prev-button, .next-button {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.prev-button {
+    left: 5px;
+}
+
+.next-button {
+    right: 5px;
+}
+
+.product-info {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.product-info small {
+    font-size: 0.875em; /* 14px, ajusta según tus necesidades */
+}
+
+.separator {
+    margin: 0 5px;
+}
+
+.product-price {
+    padding: 10px;
+    font-size: 0.75rem; /* Reducido a 12px */
+}
+
+.product-price.discount {
+    color: black;
+}
+
+.original-price {
+    text-decoration: line-through;
+    margin-right: 5px;
+}
+
+.btn-container {
+    padding: 10px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    padding: 7px 10px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.btn-danger i {
+    margin-right: 5px;
+}
+
 </style>
-
 <script>
-// Función para exportar la tabla a CSV
-function exportTableToCSV(filename, tableSelector) {
-    var csv = [];
-    var rows = document.querySelectorAll(tableSelector + " tr");
+document.addEventListener('DOMContentLoaded', function () {
+    const productCards = document.querySelectorAll('.product-card');
 
-    for (var i = 0; i < rows.length; i++) {
-        var row = [], cols = rows[i].querySelectorAll("td, th");
+    productCards.forEach(card => {
+        const prevButton = card.querySelector('.prev-button');
+        const nextButton = card.querySelector('.next-button');
+        const images = card.querySelectorAll('.product-image');
+        let currentImageIndex = 0;
 
-        for (var j = 0; j < cols.length; j++) {
-            row.push(cols[j].innerText);
-        }
+        prevButton.addEventListener('click', () => {
+            images[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            images[currentImageIndex].classList.add('active');
+        });
 
-        csv.push(row.join(","));        
-    }
-
-    // Crear un enlace para descargar el archivo
-    var csvFile;
-    var downloadLink;
-
-    csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-
-    downloadLink = document.createElement("a");
-    downloadLink.download = filename;
-    downloadLink.href = window.URL.createObjectURL(csvFile);
-    downloadLink.style.display = "none";
-    document.body.appendChild(downloadLink);
-
-    downloadLink.click();
-}
-
-// Asignar la función al botón para exportar la tabla activa
-document.querySelector(".btn-descargar").addEventListener("click", function() {
-    var activeTab = document.querySelector(".mdl-tabs__panel.is-active");
-    exportTableToCSV("productos.csv", activeTab.querySelector("table").outerHTML);
+        nextButton.addEventListener('click', () => {
+            images[currentImageIndex].classList.remove('active');
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            images[currentImageIndex].classList.add('active');
+        });
+    });
 });
+
 </script>

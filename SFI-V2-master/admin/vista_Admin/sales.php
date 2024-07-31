@@ -1,50 +1,58 @@
 <?php
 include_once "cabecera.php";
+include_once "../../conexion.php";
+
+$sql = "SELECT v.fecha_venta, p.nombre AS nombre_responsable, p.apellido1 AS apellido_responsable, 
+        c.nombre AS nombre_cliente, pr.nombre AS nombre_producto, v.pago 
+        FROM venta v
+        JOIN detalle_pedido dp ON v.producto_idproducto = dp.producto_idproducto
+        JOIN pedido pe ON dp.pedido_idpedido = pe.idpedido
+        JOIN cliente c ON pe.cliente_idcliente = c.idcliente
+        JOIN persona p ON v.persona_idpersona = p.idpersona
+        JOIN producto pr ON v.producto_idproducto = pr.idproducto
+        ORDER BY v.fecha_venta DESC";
+
+$result = $conn->query($sql);
 ?>
 
-					<div class="full-width panel-tittle bg-primary text-center tittles">
-                        VENTAS 
-                    </div>
+<div class="full-width panel-tittle bg-primary text-center tittles">
+    VENTAS 
+</div>
 
 <div class="full-width divider-menu-h"></div>
 <div class="mdl-grid">
     <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
         <div class="table-responsive">
-            <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width table-responsive centered-table">
+            <table class="table table-hover text-center">
                 <thead>
                     <tr>
-                        <th>FECHA Y HORA</th>
-                        <th>CLIENTE</th>
-                        <th>PRODUCTO</th>
-                        <th>PAGO-TOTAL</th>
-                        <th>DESGARGAR FACTURA</th>
+                        <th>Fecha</th>
+                        <th>Responsable</th>
+                        <th>Cliente</th>
+                        <th>Producto</th>
+                        <th>Pago</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>fecha_actualizacion</td>
-                        <td>nombre</td>
-                        <td>lista de productos</td>
-                        <td>pago de los productos</td>
-                        <td><button class="btn-ver">DESCARGAR  
-                            <i class="fi fi-rs-down-to-line"></i></button></td>
-                    </tr>
-					
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($row['fecha_actualizacion']); ?></td>
+                            <td><?php echo htmlspecialchars($row['nombre_responsable'] . " " . $row['apellido_responsable']); ?></td>
+                            <td><?php echo htmlspecialchars($row['nombre_cliente']); ?></td>
+                            <td><?php echo htmlspecialchars($row['nombre_producto']); ?></td>
+                            <td><?php echo number_format($row['pago'], 2); ?> Bs</td>
+                        </tr>
+                    <?php endwhile; ?>
                 </tbody>
             </table>
-            <div class="btn-container">
-                <button class="btn-descargar">
-                    DESCARGAR FACTURAS   
-                    <i class="fi fi-rs-down-to-line"></i>
-                </button>
-            </div>
         </div>
     </div>
 </div>
 
-<?php
-include_once "pie.php";
-?>
+<?php $conn->close(); ?>
+<?php include_once "pie.php"; ?>
+
+
 
 <style>
 .centered-table th,

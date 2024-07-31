@@ -1,51 +1,117 @@
+
+
+
+
 <style>
-    body {
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
+/* Estilos existentes */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
 
-.container {
-    flex: 1;
+.top-bar {
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
 }
 
-.productos-seleccionados .row {
+.product-search {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1rem;
+    width: 400px;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 400px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.btn-realizar-venta {
+    background-color: #176098;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1rem;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-realizar-venta i {
+    margin-right: 5px;
+}
+
+/* Estilo de animación para el botón */
+.btn-realizar-venta:hover {
+    transform: translateY(-5px);
+}
+
+/* Estilos adicionales */
+.total-cost {
+    text-align: right;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.productos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
 }
 
 .product-card {
-    width: 100%;
-    max-width: 250px;
-    height: 400px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    margin-bottom: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 .product-images {
     position: relative;
     width: 100%;
-    height: 60%;
+    height: 200px;
     overflow: hidden;
 }
 
 .product-image {
-    display: none;
+    position: absolute;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: none;
 }
 
 .product-image.active {
@@ -56,88 +122,101 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.7);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
     border: none;
+    padding: 5px;
     cursor: pointer;
+    z-index: 1;
 }
 
 .prev-button {
-    left: 0;
+    left: 5px;
 }
 
 .next-button {
-    right: 0;
+    right: 5px;
 }
 
 .product-info {
-    padding: 10px;
-    text-align: center;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .product-info small {
-    display: block;
+    font-size: 0.875em;
 }
 
-.product-date small {
-    display: block;
-    color: gray;
+.separator {
+    margin: 0 5px;
 }
 
 .product-price {
     padding: 10px;
-    text-align: center;
+    font-size: 0.75rem;
 }
 
 .product-price.discount {
-    color: red;
+    color: black;
 }
 
-.product-price.discount::after {
-    content: ' ';
-    display: block;
-    height: 1px;
-    background-color: red;
-    width: 100%;
-    position: relative;
-    top: -0.5em;
+.original-price {
+    text-decoration: line-through;
+    margin-right: 5px;
 }
 
 .btn-container {
-    margin-top: auto;
     padding: 10px;
+    display: flex;
+    justify-content: flex-end;
 }
 
-.btn-realizar-venta {
-    background-color: #28a745;
-    color: #fff;
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    padding: 7px 10px;
     border: none;
     border-radius: 5px;
-    padding: 10px 20px;
-    font-size: 16px;
+    text-decoration: none;
+    font-size: 1rem;
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
-.btn-realizar-venta i {
-    margin-right: 10px;
-    font-size: 20px;
-}
-
-.btn-realizar-venta:hover {
-    background-color: #218838;
+.btn-danger i {
+    margin-right: 5px;
 }
 
 </style>
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-    const ventaButton = document.getElementById('realizar-venta');
+document.addEventListener('DOMContentLoaded', function () {
+    const productCards = document.querySelectorAll('.product-card');
 
-    ventaButton.addEventListener('click', () => {
-        alert('Venta realizada');
+    productCards.forEach(card => {
+        const images = card.querySelectorAll('.product-image');
+        const prevButton = card.querySelector('.prev-button');
+        const nextButton = card.querySelector('.next-button');
+
+        let currentIndex = 0;
+
+        const showImage = index => {
+            images.forEach((img, i) => img.classList.toggle('active', i === index));
+        };
+
+        prevButton.addEventListener('click', () => {
+            currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
+            showImage(currentIndex);
+        });
+
+        nextButton.addEventListener('click', () => {
+            currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
+            showImage(currentIndex);
+        });
+
+        showImage(currentIndex);
     });
 });
 
 </script>
+
