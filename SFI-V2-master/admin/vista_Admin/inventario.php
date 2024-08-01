@@ -103,8 +103,6 @@ include_once "pie.php";
 include_once "validaciones/val_inventario.php";
 ?>
 
-
-
 <style>
     .container {
     max-width: 1200px;

@@ -19,12 +19,12 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Preparar y ejecutar la consulta
-$query = "SELECT p.nombre, p.apellido1, p.foto, r.nombre as rol_nombre
-          FROM usuario u
-          JOIN persona p ON u.persona_idpersona = p.idpersona
-          JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
-          JOIN rol r ON pr.rol_idrol = r.idrol
-          WHERE u.idusuario = ?";
+	$query = "SELECT p.nombre, p.apellido1, p.foto, r.nombre as rol_nombre
+			FROM usuario u
+			JOIN persona p ON u.persona_idpersona = p.idpersona
+			JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
+			JOIN rol r ON pr.rol_idrol = r.idrol
+			WHERE u.idusuario = ?";
 
 $stmt = $conn->prepare($query);
 if ($stmt === false) {
@@ -193,7 +193,7 @@ $conn->close();
 					</li>
 					<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
-						<a href="sales.php" class="full-width">
+						<a href="ventas.php" class="full-width">
 							<div class="navLateral-body-cl">
 								<i class="zmdi zmdi-shopping-cart"></i>
 							</div>

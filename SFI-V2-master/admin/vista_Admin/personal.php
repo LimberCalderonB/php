@@ -121,7 +121,6 @@ $result_roles = mysqli_query($conn, $query_roles);
             </div>
         </div>
     </div>
-
                                         <!--  LISTA DE PERSONAL   -->
     <div class="mdl-tabs__panel" id="tabListAdmin">
     <div class="mdl-grid">
@@ -149,25 +148,18 @@ $result_roles = mysqli_query($conn, $query_roles);
                                             INNER JOIN usuario AS u ON p.idpersona = u.persona_idpersona 
                                             INNER JOIN privilegio AS pv ON u.idusuario = pv.usuario_idusuario 
                                             INNER JOIN rol AS r ON pv.rol_idrol = r.idrol";
-
-                        // Ejecutar la consulta
                         $result_personal = mysqli_query($conn, $query_personal);
-
                         if (!$result_personal) {
-                            // Manejo de error en caso de fallo en la consulta
                             echo "Error en la consulta: " . mysqli_error($conn);
                         } elseif (mysqli_num_rows($result_personal) > 0) {
-                            // Mostrar resultados
                             while ($row = mysqli_fetch_assoc($result_personal)) {
                         ?>
                                 <div class="mdl-list__item mdl-list__item--two-line">
-                                    <!-- Contenido de cada elemento de la lista -->
                                     <span class="mdl-list__item-primary-content">
                                         <img src="<?php echo htmlspecialchars($row['foto']); ?>" class="mdl-list__item-avatar" alt="Foto">
                                         <span><?php echo htmlspecialchars($row['rol']) . ' | ' . htmlspecialchars($row['nombre']) . ' ' . htmlspecialchars($row['apellido1']) . ' ' . htmlspecialchars($row['apellido2']); ?></span>
                                         <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['ci']); ?></span>
                                     </span>
-                                    <!-- Acciones secundarias (eliminar, modificar) -->
                                     <span class="mdl-list__item-secondary-content" style="display: flex; flex-direction: column;">
                                                 <button class='mdl-button mdl-js-button mdl-button--icon' onclick='showDetails(<?php echo $row["idprivilegio"]; ?>)'>
                                                     <i class='zmdi zmdi-eye'></i>
@@ -192,7 +184,6 @@ $result_roles = mysqli_query($conn, $query_roles);
         </div>
     </div>
 </div>
-
 <?php
 include_once "validaciones/validaciones.php";
 include_once "pie.php";

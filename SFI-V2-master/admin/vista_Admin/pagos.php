@@ -49,13 +49,13 @@ if (!empty($_SESSION['productos_seleccionados'])) {
 if (isset($_POST['realizar_venta'])) {
     include_once "../../conexion.php";
     $conn->begin_transaction();
-    $cliente_nombre = $_POST['cliente_nombre'];
+    $idcliente = $_POST['idcliente'];
     try {
         // Obtener los datos del usuario actual
-        $usuario_id = $_SESSION['usuario_id']; // Suponiendo que el ID del usuario está guardado en la sesión
+        $usuario_idusuario = $_SESSION['usuario_id']; // Suponiendo que el ID del usuario está guardado en la sesión
         $sql = "SELECT nombre, apellido1 FROM persona WHERE idpersona = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $usuario_id);
+        $stmt->bind_param("i", $usuario_idusuario);
         $stmt->execute();
         $stmt->bind_result($nombre_responsable, $apellido_responsable);
         $stmt->fetch();
@@ -64,12 +64,12 @@ if (isset($_POST['realizar_venta'])) {
         // Registrar la venta y eliminar los productos
         foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
             $pago = $producto['precio'];
-            $fecha_actualizacion = date("Y-m-d H:i:s");
+            $fecha_venta = date("Y-m-d H:i:s");
 
             // Insertar la venta en la tabla venta
-            $sql = "INSERT INTO venta (persona_idpersona, pago, producto_idproducto, fecha_actualizacion) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO venta (persona_idpersona, pago, producto_idproducto, fecha_venta) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("idss", $usuario_id, $pago, $idproducto, $fecha_actualizacion);
+            $stmt->bind_param("idss", $usuario_idusuario, $pago, $idproducto, $fecha_venta);
             $stmt->execute();
 
             // Eliminar el producto vendido
