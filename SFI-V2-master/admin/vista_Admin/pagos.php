@@ -1,5 +1,10 @@
 <?php include_once "cabecera.php"; ?>
+
 <?php
+// Generar un token CSRF
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     if (!isset($_SESSION['productos_seleccionados'])) {
@@ -13,8 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
             FROM producto 
             JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
             JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria
-            WHERE producto.idproducto = $idproducto";
-    $result = $conn->query($sql);
+            WHERE producto.idproducto = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $idproducto);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $producto = $result->fetch_assoc();
@@ -36,65 +44,95 @@ if (isset($_GET['cancelar_id'])) {
 $total = 0;
 if (!empty($_SESSION['productos_seleccionados'])) {
     foreach ($_SESSION['productos_seleccionados'] as $producto) {
+        $precio = $producto['precio'];
         if ($producto['descuento'] > 0) {
-            $precioConDescuento = $producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100));
-            $total += $precioConDescuento;
-        } else {
-            $total += $producto['precio'];
+            $precio -= $precio * ($producto['descuento'] / 100);
         }
+        $total += $precio;
     }
 }
 
 // Manejar la realización de la venta
-if (isset($_POST['realizar_venta'])) {
-    include_once "../../conexion.php";
-    $conn->begin_transaction();
-    $idcliente = $_POST['idcliente'];
-    try {
-        // Obtener los datos del usuario actual
-        $usuario_idusuario = $_SESSION['usuario_id']; // Suponiendo que el ID del usuario está guardado en la sesión
-        $sql = "SELECT nombre, apellido1 FROM persona WHERE idpersona = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $usuario_idusuario);
-        $stmt->execute();
-        $stmt->bind_result($nombre_responsable, $apellido_responsable);
-        $stmt->fetch();
-        $stmt->close();
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
+    if (!empty($_SESSION['productos_seleccionados'])) {
+        include_once "../../conexion.php";
+        $conn->begin_transaction();
 
-        // Registrar la venta y eliminar los productos
-        foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
-            $pago = $producto['precio'];
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                throw new Exception("ID de usuario no encontrado en la sesión.");
+            }
+
+            $usuario_idusuario = $_SESSION['user_id'];
+
+            // Asegúrate de que la zona horaria esté configurada correctamente
+            date_default_timezone_set('America/La_Paz'); // Ajusta la zona horaria según tu ubicación
             $fecha_venta = date("Y-m-d H:i:s");
 
-            // Insertar la venta en la tabla venta
-            $sql = "INSERT INTO venta (persona_idpersona, pago, producto_idproducto, fecha_venta) VALUES (?, ?, ?, ?)";
+            // Insertar en la tabla `venta`
+            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("idss", $usuario_idusuario, $pago, $idproducto, $fecha_venta);
+            $stmt->bind_param("ids", $usuario_idusuario, $total, $fecha_venta);
             $stmt->execute();
+            $venta_id = $stmt->insert_id; // Obtener el ID de la venta recién insertada
 
-            // Eliminar el producto vendido
-            $sql = "DELETE FROM producto WHERE idproducto = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $idproducto);
-            $stmt->execute();
+            // Insertar en la tabla `venta_producto` y actualizar el inventario
+            foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                // Insertar en la tabla `venta_producto`
+                $sql = "INSERT INTO venta_producto (venta_idventa, producto_idproducto) VALUES (?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ii", $venta_id, $idproducto);
+                $stmt->execute();
 
-            // Actualizar la cantidad en el almacén
-            $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $idproducto);
-            $stmt->execute();
+                // Actualizar el inventario en la tabla `almacen`
+                $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $idproducto);
+                $stmt->execute();
+
+                // Opcional: Eliminar el producto si la cantidad se vuelve 0
+                $sql = "DELETE FROM almacen WHERE cantidad <= 0 AND producto_idproducto = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $idproducto);
+                $stmt->execute();
+            }
+
+            $conn->commit();
+            $_SESSION['productos_seleccionados'] = [];
+            $total = 0; // Restablecer el total a 0 después de la venta exitosa
+            echo "<script>
+                    const Toast = Swal.mixin({
+                      toast: true,
+                      position: 'top-end',
+                      showConfirmButton: false,
+                      timer: 3000,
+                      timerProgressBar: true,
+                      didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                      }
+                    });
+                    Toast.fire({
+                      icon: 'success',
+                      title: 'Venta realizada exitosamente'
+                    });
+                  </script>";
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo "Error al realizar la venta: " . $e->getMessage();
         }
 
-        $conn->commit();
-        $_SESSION['productos_seleccionados'] = [];
-        echo "Venta realizada exitosamente.";
-
-    } catch (Exception $e) {
-        $conn->rollback();
-        echo "Error al realizar la venta: " . $e->getMessage();
+        $conn->close();
+    } else {
+        echo "<script>
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: 'No hay productos seleccionados para la venta',
+                });
+              </script>";
     }
-    
-    $conn->close();
 }
 ?>
 
@@ -103,20 +141,13 @@ if (isset($_POST['realizar_venta'])) {
 </div>
 <br>
 <div class="container">
-    <div class="top-bar">
-        <div class="dropdown">
-            <input type="text" id="client-search" placeholder="Buscar cliente..." class="product-search">
-            <div class="dropdown-content" id="client-results">
-                <!-- Aquí irán las opciones de búsqueda -->
-            </div>
-        </div>
-        <form method="POST" action="pagos.php">
-            <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
-                <i class="fi fi-rr-usd-circle"></i>
-                REALIZAR VENTA
-            </button>
-        </form>
-    </div>
+    <form method="POST" action="pagos.php">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
+            <i class="fi fi-rr-usd-circle"></i>
+            REALIZAR VENTA
+        </button>
+    </form>
     <div class="total-cost">
         <h5>Total: <?php echo number_format($total, 2); ?> Bs</h5>
     </div>
@@ -170,37 +201,7 @@ if (isset($_POST['realizar_venta'])) {
         <?php endif; ?>
     </div>
 </div>
-
 <?php 
 include_once "pie.php"; 
 include_once "validaciones/val_pagos.php";
 ?>
-<!--BUSCADOR DE CLIENTE--->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-$(document).ready(function() {
-    $('#client-search').on('input', function() {
-        let searchQuery = $(this).val();
-
-        if (searchQuery.length > 2) {
-            $.ajax({
-                url: 'buscador/buscar_cliente.php',
-                method: 'POST',
-                data: { query: searchQuery },
-                success: function(data) {
-                    $('#client-results').html(data);
-                }
-            });
-        } else {
-            $('#client-results').html('');
-        }
-    });
-
-    $(document).on('click', '.client-item', function() {
-    let clientName = $(this).text();
-    $('#client-search').val(clientName);
-    $('#client_nombre').val(clientName);
-    $('#client-results').html('');
-});
-});
-</script>

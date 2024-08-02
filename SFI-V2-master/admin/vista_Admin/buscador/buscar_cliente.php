@@ -3,7 +3,7 @@ include_once "../../../conexion.php";
 
 if (isset($_POST['query'])) {
     $query = $_POST['query'];
-    $sql = "SELECT nombre, apellido FROM cliente WHERE nombre LIKE ? OR apellido LIKE ? LIMIT 10";
+    $sql = "SELECT nombre_cliente, apellido_cliente FROM cliente WHERE nombre_cliente LIKE ? OR apellido_cliente LIKE ? LIMIT 10";
     $stmt = $conn->prepare($sql);
     $search = "%$query%";
     $stmt->bind_param("ss", $search, $search);
@@ -12,7 +12,7 @@ if (isset($_POST['query'])) {
 
     if ($result->num_rows > 0) {
         while ($row = $result->fetch_assoc()) {
-            echo '<a href="#" class="client-item">' . htmlspecialchars($row['nombre'] . ' ' . $row['apellido']) . '</a>';
+            echo '<a href="#" class="client-item">' . htmlspecialchars($row['nombre_cliente'] . ' ' . $row['apellido_cliente']) . '</a>';
         }
     } else {
         echo '<a href="#" class="client-item">No se encontraron resultados</a>';

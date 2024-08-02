@@ -19,7 +19,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Preparar y ejecutar la consulta
-	$query = "SELECT p.nombre, p.apellido1, p.foto, r.nombre as rol_nombre
+	$query = "SELECT p.nombre, p.apellido1, p.apellido2, p.foto, r.nombre as rol_nombre
 			FROM usuario u
 			JOIN persona p ON u.persona_idpersona = p.idpersona
 			JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
@@ -83,7 +83,7 @@ $conn->close();
 				</div>
 				<figcaption>
 				<span>
-                        <?php echo isset($user_data['nombre']) ? htmlspecialchars($user_data['nombre']) . ' ' . htmlspecialchars($user_data['apellido1']) : 'Nombre no disponible'; ?><br>
+                        <?php echo isset($user_data['nombre']) ? htmlspecialchars($user_data['nombre']) . ' ' . htmlspecialchars($user_data['apellido1']) . ' ' . htmlspecialchars($user_data['apellido2']): 'Nombre no disponible'; ?><br>
 						____________________<br>
                         <small><?php echo isset($user_data['rol_nombre']) ? htmlspecialchars($user_data['rol_nombre']) : 'Rol no disponible'; ?></small>
                     </span>
