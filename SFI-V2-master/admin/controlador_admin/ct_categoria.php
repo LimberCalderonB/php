@@ -1,37 +1,63 @@
 <?php
-require_once "../modelo_admin/mod_categoria.php"; // Incluir el modelo de categoría
+require_once "../modelo_admin/mod_categoria.php";
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
- // Inicia la sesión al principio del archivo
 
-if(isset($_POST["nombre"])) {
+if (isset($_POST["nombre"])) {
+    $idcategoria = isset($_POST["idcategoria"]) ? trim($_POST["idcategoria"]) : '';
     $nombre = trim($_POST["nombre"]);
 
-    // Validar si el nombre está vacío
-    if(empty($nombre)) {
+    // VALIDACIÓN DE CAMPO
+    if (empty($nombre)) {
         $_SESSION['error_categoria'] = true;
         $_SESSION['mensaje_categoria'] = "Por favor ingrese un nombre para la categoría.";
     } elseif (!preg_match("/^[a-zA-Z\s]+$/", $nombre)) {
-        // Validar el formato del nombre de la categoría
         $_SESSION['error_categoria'] = true;
         $_SESSION['mensaje_categoria'] = "El nombre de la categoría solo puede contener letras y espacios.";
     } else {
-        // Crear una instancia de la clase Categoria
         $categoria = new Categoria();
         $categoria->asignar("nombre", $nombre);
 
-        // Verificar si la categoría ya existe
-        if ($categoria->existeCategoria()) {
-            $_SESSION['error_categoria'] = true;
-            $_SESSION['mensaje_categoria'] = "La categoría ya existe.";
-        } else {
-            // Intentar agregar la categoría
-            if ($categoria->agregarCategoria()) {
-                $_SESSION['registro_exitoso_categoria'] = true;
-            } else {
+        // VERIFICAR EXISTENCIA PARA AGREGAR
+        if ($idcategoria == '') {
+            $categoria_existente_agregar = $categoria->existeCategoria();
+
+            if ($categoria_existente_agregar) {
                 $_SESSION['error_categoria'] = true;
-                $_SESSION['mensaje_categoria'] = "Hubo un problema al intentar agregar la categoría.";
+                $_SESSION['mensaje_categoria'] = "La categoría ya existe.";
+                $_SESSION['nombre_categoria'] = $nombre;
+            } else {
+                // Intentar agregar la categoría
+                if ($categoria->agregarCategoria()) {
+                    $_SESSION['registro_exitoso_categoria'] = true;
+                    header("Location: ../vista_Admin/categoria.php");
+                    exit();
+                } else {
+                    $_SESSION['error_categoria'] = true;
+                    $_SESSION['mensaje_categoria'] = "Hubo un problema al intentar agregar la categoría.";
+                    $_SESSION['nombre_categoria'] = $nombre;
+                }
+            }
+        } else {
+            // VERIFICAR EXISTENCIA PARA EDITAR
+            $categoria_existente_editar = $categoria->existeCategoria();
+
+            if ($categoria_existente_editar && $categoria_existente_editar['idcategoria'] != $idcategoria) {
+                $_SESSION['error_categoria'] = true;
+                $_SESSION['mensaje_categoria'] = "La categoría ya existe.";
+                $_SESSION['nombre_categoria'] = $nombre;
+            } else {
+                // Intentar actualizar la categoría
+                if ($categoria->actualizarCategoria($idcategoria, $nombre)) {
+                    $_SESSION['registro_exitoso_categoria'] = true;
+                    header("Location: ../vista_Admin/categoria.php");
+                    exit();
+                } else {
+                    $_SESSION['error_categoria'] = true;
+                    $_SESSION['mensaje_categoria'] = "Hubo un problema al intentar actualizar la categoría.";
+                    $_SESSION['nombre_categoria'] = $nombre;
+                }
             }
         }
     }
@@ -40,6 +66,11 @@ if(isset($_POST["nombre"])) {
     $_SESSION['mensaje_categoria'] = "Error: No se recibieron datos del formulario.";
 }
 
-header("Location: ../vista_Admin/categoria.php");
+// Redirigir a la página correspondiente según el contexto
+if (isset($_POST['editar'])) {
+    header("Location: ../vista_Admin/editar.php?idcategoria=" . htmlspecialchars($_POST['idcategoria']));
+} else {
+    header("Location: ../vista_Admin/categoria.php");
+}
 exit();
 ?>

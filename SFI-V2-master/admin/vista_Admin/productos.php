@@ -155,6 +155,19 @@ if ($result->num_rows > 0) {
 }
 $conn->close();
 ?>
+<!--BARRA DE NAVEGACION DE CATEGORIAS-->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <div class="container">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item">
+                    <a>CTEGORIA1 - CATEGORIA2 - CATEGORIA3</a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</nav>
 
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">

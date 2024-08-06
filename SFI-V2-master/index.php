@@ -1,5 +1,4 @@
-<?php 
-?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -39,7 +38,6 @@
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                     <input class="mdl-textfield__input" type="password" id="pass" name="password">
                     <label class="mdl-textfield__label" for="pass">Contraseña</label>
-                    
                     <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none;">
                         <i id="passwordIcon" class="zmdi zmdi-eye"></i>
                     </button>
@@ -50,7 +48,6 @@
             </form>
         </div>
     </div>    
-    
 
 <script>
     function validateForm() {
@@ -93,6 +90,9 @@
             passwordIcon.classList.add("zmdi-eye");
         }
     }
+
+    // Evitar la navegación hacia atrás
+    
 </script>
 </body>
 </html>

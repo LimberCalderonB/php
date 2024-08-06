@@ -1,3 +1,4 @@
+
 <style>
     .centered-table th, .centered-table td {
         text-align: center;
@@ -12,8 +13,8 @@
         margin: auto;
     }
 
-    .mdl-data-table th, .mdl-data-table td {
-        padding: 15px 30px;
+    .mdl-data-table th, .mdl-data-table td {/*anchi de la tabla */
+        padding: 4px 40px;
     }
 
     .mdl-data-table th {
@@ -30,15 +31,15 @@
 
     .btn-container {
         text-align: right;
-        margin-top: 20px;
-        margin-right: 20px;
+        margin-top: 5px;
+        margin-right: 5px;
     }
 
     .btn-descargar {
         background-color: #007bff;
         color: #fff;
         border: none;
-        padding: 10px 20px;
+        padding: 6px 12px;/*tamaño de boton*/ 
         font-size: 16px;
         cursor: pointer;
         border-radius: 5px;
@@ -49,7 +50,7 @@
 
     .btn-descargar i {
         margin-left: 2px;
-        font-size: 18px;
+        font-size: 14px;
     }
 
     .btn-descargar:hover {

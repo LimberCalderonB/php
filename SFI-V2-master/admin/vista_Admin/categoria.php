@@ -1,8 +1,7 @@
 <?php
- // Iniciar sesión si no está iniciada
-include_once "cabecera.php";
 
-// Mostrar mensaje de éxito si se ha registrado exitosamente una categoría
+include_once "cabecera.php";
+//ALERTA DE REGISTRO
 if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso_categoria'] == true){
     echo "<script>
     $(document).ready(function() {
@@ -15,17 +14,18 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
         });
     });
     </script>";
-    unset($_SESSION['registro_exitoso_categoria']); // Limpiar la sesión
+    unset($_SESSION['registro_exitoso_categoria']);
 }
 ?>
 <br>
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-        <a href="#tabNewCategory" class="mdl-tabs__tab is-active">NUEVO</a>
-        <a href="#tabListCategory" class="mdl-tabs__tab">CATEGORIAS</a>
+        <a href="#tabListCategory" class="mdl-tabs__tab is-active">LISTA DE CATEGORIAS</a>
+        <a href="#tabNewCategory" class="mdl-tabs__tab">AGREGAR NUEVA CATEGORIA</a>
+        
     </div>
 
-    <div class="mdl-tabs__panel is-active" id="tabNewCategory">
+    <div class="mdl-tabs__panel" id="tabNewCategory">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--12-col">
                 <div class="full-width panel mdl-shadow--2dp">
@@ -47,6 +47,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                                         <?php endif; ?>
                                     </div>
                                 </div>
+
                             </div>
                             <p class="text-center">
                                 <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="agregar" type="submit">
@@ -61,7 +62,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
         </div>
     </div>
 
-    <div class="mdl-tabs__panel" id="tabListCategory">
+    <div class="mdl-tabs__panel is-active" id="tabListCategory">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--8-col-desktop mdl-cell--2-offset-desktop">
                 <div class="full-width panel mdl-shadow--2dp">
@@ -83,34 +84,35 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                         <div class="mdl-list">
                             <?php
                             include_once "../../conexion.php";
-
                             if ($conn->connect_error) {
                                 die("Error de conexión: " . $conn->connect_error);
                             }
-
                             $sql = "SELECT idcategoria, nombre FROM categoria";
                             $result = $conn->query($sql);
-
                             if ($result->num_rows > 0) {
-                                $count = 1; // Variable para enumerar las categorías
+                                $count = 1;
                                 while ($row = $result->fetch_assoc()) {
                                     ?>
                                     <div class='mdl-list__item mdl-list__item--two-line'>
                                         <span class='mdl-list__item-primary-content'>
-                                            <i class='zmdi zmdi-label mdl-list__item-avatar'></i> <!-- Ícono de categoría -->
-                                            <span><?php echo $count . ". " . htmlspecialchars($row['nombre']); ?></span> <!-- Mostrar el nombre de la categoría -->
-                                            <span class='mdl-list__item-sub-title'>ID: <?php echo $row['idcategoria']; ?></span> <!-- Mostrar el ID de la categoría -->
+                                            <i class='zmdi zmdi-label mdl-list__item-avatar'></i>
+                                            <span><?php echo $count . ". " . htmlspecialchars($row['nombre']); ?></span> 
+                                            <span class='mdl-list__item-sub-title'>ID: <?php echo $row['idcategoria']; ?></span> 
                                         </span>
                                         <span class='mdl-list__item-secondary-action'>
-                                            <!-- Agregar botón para eliminar la categoría si no es requerido-->
+                                            <!-- EDITAR -->
+                                            <button class='mdl-button mdl-js-button mdl-button--icon' onclick='window.location.href="editar.php?idcategoria=<?php echo $row["idcategoria"]; ?>"'>
+                                                <i class='zmdi zmdi-edit'></i>
+                                            </button>
+                                            <!-- ELIMINAR -->
                                             <button id='deleteBtn_<?php echo $row["idcategoria"]; ?>' class='mdl-button mdl-js-button mdl-button--icon' onclick='confirmDelete(<?php echo $row["idcategoria"]; ?>)'>
                                                 <i class='zmdi zmdi-delete'></i>
                                             </button>
                                         </span>
                                     </div>
-                                    <li class='full-width divider-menu-h'></li> <!-- Línea divisoria -->
+                                    <li class='full-width divider-menu-h'></li>
                                     <?php
-                                    $count++; // Incrementar el contador de categorías
+                                    $count++;
                                 }
                             } else {
                                 echo "No se encontraron categorías.";
@@ -119,7 +121,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                             ?>
                         </div>
                         <script>
-                            // Función para confirmar y eliminar la categoría
+                            // ALERTA DE ELMINACION
                             function confirmDelete(idcategoria) {
                                 Swal.fire({
                                     title: '¿Estás seguro?',
@@ -132,24 +134,20 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                                     cancelButtonText: 'Cancelar'
                                 }).then((result) => {
                                     if (result.isConfirmed) {
-                                        // Realizar la solicitud AJAX para eliminar la categoría
                                         $.ajax({
                                             type: 'POST',
                                             url: '../crud/categoria/eliminar.php', 
                                             data: {idcategoria: idcategoria},
                                             success: function(response) {
-                                                // Mostrar mensaje de éxito con SweetAlert2
                                                 Swal.fire({
                                                     title: '¡Eliminado!',
                                                     text: 'La categoría ha sido eliminada.',
                                                     icon: 'success'
                                                 }).then((result) => {
-                                                    // Recargar la página después de eliminar la categoría
                                                     location.reload();
                                                 });
                                             },
                                             error: function(xhr, status, error) {
-                                                // Mostrar mensaje de error si la solicitud AJAX falla
                                                 Swal.fire({
                                                     title: 'Error',
                                                     text: 'Se produjo un error al intentar eliminar la categoría.',
@@ -169,7 +167,6 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
 </div>
 
 <?php
-// Limpiar las variables de sesión después de mostrar el formulario
 unset($_SESSION['error_categoria']); 
 unset($_SESSION['mensaje_categoria']);
 unset($_SESSION['nombre_categoria']);

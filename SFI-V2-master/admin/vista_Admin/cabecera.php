@@ -1,5 +1,7 @@
 <?php
+
 session_start();
+
 
 // Conectar a la base de datos
 $conn = new mysqli("localhost", "root", "", "proyecto");
@@ -187,7 +189,7 @@ $conn->close();
 								<i class="zmdi zmdi-washing-machine"></i>
 							</div>
 							<div class="navLateral-body-cr">
-								PAGOS
+								PREALIZAR VENTA
 							</div>
 						</a>
 					</li>
@@ -199,6 +201,17 @@ $conn->close();
 							</div>
 							<div class="navLateral-body-cr">
 								VENTAS
+							</div>
+						</a>
+					</li>
+					<li class="full-width divider-menu-h"></li>
+					<li class="full-width">
+						<a href="pedidos.php" class="full-width">
+							<div class="navLateral-body-cl">
+								<i class="zmdi zmdi-shopping-cart"></i>
+							</div>
+							<div class="navLateral-body-cr">
+								PEDIDOS
 							</div>
 						</a>
 					</li>

@@ -17,7 +17,7 @@ $pdf->SetSubject('Informe de Productos');
 $pdf->SetKeywords('TCPDF, PDF, productos, informe');
 
 // Establecer la cabecera del documento
-$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'Informe de Productos', 'Generado por TCPDF');
+$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'INFORME DE PRODUCTOS', 'Generado por TCPDF');
 
 // Establecer las fuentes para la cabecera y el pie de página
 $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
@@ -41,12 +41,51 @@ $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 $pdf->AddPage();
 
 // Establecer la fuente
-$pdf->SetFont('helvetica', '', 12);
+$pdf->SetFont('helvetica', '', 7.8);
 
 // Contenido HTML para el PDF
-$html = '<h1>Productos Sin Descuento</h1>';
-$html .= '<table border="1" cellpadding="4">';
-$html .= '<thead><tr><th>FECHA Y HORA</th><th>NOMBRE</th><th>CATEGORIA</th><th>TALLA</th><th>PRECIO</th><th>CANTIDAD</th></tr></thead><tbody>';
+$html = <<<EOD
+<style>
+    h1 {
+        text-align: center;
+        color: #000000;
+        text-transform: uppercase;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+    }
+    th {
+        background-color: #007BFF;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    td {
+        text-align: center;
+    }
+    table, th, td {
+        border: 1px solid black;
+    }
+</style>
+
+<h1>Productos Sin Descuento</h1>
+<table cellpadding="4">
+    <thead>
+        <tr>
+            <th>FECHA Y HORA</th>
+            <th>NOMBRE</th>
+            <th>CATEGORIA</th>
+            <th>TALLA</th>
+            <th>PRECIO</th>
+            <th>CANTIDAD</th>
+        </tr>
+    </thead>
+    <tbody>
+EOD;
+
 foreach ($productosSinDescuento as $producto) {
     $html .= '<tr>';
     $html .= '<td>' . htmlspecialchars($producto['fecha_actualizacion']) . '</td>';
@@ -57,11 +96,28 @@ foreach ($productosSinDescuento as $producto) {
     $html .= '<td>' . htmlspecialchars($producto['cantidad']) . '</td>';
     $html .= '</tr>';
 }
-$html .= '</tbody></table>';
 
-$html .= '<h1>Productos Con Descuento</h1>';
-$html .= '<table border="1" cellpadding="4">';
-$html .= '<thead><tr><th>FECHA Y HORA</th><th>NOMBRE</th><th>CATEGORIA</th><th>TALLA</th><th>PRECIO</th><th>DESCUENTO</th><th>P.DESCUENTO</th><th>CANTIDAD</th></tr></thead><tbody>';
+$html .= <<<EOD
+    </tbody>
+</table>
+
+<h1>Productos Con Descuento</h1>
+<table cellpadding="4">
+    <thead>
+        <tr>
+            <th>FECHA Y HORA</th>
+            <th>NOMBRE</th>
+            <th>CATEGORIA</th>
+            <th>TALLA</th>
+            <th>PRECIO</th>
+            <th>DESCUENTO</th>
+            <th>P.DESCUENTO</th>
+            <th>CANTIDAD</th>
+        </tr>
+    </thead>
+    <tbody>
+EOD;
+
 foreach ($productosConDescuento as $producto) {
     $html .= '<tr>';
     $html .= '<td>' . htmlspecialchars($producto['fecha_actualizacion']) . '</td>';
@@ -74,7 +130,11 @@ foreach ($productosConDescuento as $producto) {
     $html .= '<td>' . htmlspecialchars($producto['cantidad']) . '</td>';
     $html .= '</tr>';
 }
-$html .= '</tbody></table>';
+
+$html .= <<<EOD
+    </tbody>
+</table>
+EOD;
 
 // Imprimir el contenido HTML
 $pdf->writeHTML($html, true, false, true, false, '');
