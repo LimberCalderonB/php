@@ -12,87 +12,151 @@ class ModeloProducto extends conexionBase {
         $this->CloseConnection();
     }
 
-    public function agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $estado, $img1, $img2, $img3) {
-        // Primero, inserta el producto en la tabla producto
-        $sql = "INSERT INTO producto (nombre, precio, descuento, precioConDescuento, descripcion, talla, estado, img1, img2, img3) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public function agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3) {
+        $sql = "INSERT INTO producto (nombre, precio, descuento, precioConDescuento, descripcion, talla, img1, img2, img3) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $this->GetConnection()->prepare($sql);
         if ($stmt === false) {
-            return ['success' => false, 'error' => 'Error al preparar la consulta'];
+            return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
         }
-    
-        $stmt->bind_param("ssddssssss", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $estado, $img1, $img2, $img3);
+
+        $stmt->bind_param("sddssssss", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $img1, $img2, $img3);
         
         if ($stmt->execute()) {
-            $idproducto = $stmt->insert_id; // Obtiene el ID del producto insertado
+            $idproducto = $stmt->insert_id;
             $stmt->close();
-    
-            // Luego, inserta en la tabla almacen con cantidad inicial de 1
+
             if ($categoria_idcategoria !== null) {
                 $sqlAlmacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria, cantidad) VALUES (?, ?, ?)";
                 $stmtAlmacen = $this->GetConnection()->prepare($sqlAlmacen);
                 
                 if ($stmtAlmacen === false) {
-                    return ['success' => false, 'error' => 'Error al preparar la consulta de almacen'];
+                    return ['success' => false, 'error' => 'Error al preparar la consulta de almacen: ' . $this->GetConnection()->error];
                 }
-    
-                $cantidad = 1; // Valor inicial para la cantidad
+
+                $cantidad = 1;
                 $stmtAlmacen->bind_param("iii", $idproducto, $categoria_idcategoria, $cantidad);
                 
                 if ($stmtAlmacen->execute()) {
                     $stmtAlmacen->close();
                     return ['success' => true];
                 } else {
-                    return ['success' => false, 'error' => 'Error al insertar en almacen'];
+                    return ['success' => false, 'error' => 'Error al insertar en almacen: ' . $stmtAlmacen->error];
                 }
             } else {
                 return ['success' => false, 'error' => 'Categoría no especificada'];
             }
         } else {
-            return ['success' => false, 'error' => 'Error al insertar en producto'];
+            return ['success' => false, 'error' => 'Error al insertar en producto: ' . $stmt->error];
         }
     }
-    
-    
 
     public function eliminarProducto($idproducto) {
-    // Primero, elimina el producto de la tabla almacen
-    $sqlAlmacen = "DELETE FROM almacen WHERE producto_idproducto = ?";
-    $stmtAlmacen = $this->GetConnection()->prepare($sqlAlmacen);
-    
-    if ($stmtAlmacen === false) {
-        return ['success' => false, 'error' => 'Error al preparar la consulta de almacen'];
-    }
+        $sqlAlmacen = "DELETE FROM almacen WHERE producto_idproducto = ?";
+        $stmtAlmacen = $this->GetConnection()->prepare($sqlAlmacen);
+        
+        if ($stmtAlmacen === false) {
+            return ['success' => false, 'error' => 'Error al preparar la consulta de almacen: ' . $this->GetConnection()->error];
+        }
 
-    $stmtAlmacen->bind_param("i", $idproducto);
-    
-    if (!$stmtAlmacen->execute()) {
+        $stmtAlmacen->bind_param("i", $idproducto);
+        
+        if (!$stmtAlmacen->execute()) {
+            $stmtAlmacen->close();
+            return ['success' => false, 'error' => 'Error al eliminar de almacen: ' . $stmtAlmacen->error];
+        }
+
         $stmtAlmacen->close();
-        return ['success' => false, 'error' => 'Error al eliminar de almacen'];
+
+        $sqlProducto = "DELETE FROM producto WHERE idproducto = ?";
+        $stmtProducto = $this->GetConnection()->prepare($sqlProducto);
+        
+        if ($stmtProducto === false) {
+            return ['success' => false, 'error' => 'Error al preparar la consulta de producto: ' . $this->GetConnection()->error];
+        }
+
+        $stmtProducto->bind_param("i", $idproducto);
+        
+        if ($stmtProducto->execute()) {
+            $stmtProducto->close();
+            return ['success' => true];
+        } else {
+            return ['success' => false, 'error' => 'Error al eliminar producto: ' . $stmtProducto->error];
+        }
     }
 
-    $stmtAlmacen->close();
-
-    // Luego, elimina el producto de la tabla producto
-    $sqlProducto = "DELETE FROM producto WHERE idproducto = ?";
-    $stmtProducto = $this->GetConnection()->prepare($sqlProducto);
-    
-    if ($stmtProducto === false) {
-        return ['success' => false, 'error' => 'Error al preparar la consulta de producto'];
+    public function obtenerProductoPorId($idproducto) {
+        $query = "SELECT p.*, a.categoria_idcategoria FROM producto p
+                  LEFT JOIN almacen a ON p.idproducto = a.producto_idproducto
+                  WHERE p.idproducto = ?";
+        $stmt = $this->GetConnection()->prepare($query);
+        
+        if ($stmt === false) {
+            return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
+        }
+        
+        $stmt->bind_param("i", $idproducto);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        $stmt->close();
+        
+        if ($data) {
+            return $data;
+        } else {
+            return ['success' => false, 'error' => 'Producto no encontrado'];
+        }
     }
 
-    $stmtProducto->bind_param("i", $idproducto);
-    
-    if ($stmtProducto->execute()) {
-        $stmtProducto->close();
-        return ['success' => true];
-    } else {
-        return ['success' => false, 'error' => 'Error al eliminar producto'];
-    }
-}
+    public function actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3) {
+        $query = "UPDATE producto SET 
+                     nombre = ?, 
+                     precio = ?, 
+                     descuento = ?, 
+                     precioConDescuento = ?, 
+                     descripcion = ?, 
+                     talla = ?, 
+                     img1 = ?, 
+                     img2 = ?, 
+                     img3 = ? 
+                  WHERE idproducto = ?";
+        
+        $stmt = $this->GetConnection()->prepare($query);
+        
+        if ($stmt === false) {
+            return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
+        }
+        
+        $stmt->bind_param("sddssssssi", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $img1, $img2, $img3, $idproducto);
+        
+        if ($stmt->execute()) {
+            $stmt->close();
 
-    public function obtenerProductos() {
+            if ($categoria_idcategoria !== null) {
+                $queryAlmacen = "UPDATE almacen SET categoria_idcategoria = ? WHERE producto_idproducto = ?";
+                $stmtAlmacen = $this->GetConnection()->prepare($queryAlmacen);
+                
+                if ($stmtAlmacen === false) {
+                    return ['success' => false, 'error' => 'Error al preparar la consulta de almacen: ' . $this->GetConnection()->error];
+                }
+
+                $stmtAlmacen->bind_param("ii", $categoria_idcategoria, $idproducto);
+                
+                if ($stmtAlmacen->execute()) {
+                    $stmtAlmacen->close();
+                    return ['success' => true];
+                } else {
+                    return ['success' => false, 'error' => 'Error al actualizar almacen: ' . $stmtAlmacen->error];
+                }
+            } else {
+                return ['success' => false, 'error' => 'Categoría no especificada'];
+            }
+        } else {
+            return ['success' => false, 'error' => 'Error al actualizar producto: ' . $stmt->error];
+        }
+    }
+public function obtenerProductos() {
         // Consulta modificada para agrupar por nombre, precio, talla y categoría, y sumar la cantidad y obtener la última fecha
         $sql = "SELECT 
                     p.nombre, 

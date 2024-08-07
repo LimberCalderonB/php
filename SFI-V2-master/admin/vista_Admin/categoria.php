@@ -1,8 +1,8 @@
 <?php
-
 include_once "cabecera.php";
-//ALERTA DE REGISTRO
-if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso_categoria'] == true){
+
+// ALERTA DE REGISTRO
+if (isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso_categoria'] == true) {
     echo "<script>
     $(document).ready(function() {
         Swal.fire({
@@ -16,53 +16,23 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
     </script>";
     unset($_SESSION['registro_exitoso_categoria']);
 }
+
+// Variable para mantener la pestaña activa
+$activeTab = 'tabListCategory';
+if (isset($_SESSION['error_categoria'])) {
+    $activeTab = 'tabNewCategory';
+}
 ?>
+
 <br>
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-        <a href="#tabListCategory" class="mdl-tabs__tab is-active">LISTA DE CATEGORIAS</a>
-        <a href="#tabNewCategory" class="mdl-tabs__tab">AGREGAR NUEVA CATEGORIA</a>
-        
+        <a href="#tabListCategory" class="mdl-tabs__tab <?php echo $activeTab == 'tabListCategory' ? 'is-active' : ''; ?>">LISTA DE CATEGORIAS</a>
+        <a href="#tabNewCategory" class="mdl-tabs__tab <?php echo $activeTab == 'tabNewCategory' ? 'is-active' : ''; ?>">AGREGAR NUEVA CATEGORIA</a>
     </div>
 
-    <div class="mdl-tabs__panel" id="tabNewCategory">
-        <div class="mdl-grid">
-            <div class="mdl-cell mdl-cell--12-col">
-                <div class="full-width panel mdl-shadow--2dp">
-                    <div class="full-width panel-tittle bg-primary text-center tittles">
-                        Nueva Categoría
-                    </div>
-                    <div class="full-width panel-content">
-                        <form action="../controlador_admin/ct_categoria.php" method="post" class="row g-3 needs-validation" novalidate>
-                            <div class="mdl-grid">
-                                <div class="mdl-cell mdl-cell--12-col">
-                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION</legend><br>
-                                </div>
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($_SESSION['error_categoria']) ? 'is-invalid' : ''; ?>">
-                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" value="<?php echo isset($_SESSION['nombre_categoria']) ? $_SESSION['nombre_categoria'] : ''; ?>">
-                                        <label class="mdl-textfield__label" for="nombre">Nombre de Categoría</label>
-                                        <?php if(isset($_SESSION['error_categoria'])): ?>
-                                            <span class="mdl-textfield__error" style="color:red;"><?php echo $_SESSION['mensaje_categoria']; ?></span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-
-                            </div>
-                            <p class="text-center">
-                                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="agregar" type="submit">
-                                    <i class="zmdi zmdi-plus"></i>
-                                </button>
-                                <div class="mdl-tooltip" for="agregar">Agregar Categoría</div>
-                            </p>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="mdl-tabs__panel is-active" id="tabListCategory">
+    <div class="mdl-tabs__panel <?php echo $activeTab == 'tabListCategory' ? 'is-active' : ''; ?>" id="tabListCategory">
+        <!-- Lista de Categorías -->
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--8-col-desktop mdl-cell--2-offset-desktop">
                 <div class="full-width panel mdl-shadow--2dp">
@@ -101,7 +71,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                                         </span>
                                         <span class='mdl-list__item-secondary-action'>
                                             <!-- EDITAR -->
-                                            <button class='mdl-button mdl-js-button mdl-button--icon' onclick='window.location.href="editar.php?idcategoria=<?php echo $row["idcategoria"]; ?>"'>
+                                            <button class='mdl-button mdl-js-button mdl-button--icon' onclick='window.location.href="editar_categoria.php?idcategoria=<?php echo $row["idcategoria"]; ?>"'>
                                                 <i class='zmdi zmdi-edit'></i>
                                             </button>
                                             <!-- ELIMINAR -->
@@ -121,7 +91,7 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                             ?>
                         </div>
                         <script>
-                            // ALERTA DE ELMINACION
+                            // ALERTA DE ELIMINACION
                             function confirmDelete(idcategoria) {
                                 Swal.fire({
                                     title: '¿Estás seguro?',
@@ -159,6 +129,42 @@ if(isset($_SESSION['registro_exitoso_categoria']) && $_SESSION['registro_exitoso
                                 });
                             }
                         </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mdl-tabs__panel <?php echo $activeTab == 'tabNewCategory' ? 'is-active' : ''; ?>" id="tabNewCategory">
+        <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--12-col">
+                <div class="full-width panel mdl-shadow--2dp">
+                    <div class="full-width panel-tittle bg-primary text-center tittles">
+                        Nueva Categoría
+                    </div>
+                    <div class="full-width panel-content">
+                        <form action="../controlador_admin/ct_categoria.php" method="post" class="row g-3 needs-validation" novalidate>
+                            <div class="mdl-grid">
+                                <div class="mdl-cell mdl-cell--12-col">
+                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION</legend><br>
+                                </div>
+                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($_SESSION['error_categoria']) ? 'is-invalid' : ''; ?>">
+                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" value="<?php echo isset($_SESSION['nombre_categoria']) ? $_SESSION['nombre_categoria'] : ''; ?>">
+                                        <label class="mdl-textfield__label" for="nombre">Nombre de Categoría</label>
+                                        <?php if(isset($_SESSION['error_categoria'])): ?>
+                                            <span class="mdl-textfield__error" style="color:red;"><?php echo $_SESSION['mensaje_categoria']; ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-center">
+                                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="agregar" type="submit">
+                                    <i class="zmdi zmdi-plus"></i>
+                                </button>
+                                <div class="mdl-tooltip" for="agregar">Agregar Categoría</div>
+                            </p>
+                        </form>
                     </div>
                 </div>
             </div>

@@ -81,15 +81,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; OTROS DATOS</legend><br>
                                 </div>
-                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield">
-                                        <select class="mdl-textfield__input" name="estado" id="estado">
-                                            <option value="" disabled="" selected="">Seleccionar Estado </option>
-                                            <option value="Activo">Activo</option>
-                                            <option value="Desactivo">Desactivo</option>
-                                        </select>
-                                    </div>
-                                </div>
+                                
                                 <div class="mdl-cell mdl-cell--3-col mdl-cell--0-col-tablet mdl-cell--2-col">
                                     <div class="custom-file-upload">
                                         <input type="file" id="fileUpload1" accept="image/*" name="img1" />
@@ -155,20 +147,6 @@ if ($result->num_rows > 0) {
 }
 $conn->close();
 ?>
-<!--BARRA DE NAVEGACION DE CATEGORIAS-->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
-    <div class="container">
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item">
-                    <a>CTEGORIA1 - CATEGORIA2 - CATEGORIA3</a>
-                </li>
-                
-            </ul>
-        </div>
-    </div>
-</nav>
-
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">
         <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
@@ -218,6 +196,11 @@ $conn->close();
                                 </div>
                             </div>
                             <div class="mdl-card__actions mdl-card--border">
+                            <div class="product-info">
+                                    <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
+                                    
+                                    
+                                </div>
                                 <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                                     <?php if ($producto['descuento'] > 0): ?>
                                         <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
@@ -227,11 +210,7 @@ $conn->close();
                                         <?php echo htmlspecialchars($producto['precio']); ?>-Bs
                                     <?php endif; ?>
                                 </div>
-                                <select class="mdl-textfield__input">
-                                    <option value="" disabled="" selected="">Estado</option>
-                                    <option value="Activo" <?php echo $producto['estado'] == 'Activo' ? 'selected' : ''; ?>>Activo</option>
-                                    <option value="Desactivo" <?php echo $producto['estado'] == 'Desactivo' ? 'selected' : ''; ?>>Desactivo</option>
-                                </select>
+                                
                                 <div class="btn-container">
                                     <form method="post" action="pagos.php" style="display:inline;">
                                         <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
@@ -241,9 +220,9 @@ $conn->close();
                                         </button>
                                     </form>
                                     <div class="btn-right">
-                                        <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" data-id="<?php echo $producto['idproducto']; ?>">
-                                            <i class="zmdi zmdi-edit"></i>
-                                        </button>
+                                            <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
+                                                <i class="zmdi zmdi-edit"></i>
+                                            </button>
                                         <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
                                             <i class="zmdi zmdi-delete"></i>
                                         </button>

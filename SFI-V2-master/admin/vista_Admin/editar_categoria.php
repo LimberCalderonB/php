@@ -2,13 +2,9 @@
 include_once "cabecera.php";
 include_once "../../conexion.php";
 
-  // Asegúrate de que la sesión está iniciada
-
-// Recuperar ID de categoría desde la URL
 $idcategoria = $_GET['idcategoria'] ?? '';
 $categoria = [];
 
-// Recuperar los datos de la categoría si se proporciona un ID
 if ($idcategoria) {
     $sql = "SELECT idcategoria, nombre FROM categoria WHERE idcategoria = ?";
     $stmt = $conn->prepare($sql);
@@ -25,7 +21,6 @@ if ($idcategoria) {
     $stmt->close();
 }
 
-// Recuperar mensaje de error de sesión si está definido
 $error_message = isset($_SESSION['mensaje_categoria']) ? $_SESSION['mensaje_categoria'] : '';
 $error_class = isset($_SESSION['error_categoria']) && $_SESSION['error_categoria'] ? 'input-error' : '';
 unset($_SESSION['mensaje_categoria'], $_SESSION['error_categoria']);

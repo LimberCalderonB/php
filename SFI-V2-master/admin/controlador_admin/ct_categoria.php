@@ -68,7 +68,7 @@ if (isset($_POST["nombre"])) {
 
 // Redirigir a la página correspondiente según el contexto
 if (isset($_POST['editar'])) {
-    header("Location: ../vista_Admin/editar.php?idcategoria=" . htmlspecialchars($_POST['idcategoria']));
+    header("Location: ../vista_Admin/editar_categoria.php?idcategoria=" . htmlspecialchars($_POST['idcategoria']));
 } else {
     header("Location: ../vista_Admin/categoria.php");
 }
