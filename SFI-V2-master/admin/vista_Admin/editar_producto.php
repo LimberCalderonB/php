@@ -48,35 +48,35 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ ]*(\.[0-9]+)?" id="nombre" name="nombre" value="<?php echo htmlspecialchars($producto['nombre']); ?>">
                                     <label class="mdl-textfield__label" for="nombre">Nombre</label>
-                                    <span class="mdl-textfield__error">Nombre Invalido</span>
+                                    <span class="mdl-textfield__error" style="color:red;">Nombre Invalido</span>
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="text" pattern="-?[0-9.]*(\.[0-9]+)?" id="precio" name="precio" value="<?php echo htmlspecialchars($producto['precio']); ?>">
                                     <label class="mdl-textfield__label" for="precio">Precio</label>
-                                    <span class="mdl-textfield__error">Precio Invalido</span>
+                                    <span class="mdl-textfield__error" style="color:red;">Precio Invalido</span>
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="descuento" name="descuento" value="<?php echo htmlspecialchars($producto['descuento']); ?>">
                                     <label class="mdl-textfield__label" for="descuento">% Descuento</label>
-                                    <span class="mdl-textfield__error">Descuento Invalido</span>
+                                    <span class="mdl-textfield__error" style="color:red;">Descuento Invalido</span>
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--9-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion" value="<?php echo htmlspecialchars($producto['descripcion']); ?>">
                                     <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
-                                    <span class="mdl-textfield__error">Falta la Descripción</span>
+                                    <span class="mdl-textfield__error" style="color:red;">Falta la Descripción</span>
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="talla" name="talla" value="<?php echo htmlspecialchars($producto['talla']); ?>">
                                     <label class="mdl-textfield__label" for="talla">Talla</label>
-                                    <span class="mdl-textfield__error">Talla Invalida</span>
+                                    <span class="mdl-textfield__error" style="color:red;">Talla Invalida</span>
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--12-col">
@@ -113,6 +113,7 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                                         <input type="file" id="fileUpload1" accept="image/*" name="img1" onchange="updatePreview(this, 'imgPreview1')" />
                                         <button type="button" class="file-upload-button" onclick="document.getElementById('fileUpload1').click()">Seleccionar</button>
                                         <input type="hidden" id="remove_img1" name="remove_img1" value="0">
+                                        <input type="hidden" name="original_img1" value="<?php echo htmlspecialchars($producto['img1']); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -126,6 +127,7 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                                         <input type="file" id="fileUpload2" accept="image/*" name="img2" onchange="updatePreview(this, 'imgPreview2')" />
                                         <button type="button" class="file-upload-button" onclick="document.getElementById('fileUpload2').click()">Seleccionar</button>
                                         <input type="hidden" id="remove_img2" name="remove_img2" value="0">
+                                        <input type="hidden" name="original_img2" value="<?php echo htmlspecialchars($producto['img2']); ?>">
                                     </div>
                                 </div>
                             </div>
@@ -139,13 +141,14 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                                         <input type="file" id="fileUpload3" accept="image/*" name="img3" onchange="updatePreview(this, 'imgPreview3')" />
                                         <button type="button" class="file-upload-button" onclick="document.getElementById('fileUpload3').click()">Seleccionar</button>
                                         <input type="hidden" id="remove_img3" name="remove_img3" value="0">
+                                        <input type="hidden" name="original_img3" value="<?php echo htmlspecialchars($producto['img3']); ?>">
                                     </div>
                                 </div>
                             </div>
 
                             <div class="mdl-cell mdl-cell--12-col">
                                 <p class="text-center">
-                                    <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Actualizar Producto</button>
+                                    <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored bg-primary">Actualizar Producto</button>
                                     <a href="productos.php" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored bg-danger" onclick="clearSessionData()">
                             Cancelar
                         </a>
@@ -165,6 +168,46 @@ include_once "pie.php";
 include_once "validaciones/val_producto.php";
 ?>
 
+<script>
+function removeImage(imageIndex) {
+    var fileInput = document.getElementById('fileUpload' + imageIndex);
+    var imgPreview = document.getElementById('imgPreview' + imageIndex);
+    var removeInput = document.getElementById('remove_img' + imageIndex);
+    var originalInput = document.querySelector('input[name="original_img' + imageIndex + '"]');
+    
+    // Limpiar el archivo seleccionado
+    fileInput.value = ''; 
+    
+    // Vaciar la vista previa de la imagen
+    imgPreview.src = ''; 
+    
+    // Marcar para eliminación
+    removeInput.value = '1'; 
+    
+    // Limpiar el valor del archivo original
+    originalInput.value = ''; 
+}
+
+function updatePreview(input, imgPreviewId) {
+    var imgPreview = document.getElementById(imgPreviewId);
+    var removeInput = document.getElementById('remove_' + imgPreviewId.slice(-1));
+    var originalInput = document.querySelector('input[name="original_img' + imgPreviewId.slice(-1) + '"]');
+    
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            imgPreview.src = e.target.result; // Actualizar la vista previa con la nueva imagen
+        };
+        reader.readAsDataURL(input.files[0]);
+        removeInput.value = '0'; // Desmarcar eliminación si se selecciona una nueva imagen
+        originalInput.value = ''; // Limpiar el nombre original si se selecciona una nueva imagen
+    } else {
+        imgPreview.src = ''; // Vaciar la vista previa si no se selecciona un archivo
+    }
+}
+
+</script>
+
 <style>
     input[type="file"] {
     display: none;
@@ -178,7 +221,7 @@ include_once "validaciones/val_producto.php";
     margin-bottom: 20px;
 }
 
-/* Estilo para las imágenes de vista previa */
+/* Estilo para las imágenes de vista*/
 .img-thumbnail {
     width: 200px;
     height: 200px;
@@ -196,7 +239,7 @@ input[type="file"] {
 /* Estilo para el botón Seleccionar */
 .file-upload-button {
     padding: 10px 20px;
-    background-color: #1976D2;
+    background-color: #4e48b0;
     color: white;
     border: none;
     border-radius: 4px;
@@ -240,32 +283,52 @@ input[type="file"] {
 }
 
 </style>
+
+<!--ESTILO DE ALERTA-->
+<style>
+    .mdl-textfield__error {
+    display: none; /* Oculta el mensaje de error por defecto */
+}
+.mdl-textfield.is-invalid .mdl-textfield__error {
+    display: block; /* Muestra el mensaje de error si el campo es inválido */
+}
+
+
+</style>
 <script>
-    function updatePreview(input, previewId) {
-        var preview = document.getElementById(previewId);
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
-            reader.readAsDataURL(input.files[0]);
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form'); // Asegúrate de seleccionar el formulario adecuado
+    const fields = document.querySelectorAll('.mdl-textfield__input');
+
+    function validateField(field) {
+        const errorSpan = field.nextElementSibling;
+        if (field.value.trim() === '') {
+            field.parentElement.classList.add('is-invalid');
+            errorSpan.textContent = 'Este campo no puede estar vacío';
+        } else if (!field.checkValidity()) {
+            field.parentElement.classList.add('is-invalid');
+            errorSpan.textContent = 'Valor inválido';
         } else {
-            preview.src = '';
-            preview.style.display = 'none';
+            field.parentElement.classList.remove('is-invalid');
+            errorSpan.textContent = '';
         }
     }
 
-    function removeImage(imageIndex) {
-    var fileInput = document.getElementById('fileUpload' + imageIndex);
-    var preview = document.getElementById('imgPreview' + imageIndex);
-    var removeInput = document.getElementById('remove_img' + imageIndex);
+    fields.forEach(field => {
+        field.addEventListener('input', () => validateField(field));
+    });
 
-    fileInput.value = ''; // Clear the file input
-    preview.src = ''; // Clear the image preview
-    preview.style.display = 'none'; // Hide the image preview
-    removeInput.value = '1'; // Mark the image for removal
-}
-
+    form.addEventListener('submit', (e) => {
+        let formIsValid = true;
+        fields.forEach(field => {
+            if (!field.value.trim() || !field.checkValidity()) {
+                formIsValid = false;
+                validateField(field);
+            }
+        });
+        if (!formIsValid) {
+            e.preventDefault(); // Evita el envío del formulario si hay errores
+        }
+    });
+});
 </script>
-

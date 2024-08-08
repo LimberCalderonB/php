@@ -109,53 +109,107 @@ class ModeloProducto extends conexionBase {
         }
     }
 
-    public function actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3) {
-        $query = "UPDATE producto SET 
-                     nombre = ?, 
-                     precio = ?, 
-                     descuento = ?, 
-                     precioConDescuento = ?, 
-                     descripcion = ?, 
-                     talla = ?, 
-                     img1 = ?, 
-                     img2 = ?, 
-                     img3 = ? 
-                  WHERE idproducto = ?";
-        
-        $stmt = $this->GetConnection()->prepare($query);
-        
-        if ($stmt === false) {
-            return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
-        }
-        
-        $stmt->bind_param("sddssssssi", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $img1, $img2, $img3, $idproducto);
-        
-        if ($stmt->execute()) {
-            $stmt->close();
-
+    public function actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1 = null, $img2 = null, $img3 = null) {
+        // Iniciar transacción
+        $this->GetConnection()->begin_transaction();
+    
+        try {
+            // Actualizar el producto
+            $queryProducto = "UPDATE producto SET 
+                                nombre = ?, 
+                                precio = ?, 
+                                descuento = ?, 
+                                precioConDescuento = ?, 
+                                descripcion = ?, 
+                                talla = ?";
+    
+            // Agregar las imágenes solo si no son nulas
+            if ($img1 !== null) {
+                $queryProducto .= ", img1 = ?";
+            } else {
+                $queryProducto .= ", img1 = NULL";
+            }
+            if ($img2 !== null) {
+                $queryProducto .= ", img2 = ?";
+            } else {
+                $queryProducto .= ", img2 = NULL";
+            }
+            if ($img3 !== null) {
+                $queryProducto .= ", img3 = ?";
+            } else {
+                $queryProducto .= ", img3 = NULL";
+            }
+    
+            $queryProducto .= " WHERE idproducto = ?";
+    
+            // Preparar la consulta
+            $stmtProducto = $this->GetConnection()->prepare($queryProducto);
+            
+            if ($stmtProducto === false) {
+                throw new Exception('Error al preparar la consulta de producto: ' . $this->GetConnection()->error);
+            }
+    
+            // Vincular los parámetros
+            $params = [$nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla];
+            $types = 'ssddss';
+    
+            if ($img1 !== null) {
+                $params[] = $img1;
+                $types .= 's';
+            }
+            if ($img2 !== null) {
+                $params[] = $img2;
+                $types .= 's';
+            }
+            if ($img3 !== null) {
+                $params[] = $img3;
+                $types .= 's';
+            }
+    
+            $params[] = $idproducto;
+            $types .= 'i';
+    
+            $stmtProducto->bind_param($types, ...$params);
+    
+            // Ejecutar la consulta de producto
+            if (!$stmtProducto->execute()) {
+                throw new Exception('Error al actualizar producto: ' . $stmtProducto->error);
+            }
+    
+            // Actualizar la categoría en la tabla almacen
             if ($categoria_idcategoria !== null) {
                 $queryAlmacen = "UPDATE almacen SET categoria_idcategoria = ? WHERE producto_idproducto = ?";
                 $stmtAlmacen = $this->GetConnection()->prepare($queryAlmacen);
                 
                 if ($stmtAlmacen === false) {
-                    return ['success' => false, 'error' => 'Error al preparar la consulta de almacen: ' . $this->GetConnection()->error];
+                    throw new Exception('Error al preparar la consulta de almacen: ' . $this->GetConnection()->error);
                 }
-
+    
                 $stmtAlmacen->bind_param("ii", $categoria_idcategoria, $idproducto);
-                
-                if ($stmtAlmacen->execute()) {
-                    $stmtAlmacen->close();
-                    return ['success' => true];
-                } else {
-                    return ['success' => false, 'error' => 'Error al actualizar almacen: ' . $stmtAlmacen->error];
+    
+                if (!$stmtAlmacen->execute()) {
+                    throw new Exception('Error al actualizar almacen: ' . $stmtAlmacen->error);
                 }
-            } else {
-                return ['success' => false, 'error' => 'Categoría no especificada'];
+    
+                $stmtAlmacen->close();
             }
-        } else {
-            return ['success' => false, 'error' => 'Error al actualizar producto: ' . $stmt->error];
+    
+            // Confirmar la transacción
+            $this->GetConnection()->commit();
+            
+            // Cerrar la consulta
+            $stmtProducto->close();
+            
+            return ['success' => true];
+    
+        } catch (Exception $e) {
+            // Revertir la transacción en caso de error
+            $this->GetConnection()->rollback();
+            return ['success' => false, 'error' => $e->getMessage()];
         }
     }
+    
+    
 public function obtenerProductos() {
         // Consulta modificada para agrupar por nombre, precio, talla y categoría, y sumar la cantidad y obtener la última fecha
         $sql = "SELECT 

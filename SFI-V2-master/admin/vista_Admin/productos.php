@@ -187,9 +187,9 @@ $conn->close();
                             </div>
                             <div class="mdl-card__supporting-text">
                                 <div class="product-info">
-                                    <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
+                                    <small>CAT: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                                     <small class="separator">|</small>
-                                    <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                                    <small>Talla:<?php echo htmlspecialchars($producto['talla']); ?></small>
                                 </div>
                                 <div class="product-date">
                                     <small><?php echo htmlspecialchars($producto['fecha_actualizacion']); ?></small>
