@@ -127,13 +127,13 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             }
 
             // Validación de apellido materno
-            if (apellido2 === '') {
+            /*if (apellido2 === '') {
                 document.getElementById('apellido2-field').classList.add('is-invalid');
                 document.getElementById('apellido2-error').innerText = 'El apellido materno es obligatorio';
                 camposValidos = false;
             } else {
                 document.getElementById('apellido2-field').classList.remove('is-invalid');
-            }
+            }*/
 
             // Validación de DNI
             if (ci === '') {

@@ -26,41 +26,46 @@ $result_roles = mysqli_query($conn, $query_roles);
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN</legend><br>
                                 </div>
-                                <div class="mdl-cell mdl-cell--12-col">
+                                <div class="mdl-cell mdl-cell--6-col">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ci-field">
                                         <input class="mdl-textfield__input" type="text" id="ci" name="ci" pattern="[0-9]*" inputmode="numeric" maxlength="7">
                                         <label class="mdl-textfield__label" for="ci">DNI</label>
                                         <span class="mdl-textfield__error" id="ci-error">El DNI debe tener exactamente 7 dígitos</span>
                                     </div>
                                 </div>
+
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombre-field">
-                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" pattern="[a-zA-Z]*" inputmode="text">
-                                        <label class="mdl-textfield__label" for="nombre">Nombre</label>
-                                        <span class="mdl-textfield__error" id="nombre-error">Nombre inválido</span>
-                                    </div>
-                                </div>
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido1-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" pattern="[a-zA-Z]*" inputmode="text">
-                                        <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
-                                        <span class="mdl-textfield__error" id="apellido1-error">Apellido inválido</span>
-                                    </div>
-                                </div>
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido2-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" pattern="[a-zA-Z]*" inputmode="text">
-                                        <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
-                                        <span class="mdl-textfield__error" id="apellido2-error">Apellido inválido</span>
-                                    </div>
-                                </div>
-                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="celular-field">
                                         <input class="mdl-textfield__input" type="text" id="celular" name="celular" pattern="[0-9]*" inputmode="numeric" maxlength="8">
                                         <label class="mdl-textfield__label" for="celular">Celular</label>
                                         <span class="mdl-textfield__error" id="celular-error">El número de celular debe tener exactamente 8 dígitos</span>
                                     </div>
                                 </div>
+
+                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombre-field">
+                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" pattern="[a-zA-Z]*" inputmode="text">
+                                        <label class="mdl-textfield__label" for="nombre">Nombre</label>
+                                        <span class="mdl-textfield__error" id="nombre-error">Nombre inválido</span>
+                                    </div>
+                                </div>
+
+                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido1-field">
+                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" pattern="[a-zA-Z]*" inputmode="text">
+                                        <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
+                                        <span class="mdl-textfield__error" id="apellido1-error">Apellido inválido</span>
+                                    </div>
+                                </div>
+
+                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido2-field">
+                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" pattern="[a-zA-Z]*" inputmode="text">
+                                        <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
+                                        <span class="mdl-textfield__error" id="apellido2-error">Apellido inválido</span>
+                                    </div>
+                                </div>
+
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; TIPO DE CARGO</legend><br>
                                 </div>
