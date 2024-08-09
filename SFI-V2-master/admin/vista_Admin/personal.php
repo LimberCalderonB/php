@@ -7,10 +7,10 @@ $query_roles = "SELECT idrol, nombre FROM rol";
 $result_roles = mysqli_query($conn, $query_roles);
 
 ?>
-<br>
+
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
-        <a href="#tabNewAdmin" class="mdl-tabs__tab is-active">NUEVO</a>
+        <a href="#tabNewAdmin" class="mdl-tabs__tab is-active">NUEVO PERSONAL</a>
         <a href="#tabListAdmin" class="mdl-tabs__tab">LISTA DE PERSONAL</a>
     </div>
     <div class="mdl-tabs__panel is-active" id="tabNewAdmin">
@@ -35,21 +35,21 @@ $result_roles = mysqli_query($conn, $query_roles);
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombre-field">
-                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre">
+                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" pattern="[a-zA-Z]*" inputmode="text">
                                         <label class="mdl-textfield__label" for="nombre">Nombre</label>
                                         <span class="mdl-textfield__error" id="nombre-error">Nombre inválido</span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido1-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1">
+                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" pattern="[a-zA-Z]*" inputmode="text">
                                         <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
                                         <span class="mdl-textfield__error" id="apellido1-error">Apellido inválido</span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido2-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2">
+                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" pattern="[a-zA-Z]*" inputmode="text">
                                         <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
                                         <span class="mdl-textfield__error" id="apellido2-error">Apellido inválido</span>
                                     </div>
@@ -142,8 +142,7 @@ $result_roles = mysqli_query($conn, $query_roles);
                         </div>
                     </form>
                     <?php
-                        
-                        $query_personal = "SELECT p.foto, p.nombre, p.apellido1, p.apellido2, p.ci, r.nombre AS rol 
+                        $query_personal = "SELECT p.foto, p.nombre, p.apellido1, p.apellido2, p.ci, u.idusuario, r.nombre AS rol 
                                             FROM persona AS p 
                                             INNER JOIN usuario AS u ON p.idpersona = u.persona_idpersona 
                                             INNER JOIN privilegio AS pv ON u.idusuario = pv.usuario_idusuario 
@@ -160,14 +159,15 @@ $result_roles = mysqli_query($conn, $query_roles);
                                         <span><?php echo htmlspecialchars($row['rol']) . ' | ' . htmlspecialchars($row['nombre']) . ' ' . htmlspecialchars($row['apellido1']) . ' ' . htmlspecialchars($row['apellido2']); ?></span>
                                         <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['ci']); ?></span>
                                     </span>
-                                    <span class="mdl-list__item-secondary-content" style="display: flex; flex-direction: column;">
-                                                <button class='mdl-button mdl-js-button mdl-button--icon' onclick='showDetails(<?php echo $row["idprivilegio"]; ?>)'>
-                                                    <i class='zmdi zmdi-eye'></i>
-                                                </button>
-                                                <button id='deleteBtn_<?php echo $row["idprivilegio"]; ?>' class='mdl-button mdl-js-button mdl-button--icon' onclick='confirmDelete(<?php echo $row["idprivilegio"]; ?>)'>
-                                                    <i class='zmdi zmdi-delete'></i>
-                                                </button>
-                                    </span>
+                                    <div class="btn-right">
+                                        <button class='mdl-button mdl-js-button mdl-button--icon' 
+                                                onclick='window.location.href="editar_PU.php?idusuario=<?php echo $row["idusuario"]; ?>"'>
+                                            <i class="zmdi zmdi-edit"></i>
+                                        </button>
+                                        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $row['idusuario']; ?>">
+                                            <i class="zmdi zmdi-delete"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <hr class="mdl-list__item-divider"> <!-- Línea separadora -->
                         <?php
@@ -176,7 +176,6 @@ $result_roles = mysqli_query($conn, $query_roles);
                             echo "<p>No se encontraron resultados</p>";
                         }
                         ?>
-
                         </div>
                     </div>
                 </div>

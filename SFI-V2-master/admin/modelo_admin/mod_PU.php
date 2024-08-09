@@ -46,25 +46,50 @@ class ModeloPersonaUsuario {
         }
     }
 
-    public function obtenerPersonal() {
-        $query = "SELECT p.foto, p.nombre, p.apellido1, p.apellido2, p.ci, r.nombre AS rol 
-                  FROM persona AS p 
-                  INNER JOIN usuario AS u ON p.idpersona = u.persona_idpersona 
-                  INNER JOIN privilegio AS pv ON u.idusuario = pv.usuario_idusuario 
-                  INNER JOIN rol AS r ON pv.rol_idrol = r.idrol";
-        $result = $this->db->ExecuteQuery($query);
-        $data = [];
-        while ($row = $result->fetch_assoc()) {
-            $data[] = $row;
-        }
-        $this->db->SetFreeResult($result);
-        return $data;
-    }
-
-    public function __destruct() {
-        $this->db->CloseConnection();
-    }
-
+    public function actualizarPersona($idusuario, $ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass, $foto) {
+        // Obtener el idpersona asociado al idusuario
+        $query_get_persona_id = "SELECT persona_idpersona FROM usuario WHERE idusuario = ?";
+        $stmt = $this->db->GetConnection()->prepare($query_get_persona_id);
+        $stmt->bind_param('i', $idusuario);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $persona_id = $result->fetch_assoc()['persona_idpersona'];
     
-}
+            // Actualizar 'persona'
+            $query_persona = "UPDATE persona SET ci = ?, nombre = ?, apellido1 = ?, apellido2 = ?, celular = ? WHERE idpersona = ?";
+            $stmt = $this->db->GetConnection()->prepare($query_persona);
+            $stmt->bind_param('sssssi', $ci, $nombre, $apellido1, $apellido2, $celular, $persona_id);
+            $stmt->execute();
+    
+            // Actualizar 'usuario'
+            $query_usuario = "UPDATE usuario SET nombreUsuario = ?, pass = ? WHERE idusuario = ?";
+            $stmt = $this->db->GetConnection()->prepare($query_usuario);
+            $stmt->bind_param('ssi', $nombreUsuario, $pass, $idusuario);
+            $stmt->execute();
+    
+            // Actualizar 'privilegio'
+            $query_privilegio = "UPDATE privilegio SET rol_idrol = ? WHERE usuario_idusuario = ?";
+            $stmt = $this->db->GetConnection()->prepare($query_privilegio);
+            $stmt->bind_param('ii', $idRol, $idusuario);
+            $stmt->execute();
+    
+            // Guardar la foto en el servidor si se proporciona
+            if ($foto && $foto['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = '../../assets/perfil/';
+                $foto_path = $upload_dir . basename($foto['name']);
+                move_uploaded_file($foto['tmp_name'], $foto_path);
+    
+                // Actualizar la tabla 'persona' con la ruta de la foto
+                $query_update_foto = "UPDATE persona SET foto = ? WHERE idpersona = ?";
+                $stmt = $this->db->GetConnection()->prepare($query_update_foto);
+                $stmt->bind_param('si', $foto_path, $persona_id);
+                $stmt->execute();
+            }
+        } else {
+            throw new Exception("No se encontró la persona asociada al usuario.");
+        }
+    }
+}    
 ?>

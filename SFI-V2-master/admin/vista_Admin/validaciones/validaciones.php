@@ -15,7 +15,6 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
     unset($_SESSION['registro']); 
 }
 ?>
-
 <!--VALIDACION DE BOTON - VERDE -->
 <script>
     document.getElementById('foto').addEventListener('change', function() {
@@ -27,6 +26,12 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
         }
     });
 </script>
+
+<style>
+.green-button {
+    background-color: green !important;
+}
+</style>
 
 <!--ALERTA DE ELIMINACION-->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -86,13 +91,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 </script>
 
 
-
-<style>
-.green-button {
-    background-color: green !important;
-}
-</style>
-
+<!--VALIDACIONES DE CAMPO DE PERSONAL-->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('formulario').addEventListener('submit', function (event) {
@@ -105,7 +104,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             var nombreUsuario = document.getElementById('nombreUsuario').value.trim();
             var pass = document.getElementById('pass').value.trim();
             var idRol = document.getElementById('idRol').value;
-            var foto = document.getElementById('foto').value.trim(); 
+            //var foto = document.getElementById('foto').value.trim(); 
 
             var camposValidos = true;
 
@@ -194,13 +193,13 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             }
 
             // Validación de foto
-            if (foto === '') {
+            /*if (foto === '') {
                 document.getElementById('foto').parentNode.classList.add('is-invalid');
                 document.getElementById('avatar-error').innerText = 'Debe seleccionar una imagen';
                 camposValidos = false;
             } else {
                 document.getElementById('foto').parentNode.classList.remove('is-invalid');
-            }
+            }*/
 
             if (!camposValidos) {
                 event.preventDefault();  // Evitar que el formulario se envíe
