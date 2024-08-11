@@ -1,7 +1,7 @@
 <?php
 include_once '../modelo_admin/mod_producto.php';
 
-include_once '../modelo_admin/mod_producto.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Obtener datos del formulario

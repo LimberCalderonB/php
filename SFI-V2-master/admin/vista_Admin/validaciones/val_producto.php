@@ -79,7 +79,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
         .custom-file-upload {
             position: relative;
             display: inline-block;
-            width: 100%;
+            width: 67%;
         }
 
         .custom-file-upload input[type="file"] {
@@ -88,13 +88,13 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 
         .custom-file-upload label {
             display: block;
-            padding: 10px 20px;
+            padding: 7px 10px;
             background-color: #194EF5;
             color: #fff;
             text-align: center;
             cursor: pointer;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 12px;
             transition: background-color 0.3s ease;
         }
 
@@ -110,24 +110,34 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             background-color: #4CAF50;
         }
     </style>
-    <!--cambio de color de boton de la imagen-->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var fileInputs = document.querySelectorAll('.custom-file-upload input[type="file"]');
-            
-            fileInputs.forEach(function(input) {
-                input.addEventListener('change', function() {
-                    var label = this.nextElementSibling;
-                    if (this.files.length > 0) {
-                        label.classList.add('selected');
-                    } else {
-                        label.classList.remove('selected');
-                    }
-                });
-            });
-        });
-    </script>
+<!--VISUALIZACION DE IMAGEN-->
 
+<script>
+    function previewImage(event, index) {
+        var reader = new FileReader();
+            reader.onload = function() {
+        var preview = document.getElementById('preview' + index);
+        var previewContainer = document.getElementById('previewContainer' + index);
+        var removeButton = document.getElementById('removeButton' + index);
+
+            preview.src = reader.result;
+            preview.style.display = 'block';
+            preview.style.opacity = 1;
+            removeButton.style.display = 'block'; // Mostrar el botón de eliminación
+        };
+
+        if (event.target.files[0]) {
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    }
+
+    function removeImage(index) {
+        document.getElementById('fileUpload' + index).value = ''; // Limpiar el input de archivo
+        document.getElementById('preview' + index).style.display = 'none'; // Ocultar la imagen de previsualización
+        document.getElementById('removeButton' + index).style.display = 'none'; // Ocultar el botón de eliminación
+    }
+
+</script>
 
 <!--navegacion de fotos de producto-->
 <style>
@@ -410,3 +420,171 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
         margin-right: 5px;
     }
 </style>
+
+<!--------------------------------------------------------------------->
+<!--VALIDACIONES DE EDITAR_PRODUCTO.PHP-->
+<!--------------------------------------------------------------------->
+<script>
+function removeImage(imageIndex) {
+    var fileInput = document.getElementById('fileUpload' + imageIndex);
+    var imgPreview = document.getElementById('imgPreview' + imageIndex);
+    var removeInput = document.getElementById('remove_img' + imageIndex);
+    var originalInput = document.querySelector('input[name="original_img' + imageIndex + '"]');
+    
+    // Limpiar el archivo seleccionado
+    fileInput.value = ''; 
+    
+    // Vaciar la vista previa de la imagen
+    imgPreview.src = ''; 
+    
+    // Marcar para eliminación
+    removeInput.value = '1'; 
+    
+    // Limpiar el valor del archivo original
+    originalInput.value = ''; 
+}
+
+function updatePreview(input, imgPreviewId) {
+    var imgPreview = document.getElementById(imgPreviewId);
+    var removeInput = document.getElementById('remove_' + imgPreviewId.slice(-1));
+    var originalInput = document.querySelector('input[name="original_img' + imgPreviewId.slice(-1) + '"]');
+    
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            imgPreview.src = e.target.result; // Actualizar la vista previa con la nueva imagen
+        };
+        reader.readAsDataURL(input.files[0]);
+        removeInput.value = '0'; // Desmarcar eliminación si se selecciona una nueva imagen
+        originalInput.value = ''; // Limpiar el nombre original si se selecciona una nueva imagen
+    } else {
+        imgPreview.src = ''; // Vaciar la vista previa si no se selecciona un archivo
+    }
+}
+
+</script>
+
+<style>
+    input[type="file"] {
+    display: none;
+}
+
+   /* Estilo para el contenedor de carga de imágenes */
+.file-upload-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Estilo para las imágenes de vista*/
+.img-thumbnail {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid #ddd;
+    margin-bottom: 10px;
+}
+
+/* Oculta el input de tipo file */
+input[type="file"] {
+    display: none;
+}
+
+/* Estilo para el botón Seleccionar */
+.file-upload-button {
+    padding: 10px 20px;
+    background-color: #4e48b0;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.file-upload-button:hover {
+    background-color: #1565C0;
+}
+
+.file-upload-button:active {
+    background-color: #0D47A1;
+}
+
+/* Estilo para el botón Quitar */
+.btn-remove {
+    padding: 10px 20px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-remove:hover {
+    background-color: #e53935;
+}
+
+.btn-remove:active {
+    background-color: #d32f2f;
+}
+
+/* Estilo para los botones dentro del contenedor de carga de imágenes */
+.file-upload-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Espacio entre botones */
+    margin-top: 10px;
+}
+
+</style>
+
+<!--ESTILO DE ALERTA-->
+<style>
+    .mdl-textfield__error {
+    display: none; /* Oculta el mensaje de error por defecto */
+}
+.mdl-textfield.is-invalid .mdl-textfield__error {
+    display: block; /* Muestra el mensaje de error si el campo es inválido */
+}
+
+
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form'); // Asegúrate de seleccionar el formulario adecuado
+    const fields = document.querySelectorAll('.mdl-textfield__input');
+
+    function validateField(field) {
+        const errorSpan = field.nextElementSibling;
+        if (field.value.trim() === '') {
+            field.parentElement.classList.add('is-invalid');
+            errorSpan.textContent = 'No puede estar vacío';
+        } else if (!field.checkValidity()) {
+            field.parentElement.classList.add('is-invalid');
+            errorSpan.textContent = 'Valor inválido';
+        } else {
+            field.parentElement.classList.remove('is-invalid');
+            errorSpan.textContent = '';
+        }
+    }
+
+    fields.forEach(field => {
+        field.addEventListener('input', () => validateField(field));
+    });
+
+    form.addEventListener('submit', (e) => {
+        let formIsValid = true;
+        fields.forEach(field => {
+            if (!field.value.trim() || !field.checkValidity()) {
+                formIsValid = false;
+                validateField(field);
+            }
+        });
+        if (!formIsValid) {
+            e.preventDefault(); // Evita el envío del formulario si hay errores
+        }
+    });
+});
+</script>

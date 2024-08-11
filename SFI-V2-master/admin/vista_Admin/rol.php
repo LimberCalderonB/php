@@ -103,13 +103,14 @@ if(isset($_SESSION['registro_exitoso_rol']) && $_SESSION['registro_exitoso_rol']
                                         </span>
                                         <span class='mdl-list__item-secondary-action'>
                                             <?php if ($row['nombre'] !== 'Administrador') { ?> <!-- Mostrar solo si el rol no es de administrador -->
-                                                <button class='mdl-button mdl-js-button mdl-button--icon' onclick='showDetails(<?php echo $row["idrol"]; ?>)'>
-                                                    <i class='zmdi zmdi-eye'></i>
-                                                </button>
-                                                <!-- Agregar id al botón de eliminar -->
-                                                <button id='deleteBtn_<?php echo $row["idrol"]; ?>' class='mdl-button mdl-js-button mdl-button--icon' onclick='confirmDelete(<?php echo $row["idrol"]; ?>)'>
-                                                    <i class='zmdi zmdi-delete'></i>
-                                                </button>
+                                                <!-- EDITAR -->
+                                            <button class='mdl-button mdl-js-button mdl-button--icon' onclick='window.location.href="editar_rol.php?idrol=<?php echo $row["idrol"]; ?>"'>
+                                                <i class='zmdi zmdi-edit'></i>
+                                            </button>
+                                            <!-- ELIMINAR -->
+                                            <button id='deleteBtn_<?php echo $row["idrol"]; ?>' class='mdl-button mdl-js-button mdl-button--icon' onclick='confirmDelete(<?php echo $row["idrol"]; ?>)'>
+                                                <i class='zmdi zmdi-delete'></i>
+                                            </button>
                                             <?php } ?>
                                         </span>
                                     </div>

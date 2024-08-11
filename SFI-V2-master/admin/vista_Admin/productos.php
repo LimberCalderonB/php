@@ -36,34 +36,35 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <span class="mdl-textfield__error">Nombre Invalido</span>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
+                                <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                         <input class="mdl-textfield__input" type="text" pattern="-?[0-9.]*(\.[0-9]+)?" id="precio" name="precio">
                                         <label class="mdl-textfield__label" for="precio">Precio</label>
                                         <span class="mdl-textfield__error">Precio Invalido</span>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
+                                <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                         <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="descuento" name="descuento">
                                         <label class="mdl-textfield__label" for="descuento">% Descuento</label>
                                         <span class="mdl-textfield__error">Descuento Invalido</span>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--9-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                        <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion">
-                                        <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
-                                        <span class="mdl-textfield__error">Falta la Descripcción</span>
-                                    </div>
-                                </div>
-                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
+                                <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                         <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="talla" name="talla">
                                         <label class="mdl-textfield__label" for="talla">Talla</label>
                                         <span class="mdl-textfield__error">Talla Invalida</span>
                                     </div>
                                 </div>
+                                <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                        <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion">
+                                        <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
+                                        <span class="mdl-textfield__error">Falta la Descripcción</span>
+                                    </div>
+                                </div>
+                                
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; CATEGORIA</legend><br>
                                 </div>
@@ -84,22 +85,44 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                 
                                 <div class="mdl-cell mdl-cell--3-col mdl-cell--0-col-tablet mdl-cell--2-col">
                                     <div class="custom-file-upload">
-                                        <input type="file" id="fileUpload1" accept="image/*" name="img1" />
+                                        <input type="file" id="fileUpload1" accept="image/*" name="img1" onchange="previewImage(event, 1);" />
                                         <label for="fileUpload1" id="fileUploadLabel1">Seleccionar Imagen 1</label>
+                                        
+                                        <!-- Contenedor de previsualización -->
+                                        <div id="previewContainer1" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
+                                            <img id="preview1" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
+                                            <button type="button" id="removeButton1" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(1)">X</button>
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div class="mdl-cell mdl-cell--3-col mdl-cell--0-col-tablet mdl-cell--2-col">
                                     <div class="custom-file-upload">
-                                        <input type="file" id="fileUpload2" accept="image/*" name="img2" />
+                                        <input type="file" id="fileUpload2" accept="image/*" name="img2" onchange="previewImage(event, 2);" />
                                         <label for="fileUpload2" id="fileUploadLabel2">Seleccionar Imagen 2</label>
+                                        
+                                        <!-- Contenedor de previsualización -->
+                                        <div id="previewContainer2" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
+                                            <img id="preview2" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
+                                            <button type="button" id="removeButton2" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(2)">X</button>
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div class="mdl-cell mdl-cell--3-col mdl-cell--0-col-tablet mdl-cell--2-col">
                                     <div class="custom-file-upload">
-                                        <input type="file" id="fileUpload3" accept="image/*" name="img3" />
+                                        <input type="file" id="fileUpload3" accept="image/*" name="img3" onchange="previewImage(event, 3);" />
                                         <label for="fileUpload3" id="fileUploadLabel3">Seleccionar Imagen 3</label>
+                                        
+                                        <!-- Contenedor de previsualización -->
+                                        <div id="previewContainer3" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
+                                            <img id="preview3" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
+                                            <button type="button" id="removeButton3" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(3)">X</button>
+                                        </div>
                                     </div>
                                 </div>
+
+                                
                             </div>
                             <div class="mdl-cell mdl-cell--12-col text-center">
                                 <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="btn-addProduct">

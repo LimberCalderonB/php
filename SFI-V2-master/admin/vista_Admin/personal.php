@@ -1,11 +1,15 @@
 <?php
-
 include_once "cabecera.php";
 include_once "../../conexion.php";
 
 $query_roles = "SELECT idrol, nombre FROM rol";
 $result_roles = mysqli_query($conn, $query_roles);
 
+// Mostrar errores si existen
+$errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : [];
+$form_data = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : [];
+unset($_SESSION['errors']);
+unset($_SESSION['form_data']);
 ?>
 
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -27,42 +31,42 @@ $result_roles = mysqli_query($conn, $query_roles);
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN</legend><br>
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ci-field">
-                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci" pattern="[0-9]*" inputmode="numeric" maxlength="7">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['ci']) ? ' is-invalid' : ''; ?>" id="ci-field">
+                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci"  maxlength="7" value="<?php echo htmlspecialchars($form_data['ci'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="ci">DNI</label>
-                                        <span class="mdl-textfield__error" id="ci-error">El DNI debe tener exactamente 7 dígitos</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['ci'] ?? ''); ?></span>
                                     </div>
                                 </div>
 
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="celular-field">
-                                        <input class="mdl-textfield__input" type="text" id="celular" name="celular" pattern="[0-9]*" inputmode="numeric" maxlength="8">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['celular']) ? ' is-invalid' : ''; ?>" id="celular-field">
+                                        <input class="mdl-textfield__input" type="text" id="celular" name="celular" maxlength="8" value="<?php echo htmlspecialchars($form_data['celular'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="celular">Celular</label>
-                                        <span class="mdl-textfield__error" id="celular-error">El número de celular debe tener exactamente 8 dígitos</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['celular'] ?? ''); ?></span>
                                     </div>
                                 </div>
 
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombre-field">
-                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" pattern="[a-zA-Z]*" inputmode="text">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['nombre']) ? ' is-invalid' : ''; ?>" id="nombre-field">
+                                        <input class="mdl-textfield__input" type="text" id="nombre" name="nombre"  value="<?php echo htmlspecialchars($form_data['nombre'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="nombre">Nombre</label>
-                                        <span class="mdl-textfield__error" id="nombre-error">Nombre inválido</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['nombre'] ?? ''); ?></span>
                                     </div>
                                 </div>
 
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido1-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" pattern="[a-zA-Z]*" inputmode="text">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['apellido1']) ? ' is-invalid' : ''; ?>" id="apellido1-field">
+                                        <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" value="<?php echo htmlspecialchars($form_data['apellido1'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
-                                        <span class="mdl-textfield__error" id="apellido1-error">Apellido inválido</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['apellido1'] ?? ''); ?></span>
                                     </div>
                                 </div>
 
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido2-field">
-                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" pattern="[a-zA-Z]*" inputmode="text">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['apellido2']) ? ' is-invalid' : ''; ?>" id="apellido2-field">
+                                        <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2"  value="<?php echo htmlspecialchars($form_data['apellido2'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
-                                        <span class="mdl-textfield__error" id="apellido2-error">Apellido inválido</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['apellido2'] ?? ''); ?></span>
                                     </div>
                                 </div>
 
@@ -74,38 +78,38 @@ $result_roles = mysqli_query($conn, $query_roles);
                                         <select class="mdl-textfield__input" name="idRol" id="idRol">
                                             <option value="" disabled="" selected="">Selecciona Rol</option>
                                             <?php
-                                            
-                                            $query = "SELECT idrol, nombre FROM rol";
-                                            $result = mysqli_query($conn, $query);
-                                            while ($fila = mysqli_fetch_assoc($result)) {
-                                                echo "<option value=\"" . $fila['idrol'] . "\">" . $fila['nombre'] . "</option>";
+                                            while ($fila = mysqli_fetch_assoc($result_roles)) {
+                                                $selected = ($form_data['idRol'] ?? '') == $fila['idrol'] ? 'selected' : '';
+                                                echo "<option value=\"" . htmlspecialchars($fila['idrol']) . "\" $selected>" . htmlspecialchars($fila['nombre']) . "</option>";
                                             }
-                                            
                                             ?>
                                         </select>
-                                        <span class="mdl-textfield__error" id="idRol-error">Debe seleccionar un rol</span>
+                                        <span class="mdl-textfield__error" id="idRol-error">
+                                            <?php echo $errores['idRol'] ?? ''; ?>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; Detalles de Cuenta</legend><br>
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombreUsuario-field">
-                                        <input class="mdl-textfield__input" type="text" id="nombreUsuario" name="nombreUsuario">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['nombreUsuario']) ? ' is-invalid' : ''; ?>" id="nombreUsuario-field">
+                                        <input class="mdl-textfield__input" type="text" id="nombreUsuario" name="nombreUsuario" value="<?php echo htmlspecialchars($form_data['nombreUsuario'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="nombreUsuario">Nombre de Usuario</label>
-                                        <span class="mdl-textfield__error" id="nombreUsuario-error">Nombre de usuario inválido</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['nombreUsuario'] ?? ''); ?></span>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="pass-field">
-                                        <input class="mdl-textfield__input" type="text" id="pass" name="pass">
+                                <div class="mdl-cell mdl-cell--6-col">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['pass']) ? ' is-invalid' : ''; ?>" id="pass-field">
+                                        <input class="mdl-textfield__input" type="text" id="pass" name="pass" value="<?php echo htmlspecialchars($form_data['pass'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="pass">Contraseña</label>
-                                        <span class="mdl-textfield__error" id="pass-error">Contraseña inválida</span>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['pass'] ?? ''); ?></span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; Elegir Foto de Usuario</legend><br>
                                 </div>
+
                                 <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
                                     <label id="file-upload-label" class="file-upload mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--colored">
                                         <span>Seleccionar Foto de Perfil</span>
@@ -113,6 +117,14 @@ $result_roles = mysqli_query($conn, $query_roles);
                                     </label>
                                     <span class="mdl-textfield__error" id="avatar-error">Debe seleccionar una foto de perfil</span>
                                 </div>
+
+                                <!-- Contenedor para la previsualización de la imagen -->
+                                <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
+                                    <div id="preview-container" style="width: 190px; height: 180px; text-align: center; border: 2px dashed #ccc; padding: 10px;">
+                                        <img id="preview" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
+                                    </div>
+                                </div>
+
                             </div>
                             <p class="text-center">
                                 <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="agregar">
@@ -169,9 +181,11 @@ $result_roles = mysqli_query($conn, $query_roles);
                                                 onclick='window.location.href="editar_PU.php?idusuario=<?php echo $row["idusuario"]; ?>"'>
                                             <i class="zmdi zmdi-edit"></i>
                                         </button>
-                                        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $row['idusuario']; ?>">
+                                        <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" 
+                                                onclick='confirmDeletion(<?php echo $row["idusuario"]; ?>)'>
                                             <i class="zmdi zmdi-delete"></i>
                                         </button>
+
                                     </div>
                                 </div>
                                 <hr class="mdl-list__item-divider"> <!-- Línea separadora -->
@@ -191,5 +205,18 @@ $result_roles = mysqli_query($conn, $query_roles);
 <?php
 include_once "validaciones/validaciones.php";
 include_once "pie.php";
+
 mysqli_close($conn);
 ?>
+<style>
+    .mdl-textfield__error {
+    color: red;
+    display: none; /* Oculto por defecto */
+}
+
+.mdl-textfield.is-invalid .mdl-textfield__error {
+    display: block; /* Mostrar si hay error */
+}
+
+</style>
+<!--pattern="[a-zA-Z]*" inputmode="text"-->

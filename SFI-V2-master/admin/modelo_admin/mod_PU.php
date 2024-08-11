@@ -91,5 +91,6 @@ class ModeloPersonaUsuario {
             throw new Exception("No se encontró la persona asociada al usuario.");
         }
     }
+    
 }    
 ?>

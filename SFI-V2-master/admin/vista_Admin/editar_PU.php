@@ -32,6 +32,12 @@ if (isset($_GET['idusuario'])) {
 // Obtener roles
 $query_roles = "SELECT idrol, nombre FROM rol";
 $result_roles = mysqli_query($conn, $query_roles);
+
+$errors = isset($_SESSION['errors']) ? $_SESSION['errors'] : [];
+$form_data = isset($_SESSION['form_data']) ? $_SESSION['form_data'] : [];
+
+unset($_SESSION['errors']);
+unset($_SESSION['form_data']);
 ?>
 
 <div class="mdl-grid">
@@ -41,69 +47,68 @@ $result_roles = mysqli_query($conn, $query_roles);
                 Editar Usuario
             </div>
             <div class="full-width panel-content">
-                <form action="../controlador_admin/ct_PU.php" method="POST" id="formulario" enctype="multipart/form-data">
-                    <input type="hidden" name="idusuario" value="<?php echo $data['idusuario']; ?>">
-                    <input type="hidden" name="idpersona" value="<?php echo $data['idpersona']; ?>">
+                <form action="../controlador_admin/ct_editar_PU.php" method="POST" id="formulario" enctype="multipart/form-data">
+                    <input type="hidden" name="idusuario" value="<?php echo htmlspecialchars($data['idusuario']); ?>">
+                    <input type="hidden" name="idpersona" value="<?php echo htmlspecialchars($data['idpersona']); ?>">
                     <div class="mdl-grid">
                         <div class="mdl-cell mdl-cell--12-col">
                             <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN PERSONAL</legend><br>
                         </div>
 
                         <div class="mdl-cell mdl-cell--6-col">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ci-field">
-                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo htmlspecialchars($data['ci']); ?>" pattern="[0-9]*" inputmode="numeric" maxlength="7">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['ci']) ? 'is-invalid' : ''; ?>" id="ci-field">
+                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo isset($data['ci']) ? htmlspecialchars($data['ci']) : ''; ?>" maxlength="7">
                                 <label class="mdl-textfield__label" for="ci">DNI</label>
-                                <span class="mdl-textfield__error" id="ci-error">El DNI es obligatorio</span>
+                                <span class="mdl-textfield__error" id="ci-error"><?php echo isset($errors['ci']) ? htmlspecialchars($errors['ci']) : ''; ?></span>
                             </div>
                         </div>
 
                         <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="celular-field">
-                                <input class="mdl-textfield__input" type="text" id="celular" name="celular" value="<?php echo htmlspecialchars($data['celular']); ?>" pattern="[0-9]*" inputmode="numeric" maxlength="8">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['celular']) ? 'is-invalid' : ''; ?>" id="celular-field">
+                                <input class="mdl-textfield__input" type="text" id="celular" name="celular" value="<?php echo isset($data['celular']) ? htmlspecialchars($data['celular']) : ''; ?>" maxlength="8">
                                 <label class="mdl-textfield__label" for="celular">Celular</label>
-                                <span class="mdl-textfield__error"  id="celular-error">El número de celular debe tener exactamente 8 dígitos</span>
+                                <span class="mdl-textfield__error" id="celular-error"><?php echo isset($errors['celular']) ? htmlspecialchars($errors['celular']) : ''; ?></span>
                             </div>
                         </div>
 
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombre-field">
-                                <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" value="<?php echo htmlspecialchars($data['nombre']); ?>" pattern="[a-zA-Z]*" inputmode="text">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['nombre']) ? 'is-invalid' : ''; ?>" id="nombre-field">
+                                <input class="mdl-textfield__input" type="text" id="nombre" name="nombre" value="<?php echo isset($data['nombre']) ? htmlspecialchars($data['nombre']) : ''; ?>">
                                 <label class="mdl-textfield__label" for="nombre">Nombre</label>
-                                <span class="mdl-textfield__error" id="nombre-error">Nombre inválido</span>
+                                <span class="mdl-textfield__error" id="nombre-error"><?php echo isset($errors['nombre']) ? htmlspecialchars($errors['nombre']) : ''; ?></span>
                             </div>
                         </div>
 
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido1-field">
-                                <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" value="<?php echo htmlspecialchars($data['apellido1']); ?>" pattern="[a-zA-Z]*" inputmode="text">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['apellido1']) ? 'is-invalid' : ''; ?>" id="apellido1-field">
+                                <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" value="<?php echo isset($data['apellido1']) ? htmlspecialchars($data['apellido1']) : ''; ?>">
                                 <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
-                                <span class="mdl-textfield__error" id="apellido1-error">Apellido inválido</span>
+                                <span class="mdl-textfield__error" id="apellido1-error"><?php echo isset($errors['apellido1']) ? htmlspecialchars($errors['apellido1']) : ''; ?></span>
                             </div>
                         </div>
 
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="apellido2-field">
-                                <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" value="<?php echo htmlspecialchars($data['apellido2']); ?>" pattern="[a-zA-Z]*" inputmode="text">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['apellido2']) ? 'is-invalid' : ''; ?>" id="apellido2-field">
+                                <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" value="<?php echo isset($data['apellido2']) ? htmlspecialchars($data['apellido2']) : ''; ?>">
                                 <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
-                                <span class="mdl-textfield__error"  id="apellido2-error">Apellido inválido</span>
+                                <span class="mdl-textfield__error" id="apellido2-error"><?php echo isset($errors['apellido2']) ? htmlspecialchars($errors['apellido2']) : ''; ?></span>
                             </div>
                         </div>
-
-                        
 
                         <div class="mdl-cell mdl-cell--12-col">
                             <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; SELECCIONAR ROL</legend><br>
                         </div>
                         <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet" id="idRol-field">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['idRol']) ? 'is-invalid' : ''; ?>">
                                 <select class="mdl-textfield__input" id="idRol" name="idRol">
                                     <?php while ($role = mysqli_fetch_assoc($result_roles)): ?>
-                                        <option value="<?php echo $role['idrol']; ?>" <?php echo $role['idrol'] == $data['idrol'] ? 'selected' : ''; ?>>
+                                        <option value="<?php echo htmlspecialchars($role['idrol']); ?>" <?php echo isset($data['idRol']) && $data['idRol'] == $role['idrol'] ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($role['nombre']); ?>
                                         </option>
                                     <?php endwhile; ?>
                                 </select>
                                 <label class="mdl-textfield__label" for="idRol">Rol</label>
+                                <span class="mdl-textfield__error" id="idRol-error"><?php echo isset($errors['idRol']) ? htmlspecialchars($errors['idRol']) : ''; ?></span>
                             </div>
                         </div>
 
@@ -112,20 +117,21 @@ $result_roles = mysqli_query($conn, $query_roles);
                         </div>
 
                         <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="nombreUsuario-field">
-                                <input class="mdl-textfield__input" type="text" id="nombreUsuario" name="nombreUsuario" value="<?php echo htmlspecialchars($data['nombreUsuario']); ?>">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['nombreUsuario']) ? 'is-invalid' : ''; ?>" id="nombreUsuario-field">
+                                <input class="mdl-textfield__input" type="text" id="nombreUsuario" name="nombreUsuario" value="<?php echo isset($data['nombreUsuario']) ? htmlspecialchars($data['nombreUsuario']) : ''; ?>">
                                 <label class="mdl-textfield__label" for="nombreUsuario">Nombre de Usuario</label>
-                                <span class="mdl-textfield__error" id="nombreUsuario-error">Nombre de usuario inválido</span>
+                                <span class="mdl-textfield__error" id="nombreUsuario-error"><?php echo isset($errors['nombreUsuario']) ? htmlspecialchars($errors['nombreUsuario']) : ''; ?></span>
                             </div>
                         </div>
 
                         <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="pass-field">
-                                <input class="mdl-textfield__input" type="text" id="pass" name="pass" value="<?php echo htmlspecialchars($data['pass']); ?>">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['pass']) ? 'is-invalid' : ''; ?>" id="pass-field">
+                                <input class="mdl-textfield__input" type="text" id="pass" name="pass" value="<?php echo isset($data['pass']) ? htmlspecialchars($data['pass']) : ''; ?>">
                                 <label class="mdl-textfield__label" for="pass">Contraseña</label>
-                                <span class="mdl-textfield__error"  id="pass-error">Contraseña inválida</span>
+                                <span class="mdl-textfield__error" id="pass-error"><?php echo isset($errors['pass']) ? htmlspecialchars($errors['pass']) : ''; ?></span>
                             </div>
                         </div>
+
 
                         <div class="mdl-cell mdl-cell--12-col">
                             <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; ELEGIR FOTO DE PERFIL</legend><br>
@@ -140,7 +146,11 @@ $result_roles = mysqli_query($conn, $query_roles);
                         </div>
 
                         <div class="mdl-cell mdl-cell--12-col">
-                            <img src="data:image/jpeg;base64,<?php echo base64_encode($data['foto']); ?>" alt="Foto de perfil actual" style="width: 150px; height: 150px;">
+                            <?php if (!empty($data['foto']) && file_exists('../../assets/perfil/' . $data['foto'])): ?>
+                                <img id="preview-image" src="<?php echo '../../assets/perfil/' . $data['foto']; ?>" alt="Foto de perfil actual" style="width: 190px; height: 180px;">
+                            <?php else: ?>
+                                <p>No hay foto de perfil disponible.</p>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -161,115 +171,71 @@ $result_roles = mysqli_query($conn, $query_roles);
 include_once "pie.php";
 ?>
 
+<!--FOTO DE PERFIL-->
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('formulario').addEventListener('submit', function (event) {
-        var camposValidos = true;
+    document.getElementById('foto').addEventListener('change', function(event) {
+        var preview = document.getElementById('preview-image');
+        var file = event.target.files[0];
+        var reader = new FileReader();
 
-        // Obtener los valores de los campos
-        var nombre = document.getElementById('nombre').value.trim();
-        var apellido1 = document.getElementById('apellido1').value.trim();
-        var apellido2 = document.getElementById('apellido2').value.trim();
-        var ci = document.getElementById('ci').value.trim();
-        var celular = document.getElementById('celular').value.trim();
-        var nombreUsuario = document.getElementById('nombreUsuario').value.trim();
-        var pass = document.getElementById('pass').value.trim();
-        var idRol = document.getElementById('idRol').value;
-        var fotoInput = document.getElementById('foto');
-        var foto = fotoInput.value.trim(); 
-
-        // Validación de nombre
-        if (nombre === '') {
-            document.getElementById('nombre-field').classList.add('is-invalid');
-            document.getElementById('nombre-error').innerText = 'El nombre es obligatorio';
-            camposValidos = false;
-        } else {
-            document.getElementById('nombre-field').classList.remove('is-invalid');
+        reader.onloadend = function() {
+            preview.src = reader.result;
         }
 
-        // Validación de apellido paterno
-        if (apellido1 === '') {
-            document.getElementById('apellido1-field').classList.add('is-invalid');
-            document.getElementById('apellido1-error').innerText = 'El apellido paterno es obligatorio';
-            camposValidos = false;
+        if (file) {
+            reader.readAsDataURL(file);
         } else {
-            document.getElementById('apellido1-field').classList.remove('is-invalid');
-        }
-
-        // Validación de apellido materno
-        /*if (apellido2 === '') {
-            document.getElementById('apellido2-field').classList.add('is-invalid');
-            document.getElementById('apellido2-error').innerText = 'El apellido materno es obligatorio';
-            camposValidos = false;
-        } else {
-            document.getElementById('apellido2-field').classList.remove('is-invalid');
-        }*/
-
-        // Validación de DNI
-        if (ci === '') {
-            document.getElementById('ci-field').classList.add('is-invalid');
-            document.getElementById('ci-error').innerText = 'El DNI es obligatorio';
-            camposValidos = false;
-        } else if (ci.length !== 7 || !/^\d+$/.test(ci)) {
-            document.getElementById('ci-field').classList.add('is-invalid');
-            document.getElementById('ci-error').innerText = 'El DNI debe tener exactamente 7 dígitos numéricos';
-            camposValidos = false;
-        } else {
-            document.getElementById('ci-field').classList.remove('is-invalid');
-        }
-
-        // Validación de celular
-        if (celular === '') {
-            document.getElementById('celular-field').classList.add('is-invalid');
-            document.getElementById('celular-error').innerText = 'El número de celular es obligatorio';
-            camposValidos = false;
-        } else if (celular.length !== 8 || !/^\d+$/.test(celular)) {
-            document.getElementById('celular-field').classList.add('is-invalid');
-            document.getElementById('celular-error').innerText = 'El número de celular debe tener exactamente 8 dígitos numéricos';
-            camposValidos = false;
-        } else {
-            document.getElementById('celular-field').classList.remove('is-invalid');
-        }
-
-        // Validación de nombre de usuario
-        if (nombreUsuario === '') {
-            document.getElementById('nombreUsuario-field').classList.add('is-invalid');
-            document.getElementById('nombreUsuario-error').innerText = 'El nombre de usuario es obligatorio';
-            camposValidos = false;
-        } else {
-            document.getElementById('nombreUsuario-field').classList.remove('is-invalid');
-        }
-
-        // Validación de contraseña
-        if (pass === '') {
-                document.getElementById('pass-field').classList.add('is-invalid');
-                document.getElementById('pass-error').innerText = 'La contraseña es obligatoria';
-                camposValidos = false;
-            } else if (pass.length < 8 || !/[0-9]/.test(pass) || !/[a-zA-Z]/.test(pass) || !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) {
-                document.getElementById('pass-field').classList.add('is-invalid');
-                document.getElementById('pass-error').innerText = 'La contraseña debe tener al menos 8 caracteres, incluyendo letras, números y caracteres especiales';
-                camposValidos = false;
-            } else {
-                document.getElementById('pass-field').classList.remove('is-invalid');
-            }
-
-        
-
-        // Si hay algún campo inválido, prevenimos el envío del formulario
-        if (!camposValidos) {
-            event.preventDefault();
+            preview.src = "";
         }
     });
-});
-
-
 </script>
-
+<!--ESTILOS DE ANIMACION DE BOTON-->
 <style>
-    .is-invalid .mdl-textfield__input {
-        border-color: red;
-    }
-    .mdl-textfield__error {
-        color: red;
-    }
+
+#file-upload-label {
+    display: inline-block;
+    padding: 5px 16px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1976D2;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#file-upload-label::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 300%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: translateX(-50%) scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+}
+
+#file-upload-label:hover::before {
+    transform: translateX(-50%) scaleX(1);
+}
+
+#file-upload-label:hover {
+    background-color: #1976D2; 
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#file-upload-label span {
+    position: relative;
+    z-index: 1;
+}
+
+.input-file {
+    display: none;
+}
+
 </style>

@@ -15,30 +15,11 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
     unset($_SESSION['registro']); 
 }
 ?>
-<!--VALIDACION DE BOTON - VERDE -->
-<script>
-    document.getElementById('foto').addEventListener('change', function() {
-        const label = document.getElementById('file-upload-label');
-        if (this.files && this.files.length > 0) {
-            label.classList.add('green-button');
-        } else {
-            label.classList.remove('green-button');
-        }
-    });
-</script>
-
-<style>
-.green-button {
-    background-color: green !important;
-}
-</style>
 
 <!--ALERTA DE ELIMINACION-->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    function confirmDelete(idprivilegio) {
-        console.log("confirmDelete called with idprivilegio:", idprivilegio); // Añade esta línea para depuración
 
+<script>
+    function confirmDeletion(idusuario) {
         Swal.fire({
             title: "Are you sure?",
             text: "You won't be able to revert this!",
@@ -49,49 +30,46 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             confirmButtonText: "Yes, delete it!"
         }).then((result) => {
             if (result.isConfirmed) {
-                deleteRecord(idprivilegio);
-            }
-        });
-    }
-
-    function deleteRecord(idprivilegio) {
-        fetch('../../crud/personal/eliminar.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: `idprivilegio=${idprivilegio}&action=delete`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                Swal.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
-                }).then(() => {
-                    location.reload(); // Recargar la página para reflejar los cambios
+                // Enviar solicitud AJAX para eliminar
+                $.ajax({
+                    url: '../crud/personal/eliminar.php',
+                    type: 'POST',
+                    data: {
+                        action: 'delete',
+                        idusuario: idusuario
+                    },
+                    success: function(response) {
+                        let data = JSON.parse(response);
+                        if (data.success) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "The record has been deleted.",
+                                icon: "success"
+                            }).then(() => {
+                                window.location.reload(); // Recargar la página para reflejar cambios
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: data.message,
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: 'An error occurred while processing your request.',
+                            icon: 'error'
+                        });
+                    }
                 });
-            } else {
-                Swal.fire({
-                    title: "Error!",
-                    text: data.message,
-                    icon: "error"
-                });
             }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: "Error!",
-                text: "Something went wrong!",
-                icon: "error"
-            });
         });
     }
 </script>
 
-
-<!--VALIDACIONES DE CAMPO DE PERSONAL-->
+<!--VALIDACIONES DE CAMPO DE PERSONAL
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('formulario').addEventListener('submit', function (event) {
@@ -206,8 +184,8 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
             }
         });
     });
-</script>
-    
+</script>-->
+
 <style>
     .is-invalid .mdl-textfield__input {
         border-color: red;
@@ -215,25 +193,73 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
     .mdl-textfield__error {
         color: red;
     }
+</style>
 
-    /* Estilo para el botón personalizado de selección de archivo */
-    .file-upload {
-        position: relative;
-        overflow: hidden;
-        margin: 10px;
-        display: inline-block;
-        text-align: center;
-        background-color: #2196F3;
-        color: white;
-        border-radius: 4px;
-        cursor: pointer;
+<!--FOTO DE PERFIL-->
+<script>
+    document.getElementById('foto').addEventListener('change', function(event) {
+    var reader = new FileReader();
+    reader.onload = function() {
+        var preview = document.getElementById('preview');
+        preview.src = reader.result;
+        preview.style.display = 'block'; // Mostrar la imagen
+        preview.style.opacity = 1; // Hacer la imagen completamente visible
+    };
+    
+    if (event.target.files[0]) {
+        reader.readAsDataURL(event.target.files[0]);
     }
+});
 
-    .file-upload input[type='file'] {
-        position: absolute;
-        left: 0;
-        top: 0;
-        opacity: 0;
-        cursor: pointer;
-    }
+
+</script>
+
+<!--ESTILOS DE ANIMACION DE BOTON-->
+<style>
+
+#file-upload-label {
+    display: inline-block;
+    padding: 5px 20px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1976D2;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+#file-upload-label::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 300%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    transform: translateX(-50%) scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+}
+
+#file-upload-label:hover::before {
+    transform: translateX(-50%) scaleX(1);
+}
+
+#file-upload-label:hover {
+    background-color: #1976D2; 
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#file-upload-label span {
+    position: relative;
+    z-index: 1;
+}
+
+.input-file {
+    display: none;
+}
 </style>

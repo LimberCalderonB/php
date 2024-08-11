@@ -2,6 +2,7 @@
 require "conexion/conexionBase.php";
 
 class Categoria {
+    private $idcategoria;
     private $nombre;
     private $con;
 
@@ -36,10 +37,10 @@ class Categoria {
         return $stmt->execute();
     }
 
-    public function actualizarCategoria($idcategoria, $nombre) {
+    public function actualizarCategoria() {
         $sql = "UPDATE categoria SET nombre = ? WHERE idcategoria = ?";
         $stmt = $this->con->GetConnection()->prepare($sql);
-        $stmt->bind_param("si", $nombre, $idcategoria);
+        $stmt->bind_param("si", $this->nombre, $this->idcategoria);
         return $stmt->execute();
     }
 }

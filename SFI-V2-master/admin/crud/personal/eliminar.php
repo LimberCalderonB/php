@@ -1,54 +1,59 @@
 <?php
-error_log("Archivo eliminar.php alcanzado");
-include_once '../modelo_admin/mod_PU.php';
+include_once '../../../conexion.php'; // Asegúrate de que este archivo incluya la conexión `$conn`
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $idprivilegio = $_POST['idprivilegio'];
+$response = array('success' => false, 'message' => '');
 
-    // Crear instancia de la clase de conexión
-    $conexion = new conexionBase();
+if (isset($_POST['action']) && $_POST['action'] === 'delete' && isset($_POST['idusuario'])) {
+    $idusuario = intval($_POST['idusuario']);
+
+    // Comenzar transacción
+    $conn->begin_transaction();
 
     try {
-        // Iniciar transacción
-        $conexion->beginTransaction();
+        // Eliminar privilegios relacionados
+        $sql = "DELETE FROM privilegio WHERE usuario_idusuario = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $idusuario);
+        $stmt->execute();
 
-        // Eliminar registros de la tabla privilegio
-        $query = "DELETE FROM privilegio WHERE idprivilegio = ?";
-        $conexion->executeQuery($query, [$idprivilegio]);
+        // Obtener idpersona asociado al usuario
+        $sql = "SELECT persona_idpersona FROM usuario WHERE idusuario = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $idusuario);
+        $stmt->execute();
+        $stmt->bind_result($persona_idpersona);
+        $stmt->fetch();
+        $stmt->close();
 
-        // Obtener el ID del usuario asociado
-        $query = "SELECT idusuario FROM usuario WHERE privilegio_idprivilegio = ?";
-        $result = $conexion->executeQuery($query, [$idprivilegio]);
+        // Eliminar el usuario
+        $sql = "DELETE FROM usuario WHERE idusuario = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('i', $idusuario);
+        $stmt->execute();
 
-        if (count($result) > 0) {
-            $userId = $result[0]['idusuario'];
-
-            // Eliminar el usuario asociado
-            $query = "DELETE FROM usuario WHERE idusuario = ?";
-            $conexion->executeQuery($query, [$userId]);
-
-            // Obtener el ID de la persona asociada
-            $query = "SELECT persona_idpersona FROM usuario WHERE idusuario = ?";
-            $result = $conexion->executeQuery($query, [$userId]);
-
-            if (count($result) > 0) {
-                $personaId = $result[0]['persona_idpersona'];
-
-                // Eliminar la persona asociada
-                $query = "DELETE FROM persona WHERE idpersona = ?";
-                $conexion->executeQuery($query, [$personaId]);
-            }
+        // Eliminar la persona (si es necesario)
+        if ($persona_idpersona) {
+            $sql = "DELETE FROM persona WHERE idpersona = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('i', $persona_idpersona);
+            $stmt->execute();
         }
 
         // Confirmar transacción
-        $conexion->commit();
+        $conn->commit();
 
-        echo json_encode(['success' => true]);
+        // Enviar respuesta JSON
+        $response['success'] = true;
+        $response['message'] = 'The record has been deleted.';
     } catch (Exception $e) {
-        // Deshacer transacción en caso de error
-        $conexion->rollBack();
-        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        // Rollback en caso de error
+        $conn->rollback();
+        $response['message'] = 'There was a problem deleting the record: ' . $e->getMessage();
     }
-    error_log(print_r($_POST, true));
+} else {
+    $response['message'] = 'Invalid request.';
 }
+
+// Devolver respuesta JSON
+echo json_encode($response);
 ?>

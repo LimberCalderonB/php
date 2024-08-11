@@ -1,52 +1,52 @@
 <?php
-// Incluir archivo de conexión a la base de datos
 require "conexion/conexionBase.php";
 
 class Rol {
+    private $idrol;
     private $nombre;
     private $con;
 
     public function __construct() {
+        $this->idrol = null;
         $this->nombre = "";
         $this->con = new ConexionBase();
+        $this->con->CreateConnection();
     }
 
-    public function asignar($nombre, $valor) {
-        $this->$nombre = $valor;
+    public function asignar($campo, $valor) {
+        $this->$campo = $valor;
     }
+
     public function existeRol() {
-        // Crear la conexión a la base de datos
-        $this->con->CreateConnection();
-    
-        // Preparar la consulta SQL
-        $sql = "SELECT * FROM rol WHERE nombre=?";
+        $sql = "SELECT * FROM rol WHERE nombre = ?";
         $stmt = $this->con->GetConnection()->prepare($sql);
         $stmt->bind_param("s", $this->nombre);
         $stmt->execute();
         $result = $stmt->get_result();
-    
-        return $result->num_rows > 0;
+
+        return $result->fetch_assoc();
     }
+
     public function agregarRol() {
-        // Validar si el nombre del rol está vacío
-        if(empty($this->nombre)) {
+        if (empty($this->nombre)) {
             return false;
         }
 
-        // Verificar si el rol ya existe
-        $sql = "SELECT * FROM rol WHERE nombre='$this->nombre'";
-        $this->con->CreateConnection();
-        $resultado = $this->con->ExecuteQuery($sql);
-        $filas = $this->con->GetCountAffectedRows($resultado);
-        if($filas > 0) {
-            // El rol ya existe, no se puede agregar
+        $sqlInsert = "INSERT INTO rol (nombre) VALUES (?)";
+        $stmt = $this->con->GetConnection()->prepare($sqlInsert);
+        $stmt->bind_param("s", $this->nombre);
+        return $stmt->execute();
+    }
+
+    public function actualizarRol() {
+        if (empty($this->idrol) || empty($this->nombre)) {
             return false;
-        } else {
-            // El rol no existe, se puede agregar
-            $sqlInsert = "INSERT INTO rol (nombre) VALUES ('$this->nombre')";
-            $this->con->ExecuteQuery($sqlInsert);
-            return true;
         }
+
+        $sql = "UPDATE rol SET nombre = ? WHERE idrol = ?";
+        $stmt = $this->con->GetConnection()->prepare($sql);
+        $stmt->bind_param("si", $this->nombre, $this->idrol);
+        return $stmt->execute();
     }
 }
 ?>
