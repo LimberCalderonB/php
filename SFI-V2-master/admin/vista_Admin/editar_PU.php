@@ -102,7 +102,8 @@ unset($_SESSION['form_data']);
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['idRol']) ? 'is-invalid' : ''; ?>">
                                 <select class="mdl-textfield__input" id="idRol" name="idRol">
                                     <?php while ($role = mysqli_fetch_assoc($result_roles)): ?>
-                                        <option value="<?php echo htmlspecialchars($role['idrol']); ?>" <?php echo isset($data['idRol']) && $data['idRol'] == $role['idrol'] ? 'selected' : ''; ?>>
+                                        <option value="<?php echo htmlspecialchars($role['idrol']); ?>" 
+                                            <?php echo isset($data['idrol']) && $data['idrol'] == $role['idrol'] ? 'selected' : ''; ?>>
                                             <?php echo htmlspecialchars($role['nombre']); ?>
                                         </option>
                                     <?php endwhile; ?>
@@ -111,6 +112,7 @@ unset($_SESSION['form_data']);
                                 <span class="mdl-textfield__error" id="idRol-error"><?php echo isset($errors['idRol']) ? htmlspecialchars($errors['idRol']) : ''; ?></span>
                             </div>
                         </div>
+
 
                         <div class="mdl-cell mdl-cell--12-col">
                             <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; DETALLES DE CUENTA</legend><br>
@@ -146,13 +148,14 @@ unset($_SESSION['form_data']);
                         </div>
 
                         <div class="mdl-cell mdl-cell--12-col">
-                            <?php if (!empty($data['foto']) && file_exists('../../assets/perfil/' . $data['foto'])): ?>
-                                <img id="preview-image" src="<?php echo '../../assets/perfil/' . $data['foto']; ?>" alt="Foto de perfil actual" style="width: 190px; height: 180px;">
-                            <?php else: ?>
-                                <p>No hay foto de perfil disponible.</p>
-                            <?php endif; ?>
+                            <div id="preview-container" style="width: 190px; height: 180px; text-align: center; border: 2px dashed #ccc; padding: 10px;">
+                                <?php if (!empty($data['foto']) && file_exists('' . $data['foto'])): ?>
+                                    <img id="preview-image" src="<?php echo '' . $data['foto']; ?>" alt="Foto de perfil actual" style="width: 190px; height: 180px;">
+                                <?php else: ?>
+                                    <p>No hay foto de perfil disponible.</p>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                    </div>
 
                             <div class="mdl-cell mdl-cell--12-col">
                                 <p class="text-center">
@@ -194,8 +197,8 @@ include_once "pie.php";
 
 #file-upload-label {
     display: inline-block;
-    padding: 5px 16px;
-    font-size: 10px;
+    padding: 5px 13px;
+    font-size: 12px;
     font-weight: bold;
     color: #fff;
     background-color: #1976D2;

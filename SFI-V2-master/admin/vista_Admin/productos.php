@@ -8,7 +8,7 @@ $query_categorias = "SELECT idcategoria, nombre FROM categoria";
 $result_categorias = mysqli_query($conn, $query_categorias);
 
 ?>
-<br>
+
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
     <a href="#tabListProducts" class="mdl-tabs__tab is-active">LISTA DE PRODUCTOS</a>
@@ -38,7 +38,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                 </div>
                                 <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                        <input class="mdl-textfield__input" type="text" pattern="-?[0-9.]*(\.[0-9]+)?" id="precio" name="precio">
+                                        <input class="mdl-textfield__input" type="number" pattern="-?[0-9.]*(\.[0-9]+)?" id="precio" name="precio">
                                         <label class="mdl-textfield__label" for="precio">Precio</label>
                                         <span class="mdl-textfield__error">Precio Invalido</span>
                                     </div>
@@ -91,7 +91,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <!-- Contenedor de previsualización -->
                                         <div id="previewContainer1" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
                                             <img id="preview1" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
-                                            <button type="button" id="removeButton1" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(1)">X</button>
+                                            <button type="button" id="removeButton1" style="position: absolute; top: 5px; right: 5px; background-color: #dae2cb; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(1)">X</button>
                                         </div>
                                     </div>
                                 </div>
@@ -104,7 +104,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <!-- Contenedor de previsualización -->
                                         <div id="previewContainer2" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
                                             <img id="preview2" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
-                                            <button type="button" id="removeButton2" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(2)">X</button>
+                                            <button type="button" id="removeButton2" style="position: absolute; top: 5px; right: 5px; background-color: #dae2cb; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(2)">X</button>
                                         </div>
                                     </div>
                                 </div>
@@ -117,7 +117,7 @@ $result_categorias = mysqli_query($conn, $query_categorias);
                                         <!-- Contenedor de previsualización -->
                                         <div id="previewContainer3" style="position: relative; width: 150px; height: 150px; border: 2px dashed #ccc; text-align: center; display: block;">
                                             <img id="preview3" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
-                                            <button type="button" id="removeButton3" style="position: absolute; top: 5px; right: 5px; background-color: red; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(3)">X</button>
+                                            <button type="button" id="removeButton3" style="position: absolute; top: 5px; right: 5px; background-color: #dae2cb; color: white; border: none; border-radius: 50%; cursor: pointer; display: none;" onclick="removeImage(3)">X</button>
                                         </div>
                                     </div>
                                 </div>
@@ -266,3 +266,35 @@ $conn->close();
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php";
 ?>
+<script>
+function previewImage(event, index) {
+    const fileInput = document.getElementById(`fileUpload${index}`);
+    const previewImage = document.getElementById(`preview${index}`);
+    const removeButton = document.getElementById(`removeButton${index}`);
+    
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            previewImage.style.display = 'block';  // Muestra la imagen de vista previa
+            previewImage.style.opacity = '1';  // Asegura que la imagen sea completamente visible
+            removeButton.style.display = 'block';  // Muestra el botón de eliminar
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function removeImage(index) {
+    const previewImage = document.getElementById(`preview${index}`);
+    const removeButton = document.getElementById(`removeButton${index}`);
+    
+    // Ocultar la imagen de vista previa y el botón de eliminar
+    previewImage.style.display = 'none';
+    removeButton.style.display = 'none';
+    
+    // Restaurar el input file
+    const fileInput = document.getElementById(`fileUpload${index}`);
+    fileInput.value = '';  // Borra el archivo seleccionado
+}
+</script>

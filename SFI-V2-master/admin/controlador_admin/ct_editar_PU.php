@@ -3,7 +3,7 @@ include_once '../modelo_admin/mod_PU.php';
 include_once "../../conexion.php";
 
 // Inicia la sesión para manejar errores y datos del formulario
-session_start();
+
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $errors = [];
@@ -103,8 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($foto && $foto['error'] === UPLOAD_ERR_OK) {
         $fotoTmpPath = $foto['tmp_name'];
         $fotoName = basename($foto['name']);
-        $fotoDestPath = "../../assets/perfil/" . $fotoName;
-
+        $fotoDestPath = "../vista_Admin/img/fotos_de_perfil/" . $fotoName;
         if (!move_uploaded_file($fotoTmpPath, $fotoDestPath)) {
             $errors['foto'] = 'Error al subir la foto.';
         }
@@ -130,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $idRol,
                 $nombreUsuario,
                 $pass,
-                $fotoDestPath
+                $foto
             );
 
             $_SESSION['success'] = 'Usuario actualizado correctamente.';

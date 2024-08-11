@@ -1,4 +1,5 @@
 <?php
+
 include_once 'conexion/conexionBase.php';
 
 class ModeloPersonaUsuario {
@@ -34,7 +35,7 @@ class ModeloPersonaUsuario {
 
         // Save the photo on the server if provided
         if ($foto) {
-            $upload_dir = '../../assets/perfil/';
+            $upload_dir = 'img/fotos_de_perfil/';
             $foto_path = $upload_dir . basename($foto['name']);
             move_uploaded_file($foto['tmp_name'], $foto_path);
 
@@ -76,8 +77,8 @@ class ModeloPersonaUsuario {
             $stmt->execute();
     
             // Guardar la foto en el servidor si se proporciona
-            if ($foto && $foto['error'] === UPLOAD_ERR_OK) {
-                $upload_dir = '../../assets/perfil/';
+            if (is_array($foto) && $foto['error'] === UPLOAD_ERR_OK) {
+                $upload_dir = '../vista_Admin/img/fotos_de_perfil/';
                 $foto_path = $upload_dir . basename($foto['name']);
                 move_uploaded_file($foto['tmp_name'], $foto_path);
     
@@ -86,6 +87,9 @@ class ModeloPersonaUsuario {
                 $stmt = $this->db->GetConnection()->prepare($query_update_foto);
                 $stmt->bind_param('si', $foto_path, $persona_id);
                 $stmt->execute();
+            } elseif (is_string($foto)) {
+                // Si $foto es una cadena (probablemente la ruta ya existente), no hagas nada
+                // o bien puedes agregar lógica para actualizarla si es necesario.
             }
         } else {
             throw new Exception("No se encontró la persona asociada al usuario.");

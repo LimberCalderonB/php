@@ -421,9 +421,9 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
     }
 </style>
 
-<!--------------------------------------------------------------------->
+<!----------------------------------------------------------------------------------------------------------------->
 <!--VALIDACIONES DE EDITAR_PRODUCTO.PHP-->
-<!--------------------------------------------------------------------->
+<!----------------------------------------------------------------------------------------------------------------->
 <script>
 function removeImage(imageIndex) {
     var fileInput = document.getElementById('fileUpload' + imageIndex);
@@ -551,40 +551,3 @@ input[type="file"] {
 
 
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form'); // Asegúrate de seleccionar el formulario adecuado
-    const fields = document.querySelectorAll('.mdl-textfield__input');
-
-    function validateField(field) {
-        const errorSpan = field.nextElementSibling;
-        if (field.value.trim() === '') {
-            field.parentElement.classList.add('is-invalid');
-            errorSpan.textContent = 'No puede estar vacío';
-        } else if (!field.checkValidity()) {
-            field.parentElement.classList.add('is-invalid');
-            errorSpan.textContent = 'Valor inválido';
-        } else {
-            field.parentElement.classList.remove('is-invalid');
-            errorSpan.textContent = '';
-        }
-    }
-
-    fields.forEach(field => {
-        field.addEventListener('input', () => validateField(field));
-    });
-
-    form.addEventListener('submit', (e) => {
-        let formIsValid = true;
-        fields.forEach(field => {
-            if (!field.value.trim() || !field.checkValidity()) {
-                formIsValid = false;
-                validateField(field);
-            }
-        });
-        if (!formIsValid) {
-            e.preventDefault(); // Evita el envío del formulario si hay errores
-        }
-    });
-});
-</script>
