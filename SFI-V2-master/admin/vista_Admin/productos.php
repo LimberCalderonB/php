@@ -144,19 +144,11 @@ if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
-// Obtener el término de búsqueda si está presente
-$searchTerm = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-
-// Modificar la consulta SQL para incluir el término de búsqueda
+// Consulta original sin el buscador
 $sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
         FROM producto 
         JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
-        JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria
-        WHERE producto.nombre LIKE '%$searchTerm%' 
-        OR producto.descripcion LIKE '%$searchTerm%' 
-        OR producto.talla LIKE '%$searchTerm%' 
-        OR producto.precio LIKE '%$searchTerm%' 
-        OR categoria.nombre LIKE '%$searchTerm%'";
+        JOIN categoria ON almacen.categoria_idcategoria = categoria.idcategoria";
 
 $result = $conn->query($sql);
 $productos = [];
@@ -170,22 +162,24 @@ if ($result->num_rows > 0) {
 }
 $conn->close();
 ?>
+
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">
         <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
-            <!--buscador--->
-            <form action="productos.php" method="get">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
-                    <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
-                        <i class="zmdi zmdi-search"></i>
-                    </label>
-                    <div class="mdl-textfield__expandable-holder">
-                        <input class="mdl-textfield__input" type="text" id="searchProduct" name="search" value="<?php echo htmlspecialchars($searchTerm); ?>">
-                        <label class="mdl-textfield__label" for="searchProduct"></label>
-                    </div>
-                </div>
-            </form>
-            <div class="full-width text-center" style="padding: 30px 0;">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+    <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
+        <i class="zmdi zmdi-search"></i>    
+    </label>
+    <div class="mdl-textfield__expandable-holder">
+        <input class="mdl-textfield__input" type="text" id="searchProduct" onkeyup="searchProduct()" placeholder="Buscar productos...">
+        <label class="mdl-textfield__label" for="searchProduct"></label>
+    </div>
+</div>
+
+<div id="product-results" class="full-width text-center" style="padding: 30px 0;">
+    <!-- Aquí se cargarán los resultados de la búsqueda en tiempo real -->
+
+
                 <?php if (!empty($productos)): ?>
                     <?php foreach ($productos as $producto): ?>
                         <div class="mdl-card mdl-shadow--2dp full-width product-card">
@@ -219,10 +213,8 @@ $conn->close();
                                 </div>
                             </div>
                             <div class="mdl-card__actions mdl-card--border">
-                            <div class="product-info">
+                                <div class="product-info">
                                     <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
-                                    
-                                    
                                 </div>
                                 <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                                     <?php if ($producto['descuento'] > 0): ?>
@@ -266,6 +258,9 @@ $conn->close();
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php";
 ?>
+
+
+                <!--BOTON PARA RETIRAR LA IMAGEN-->
 <script>
 function previewImage(event, index) {
     const fileInput = document.getElementById(`fileUpload${index}`);
@@ -297,4 +292,19 @@ function removeImage(index) {
     const fileInput = document.getElementById(`fileUpload${index}`);
     fileInput.value = '';  // Borra el archivo seleccionado
 }
+</script>
+<script>
+    function searchProduct() {
+    var searchTerm = document.getElementById("searchProduct").value;
+    console.log(searchTerm); // Para verificar lo que se está enviando
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "buscador/buscar_producto.php?search=" + encodeURIComponent(searchTerm), true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            document.getElementById("product-results").innerHTML = xhr.responseText;
+        }
+    };
+    xhr.send();
+}
+
 </script>

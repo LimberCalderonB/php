@@ -90,45 +90,6 @@ if (isset($_SESSION['error_categoria'])) {
                             $conn->close();
                             ?>
                         </div>
-                        <script>
-                            // ALERTA DE ELIMINACION
-                            function confirmDelete(idcategoria) {
-                                Swal.fire({
-                                    title: '¿Estás seguro?',
-                                    text: "¡No podrás revertir esto!",
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#3085d6',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Sí, eliminarlo!',
-                                    cancelButtonText: 'Cancelar'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: '../crud/categoria/eliminar.php', 
-                                            data: {idcategoria: idcategoria},
-                                            success: function(response) {
-                                                Swal.fire({
-                                                    title: '¡Eliminado!',
-                                                    text: 'La categoría ha sido eliminada.',
-                                                    icon: 'success'
-                                                }).then((result) => {
-                                                    location.reload();
-                                                });
-                                            },
-                                            error: function(xhr, status, error) {
-                                                Swal.fire({
-                                                    title: 'Error',
-                                                    text: 'Se produjo un error al intentar eliminar la categoría.',
-                                                    icon: 'error'
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        </script>
                     </div>
                 </div>
             </div>
@@ -178,3 +139,55 @@ unset($_SESSION['mensaje_categoria']);
 unset($_SESSION['nombre_categoria']);
 include_once "pie.php";
 ?>
+<script>
+    // ALERTA DE ELIMINACION
+    function confirmDelete(idcategoria) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "¡No podrás revertir esto!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, eliminarlo!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    type: 'POST',
+                    url: '../crud/categoria/eliminar.php',
+                    data: {idcategoria: idcategoria},
+                    dataType: 'json', // Asegúrate de que jQuery maneje la respuesta como JSON
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: '¡Eliminado!',
+                                text: response.message,
+                                icon: 'success'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error',
+                                text: response.message || 'Se produjo un error al intentar eliminar la categoría.',
+                                icon: 'error'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: 'Se produjo un error al intentar eliminar la categoría.',
+                            icon: 'error'
+                        });
+                    }
+                });
+            }
+        });
+    }
+</script>
+
+

@@ -124,51 +124,6 @@ if(isset($_SESSION['registro_exitoso_rol']) && $_SESSION['registro_exitoso_rol']
                             $conn->close();
                             ?>
                         </div>
-                        <script>
-                            //----------------------------------------------------------------
-                            //          Alerta de eliminacion de rol
-                            //----------------------------------------------------------------
-                            function confirmDelete(idrol) {
-                                Swal.fire({
-                                    title: '¿Estás seguro?',
-                                    text: "¡No podrás revertir esto!",
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#3085d6',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Sí, eliminarlo!',
-                                    cancelButtonText: 'Cancelar'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        // Realizar la solicitud AJAX para eliminar el rol
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: '../crud/rol/crud_rol_eliminar.php', 
-                                            data: {idrol: idrol},
-                                            success: function(response) {
-                                                // Mensaje de eliminacion
-                                                Swal.fire({
-                                                    title: '¡Eliminado!',
-                                                    text: 'El rol ha sido eliminado.',
-                                                    icon: 'success'
-                                                }).then((result) => {
-                                                    // Recargar la página después de eliminar el rol
-                                                    location.reload();
-                                                });
-                                            },
-                                            error: function(xhr, status, error) {
-                                                // Error de Eliminacion
-                                                Swal.fire({
-                                                    title: 'Error',
-                                                    text: 'Se produjo un error al intentar eliminar el rol.',
-                                                    icon: 'error'
-                                                });
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                        </script>
                     </div>
                 </div>
             </div>
@@ -182,3 +137,51 @@ unset($_SESSION['mensaje_rol']);
 unset($_SESSION['nombre_rol']);
 include_once "pie.php";
 ?>
+<script>
+function confirmDelete(idrol) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¡No podrás revertir esto!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminarlo!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Realizar la solicitud AJAX para eliminar el rol
+            $.ajax({
+                type: 'POST',
+                url: '../crud/rol/crud_rol_eliminar.php',
+                data: {idrol: idrol},
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: response.message,
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message,
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Se produjo un error al intentar eliminar el rol.',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+}
+</script>
