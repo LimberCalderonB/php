@@ -1,13 +1,10 @@
 <?php
 
+include '../../conexion.php';
 
-// Incluir el archivo de conexión
-include '../../conexion.php'; // Asegúrate de que este archivo contenga la conexión a la base de datos
-
-// Obtener el ID del usuario desde la sesión
 $usuario_id = $_SESSION['idusuario'];
 
-// Paso 1: Obtener los datos del usuario (nombre y apellido1) asociado a la venta
+
 $query = "SELECT p.nombre, p.apellido1 
           FROM usuario u 
           JOIN persona p ON u.persona_idpersona = p.idpersona 

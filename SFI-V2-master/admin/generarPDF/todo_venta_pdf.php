@@ -2,7 +2,6 @@
 require_once('../../../tcpdf/tcpdf/tcpdf.php');
 include_once '../modelo_admin/mod_ventas.php';
 
-
 // Recibir los datos de las ventas
 $ventasDirectas = json_decode($_POST['ventasDirectas'], true);
 $ventasPedidos = json_decode($_POST['ventasPedidos'], true);
@@ -46,54 +45,49 @@ $pdf->SetFont('helvetica', '', 10);
 
 // Contenido HTML para el PDF
 $html = '<h1>Informe de Ventas</h1>';
+
+// Ventas Directas
 $html .= '<h2>Ventas Directas</h2>';
 
-$html .= '<table border="1" cellspacing="3" cellpadding="4">';
-$html .= '<thead>
-            <tr>
-                <th>Fecha de Venta</th>
-                <th>Responsable</th>
-                <th>Productos</th>
-                <th>Precio Total</th>
-            </tr>
-          </thead>';
-$html .= '<tbody>';
-
-foreach($ventasDirectas as $venta) {
+foreach ($ventasDirectas as $venta) {
+    $html .= '<h3>Venta del ' . $venta['fecha_venta'] . '</h3>';
+    $html .= '<p><strong>Responsable:</strong> ' . $venta['nombre'] . ' ' . $venta['apellido1'] . '</p>';
+    $html .= '<table border="1" cellspacing="3" cellpadding="4">';
+    $html .= '<thead>
+                <tr>
+                    <th>Productos</th>
+                    <th>Precio Total</th>
+                </tr>
+              </thead>';
+    $html .= '<tbody>';
     $html .= '<tr>
-                <td>' . $venta['fecha_venta'] . '</td>
-                <td>' . $venta['nombre'] . ' ' . $venta['apellido1'] . '</td>
                 <td>' . $venta['productos'] . '</td>
                 <td>' . $venta['precio_total'] . '</td>
               </tr>';
+    $html .= '</tbody></table><pagebreak />';
 }
 
-$html .= '</tbody></table>';
-
+// Ventas de Pedidos
 $html .= '<h2>Ventas de Pedidos</h2>';
-$html .= '<table border="1" cellspacing="3" cellpadding="4">';
-$html .= '<thead>
-            <tr>
-                <th>Fecha de Venta</th>
-                <th>Responsable</th>
-                <th>Cliente</th>
-                <th>Productos</th>
-                <th>Precio Total</th>
-            </tr>
-          </thead>';
-$html .= '<tbody>';
 
-foreach($ventasPedidos as $venta) {
+foreach ($ventasPedidos as $venta) {
+    $html .= '<h3>Venta del ' . $venta['fecha_venta'] . '</h3>';
+    $html .= '<p><strong>Responsable:</strong> ' . $venta['nombre'] . ' ' . $venta['apellido1'] . '</p>';
+    $html .= '<p><strong>Cliente:</strong> ' . $venta['nombre_cliente'] . '</p>';
+    $html .= '<table border="1" cellspacing="3" cellpadding="4">';
+    $html .= '<thead>
+                <tr>
+                    <th>Productos</th>
+                    <th>Precio Total</th>
+                </tr>
+              </thead>';
+    $html .= '<tbody>';
     $html .= '<tr>
-                <td>' . $venta['fecha_venta'] . '</td>
-                <td>' . $venta['nombre'] . ' ' . $venta['apellido1'] . '</td>
-                <td>' . $venta['nombre_cliente'] . '</td>
                 <td>' . $venta['productos'] . '</td>
                 <td>' . $venta['precio_total'] . '</td>
               </tr>';
+    $html .= '</tbody></table><pagebreak />';
 }
-
-$html .= '</tbody></table>';
 
 // Imprimir el contenido HTML
 $pdf->writeHTML($html, true, false, true, false, '');

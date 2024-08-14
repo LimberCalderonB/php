@@ -4,8 +4,19 @@ include_once '../modelo_admin/mod_ventas.php';
 
 $ventas = new ModeloVentas();
 
-$ventasDirectas = $ventas->getVentasDirectas();
-$ventasPedidos = $ventas->getVentasPedidos();
+// Configuración de paginación para ventas directas
+$limit = 7;
+$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($page - 1) * $limit;
+
+$ventasDirectas = $ventas->getVentasDirectas($offset, $limit);
+$totalVentasDirectas = $ventas->getTotalVentasDirectas();
+$totalPagesDirectas = ceil($totalVentasDirectas / $limit);
+
+// Configuración de paginación para ventas de pedidos
+$ventasPedidos = $ventas->getVentasPedidos($offset, $limit);
+$totalVentasPedidos = $ventas->countVentasPedidos();
+$totalPagesPedidos = ceil($totalVentasPedidos / $limit);
 ?>
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
@@ -23,11 +34,13 @@ $ventasPedidos = $ventas->getVentasPedidos();
     </form>
 </div>
 
+<!-- Tabla de Ventas Directas -->
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__tab-bar">
         <a href="#tabNewAdmin" class="mdl-tabs__tab is-active">VENTAS</a>
         <a href="#tabListAdmin" class="mdl-tabs__tab">VENTA DE PEDIDOS</a>
     </div>
+
     <div class="mdl-tabs__panel is-active" id="tabNewAdmin">
         <div class="full-width divider-menu-h"></div>
         <div class="mdl-grid">
@@ -48,7 +61,15 @@ $ventasPedidos = $ventas->getVentasPedidos();
                                 <tr>
                                     <td><?php echo htmlspecialchars($venta['fecha_venta']); ?></td>
                                     <td><?php echo htmlspecialchars($venta['nombre'] . ' ' . $venta['apellido1']); ?></td>
-                                    <td><?php echo htmlspecialchars($venta['productos']); ?></td>
+                                    <td>
+                                        <?php
+                                            $productos = explode(', ', $venta['productos']);
+                                            echo htmlspecialchars($productos[0]);
+                                            if(count($productos) > 1) {
+                                                echo '...';
+                                            }
+                                        ?>
+                                    </td>
                                     <td><?php echo htmlspecialchars($venta['precio_total']); ?></td>
                                     <td>
                                         <div class="btn-container">
@@ -67,10 +88,22 @@ $ventasPedidos = $ventas->getVentasPedidos();
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    <!-- Controles de Paginación para Ventas Directas -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
+                                <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
+
                 </div>
             </div>
         </div>
     </div>
+
     <div class="mdl-tabs__panel" id="tabListAdmin">
         <div class="full-width divider-menu-h"></div>
         <div class="mdl-grid">
@@ -93,7 +126,15 @@ $ventasPedidos = $ventas->getVentasPedidos();
                                     <td><?php echo htmlspecialchars($venta['fecha_venta']); ?></td>
                                     <td><?php echo htmlspecialchars($venta['nombre'] . ' ' . $venta['apellido1']); ?></td>
                                     <td><?php echo htmlspecialchars($venta['nombre_cliente']); ?></td>
-                                    <td><?php echo htmlspecialchars($venta['productos']); ?></td>
+                                    <td>
+                                        <?php
+                                            $productos = explode(', ', $venta['productos']);
+                                            echo htmlspecialchars($productos[0]);
+                                            if(count($productos) > 1) {
+                                                echo '...';
+                                            }
+                                        ?>
+                                    </td>
                                     <td><?php echo htmlspecialchars($venta['precio_total']); ?></td>
                                     <td>
                                         <div class="btn-container">
@@ -112,6 +153,16 @@ $ventasPedidos = $ventas->getVentasPedidos();
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    <!-- Controles de Paginación para Ventas de Pedidos -->
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <?php for ($i = 1; $i <= $totalPagesPedidos; $i++): ?>
+                                <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>

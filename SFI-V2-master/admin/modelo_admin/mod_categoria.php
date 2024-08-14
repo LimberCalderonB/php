@@ -43,5 +43,27 @@ class Categoria {
         $stmt->bind_param("si", $this->nombre, $this->idcategoria);
         return $stmt->execute();
     }
+
+    public function obtenerNombreCategoria($idcategoria) {
+        include_once "../../conexion.php";
+    
+        $sql = "SELECT nombre FROM categoria WHERE idcategoria = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $idcategoria);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $nombre_categoria = "";
+    
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            $nombre_categoria = $row['nombre'];
+        }
+    
+        $stmt->close();
+        $conn->close();
+    
+        return $nombre_categoria;
+    }
+    
 }
 ?>

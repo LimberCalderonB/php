@@ -13,7 +13,7 @@ class ModeloVentas extends conexionBase {
         $this->CloseConnection();
     }
 
-    public function getVentasDirectas() {
+    public function getVentasDirectas($offset = 0, $limit = 7) {
         $sql = "
             SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, 
                    GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
@@ -25,9 +25,15 @@ class ModeloVentas extends conexionBase {
             JOIN producto pr ON vp.producto_idproducto = pr.idproducto
             WHERE v.detalle_pedido_iddetalle_pedido IS NULL
             GROUP BY v.idventa
+            ORDER BY v.fecha_venta DESC
+            LIMIT ?, ?
         ";
         
-        $result = $this->GetConnection()->query($sql);
+        $stmt = $this->GetConnection()->prepare($sql);
+        $stmt->bind_param('ii', $offset, $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    
         if ($result === false) {
             return ['success' => false, 'error' => $this->GetConnection()->error];
         }
@@ -42,7 +48,24 @@ class ModeloVentas extends conexionBase {
         return $ventasDirectas;
     }
     
-    public function getVentasPedidos() {
+    
+    public function getTotalVentasDirectas() {
+        $sql = "
+            SELECT COUNT(*) as total
+            FROM venta v
+            WHERE v.detalle_pedido_iddetalle_pedido IS NULL
+        ";
+        
+        $result = $this->GetConnection()->query($sql);
+        if ($result === false) {
+            return ['success' => false, 'error' => $this->GetConnection()->error];
+        }
+    
+        $row = $result->fetch_assoc();
+        return $row['total'];
+    }
+    
+    public function getVentasPedidos($offset = 0, $limit = 7) {
         $sql = "
             SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, c.nombre_cliente, 
                    GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
@@ -56,22 +79,54 @@ class ModeloVentas extends conexionBase {
             JOIN pedido_producto pp ON ped.idpedido = pp.pedido_idpedido
             JOIN producto pr ON pp.producto_idproducto = pr.idproducto
             GROUP BY v.idventa
+            ORDER BY v.fecha_venta DESC
+            LIMIT ?, ?
         ";
         
-        $result = $this->GetConnection()->query($sql);
+        $stmt = $this->GetConnection()->prepare($sql);
+        if ($stmt === false) {
+            return ['success' => false, 'error' => $this->GetConnection()->error];
+        }
+        
+        $stmt->bind_param('ii', $offset, $limit);
+        $stmt->execute();
+        
+        $result = $stmt->get_result();
         if ($result === false) {
             return ['success' => false, 'error' => $this->GetConnection()->error];
         }
-    
+        
         $ventasPedidos = [];
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 $ventasPedidos[] = $row;
             }
         }
-    
+        
+        $stmt->close();
+        
         return $ventasPedidos;
     }
+    
+    public function countVentasPedidos() {
+        $sql = "
+            SELECT COUNT(DISTINCT v.idventa) AS total
+            FROM venta v
+            JOIN detalle_pedido dp ON v.detalle_pedido_iddetalle_pedido = dp.iddetalle_pedido
+            JOIN pedido ped ON dp.pedido_idpedido = ped.idpedido
+            JOIN pedido_producto pp ON ped.idpedido = pp.pedido_idpedido
+        ";
+        
+        $result = $this->GetConnection()->query($sql);
+        if ($result === false) {
+            return ['success' => false, 'error' => $this->GetConnection()->error];
+        }
+        
+        $row = $result->fetch_assoc();
+        return $row['total'];
+    }
+    
+    
 
     public function obtenerVentaPorId($idventa) {
         $sql = "

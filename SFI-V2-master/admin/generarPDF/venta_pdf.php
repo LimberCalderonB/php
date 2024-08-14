@@ -34,8 +34,6 @@ $pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
 $pdf->AddPage();
 $pdf->SetFont('helvetica', '', 9);
 
-// Supongamos que tienes arrays con los detalles de cada producto
-// Aquí solo hay un ejemplo básico de cómo podrías formatear los datos
 $productosHTML = '';
 $totalGeneral = 0;
 

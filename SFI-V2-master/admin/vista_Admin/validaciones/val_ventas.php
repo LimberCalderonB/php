@@ -62,3 +62,57 @@
         outline: none;
     }
 </style>
+
+<!--ESTILO DE LA PAGINACION-->
+<style>
+    /* Estilos generales para la paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin: 20px 0;
+    list-style: none;
+}
+
+.page-item {
+    margin: 0 5px;
+}
+
+.page-link {
+    display: block;
+    padding: 10px 15px;
+    font-size: 1em;
+    color: #007bff;
+    text-decoration: none;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.page-link:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+/* Agrega estilos para el estado deshabilitado (si es necesario) */
+.page-item.disabled .page-link {
+    color: #6c757d;
+    border-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Asegúrate de que los estilos se apliquen en diferentes tamaños de pantalla */
+@media (max-width: 768px) {
+    .pagination {
+        font-size: 0.9em;
+    }
+}
+
+</style>

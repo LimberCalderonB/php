@@ -30,7 +30,18 @@ if (isset($_POST["nombre"])) {
             } else {
                 // Intentar agregar la categoría
                 if ($categoria->agregarCategoria()) {
-                    $_SESSION['registro_exitoso_categoria'] = true;
+                    // Crear la carpeta con el nombre de la categoría
+                    $carpetaCategoria = "../vista_Admin/img/categorias/" . $nombre;
+                    if (!file_exists($carpetaCategoria)) {
+                        if (mkdir($carpetaCategoria, 0777, true)) {
+                            $_SESSION['registro_exitoso_categoria'] = true;
+                        } else {
+                            $_SESSION['error_categoria'] = true;
+                            $_SESSION['mensaje_categoria'] = "La categoría se creó, pero no se pudo crear la carpeta.";
+                        }
+                    } else {
+                        $_SESSION['registro_exitoso_categoria'] = true; // Carpeta ya existe, continuar normalmente
+                    }
                     header("Location: ../vista_Admin/categoria.php");
                     exit();
                 } else {
@@ -47,18 +58,7 @@ if (isset($_POST["nombre"])) {
                 $_SESSION['error_categoria'] = true;
                 $_SESSION['mensaje_categoria'] = "La categoría ya existe.";
                 $_SESSION['nombre_categoria'] = $nombre;
-            } else {
-                // Intentar actualizar la categoría
-                if ($categoria->actualizarCategoria($idcategoria, $nombre)) {
-                    $_SESSION['registro_exitoso_categoria'] = true;
-                    header("Location: ../vista_Admin/categoria.php");
-                    exit();
-                } else {
-                    $_SESSION['error_categoria'] = true;
-                    $_SESSION['mensaje_categoria'] = "Hubo un problema al intentar actualizar la categoría.";
-                    $_SESSION['nombre_categoria'] = $nombre;
-                }
-            }
+            } 
         }
     }
 } else {

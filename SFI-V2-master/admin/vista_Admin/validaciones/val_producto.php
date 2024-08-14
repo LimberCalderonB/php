@@ -548,6 +548,55 @@ input[type="file"] {
 .mdl-textfield.is-invalid .mdl-textfield__error {
     display: block; /* Muestra el mensaje de error si el campo es inválido */
 }
+</style>
 
+<!--ESTILOS DE CANTIDAD-->
+<style>
+.form-label {
+    font-weight: bold;
+    color: #333;
+}
+
+.form-control {
+    border: 2px solid #009688;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+    border-color: #004d40;
+    box-shadow: 0 0 8px rgba(0, 77, 64, 0.5);
+    outline: none;
+}
+
+.invalid-feedback {
+    display: none;
+}
 
 </style>
+<script>
+    document.getElementById('cantidad').addEventListener('input', function() {
+        let value = this.value;
+        let feedback = document.getElementById('cantidadFeedback');
+
+        let filteredValue = value.replace(/[^0-9]/g, '');
+
+        let numValue = parseInt(filteredValue, 10);
+
+            if (filteredValue === '' || isNaN(numValue)) {
+                this.value = '';
+                feedback.style.display = 'none';
+            } else if (numValue > 30) {
+                this.value = 30;
+                feedback.style.display = 'block';
+            } else if (numValue < 0) {
+                this.value = 0;
+                feedback.style.display = 'block';
+            } else {
+                this.value = numValue;
+                feedback.style.display = 'none';
+            }
+        });
+</script>

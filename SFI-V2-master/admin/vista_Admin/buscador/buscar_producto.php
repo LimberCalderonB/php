@@ -12,7 +12,7 @@ $searchTerm = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']
 $searchWords = array_filter(explode(' ', $searchTerm));
 
 $sql = "SELECT producto.*, 
-               categoria.nombre AS categoria_nombre, 
+                categoria.nombre AS categoria_nombre, 
                (producto.precio - (producto.precio * (producto.descuento / 100))) AS precio_con_descuento
         FROM producto 
         JOIN almacen ON producto.idproducto = almacen.producto_idproducto 

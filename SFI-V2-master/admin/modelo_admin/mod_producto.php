@@ -1,6 +1,5 @@
 <?php
 include_once 'conexion/conexionBase.php';
-
 class ModeloProducto extends conexionBase {
 
     public function __construct() {
