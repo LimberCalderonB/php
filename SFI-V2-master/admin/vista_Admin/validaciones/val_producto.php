@@ -20,8 +20,8 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.btn-delete').forEach(button => {
             button.addEventListener('click', function() {
-                var productId = this.getAttribute('data-id');
-                confirmDelete(productId);
+                var idproducto = this.getAttribute('data-id');  // Cambié 'productId' por 'idproducto'
+                confirmDelete(idproducto);  // Asegúrate de pasar 'idproducto' y no 'productId'
             });
         });
     });
@@ -67,6 +67,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
         });
     }
 </script>
+
 <!--Estilo de Boton de la imagen-->
 <script>
     document.getElementById('fileUpload').addEventListener('change', function() {

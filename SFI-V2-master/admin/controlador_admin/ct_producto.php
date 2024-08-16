@@ -1,8 +1,12 @@
 <?php
+require '../../../vendor/autoload.php';
+
+use WebPConvert\WebPConvert;
+include_once "../../conexion.php";
 include_once '../modelo_admin/mod_producto.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Obtener datos del formulario
+
     $idproducto = $_POST['idproducto'] ?? '';
     $nombre = $_POST['nombre'] ?? '';
     $precio = $_POST['precio'] ?? '';
@@ -11,68 +15,96 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $talla = $_POST['talla'] ?? '';
     $categoria_idcategoria = $_POST['categoria_idcategoria'] ?? null;
 
-    // Validación de datos
     if (empty($nombre) || empty($precio) || empty($descripcion) || empty($talla) || empty($categoria_idcategoria)) {
         $_SESSION['registro'] = 'Todos los campos son obligatorios.';
         header("Location: ../vista_Admin/productos.php?mensaje=Error: Campos incompletos");
         exit;
     }
 
-    // Calcular el precio con descuento
     $precioConDescuento = $precio - ($precio * ($descuento / 100));
 
-    // Manejar la subida de imágenes
+    // Obtener la categoría original del producto si se está editando
+    $modelo = new ModeloProducto();
+    $categoriaOriginal = null;
+
+    if ($idproducto) {
+        $productoExistente = $modelo->obtenerProductoPorId($idproducto);
+        if ($productoExistente) {
+            $categoriaOriginal = $productoExistente['categoria_idcategoria'];
+        } else {
+            $_SESSION['registro'] = 'Producto no encontrado.';
+            header("Location: ../vista_Admin/productos.php?mensaje=Producto no encontrado");
+            exit;
+        }
+    }
+
+    $nombreCategoria = obtenerNombreCategoriaDesdeBD($categoria_idcategoria);
+    $directorioBase = '../vista_Admin/img/categorias/';
+    $directorioImagenes = $directorioBase . $nombreCategoria . '/';
+
+    if (!is_dir($directorioImagenes)) {
+        mkdir($directorioImagenes, 0777, true);
+    }
+
     $imagenes = ['img1', 'img2', 'img3'];
     $rutasImagenes = [];
-    $directorioImagenes = '../vista_Admin/img/vestidos/';
 
     foreach ($imagenes as $imagen) {
         $imgPath = isset($_POST['original_' . $imagen]) ? $directorioImagenes . $_POST['original_' . $imagen] : null;
         if ($_POST['remove_' . $imagen] == '1') {
             if ($imgPath && is_file($imgPath)) {
-                unlink($imgPath); // Eliminar la imagen existente del sistema de archivos
+                unlink($imgPath);
             }
-            $rutasImagenes[$imagen] = null; // Establecer la ruta de la imagen como null
+            $rutasImagenes[$imagen] = null;
         } else {
             if (isset($_FILES[$imagen]) && $_FILES[$imagen]['error'] == UPLOAD_ERR_OK) {
                 $fileTmpPath = $_FILES[$imagen]['tmp_name'];
                 $fileName = $_FILES[$imagen]['name'];
                 $fileNameCmps = explode(".", $fileName);
                 $fileExtension = strtolower(end($fileNameCmps));
-                $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
+                $newFileName = md5(time() . $fileName) . '.webp';
                 $dest_path = $directorioImagenes . $newFileName;
-                if (move_uploaded_file($fileTmpPath, $dest_path)) {
+
+                try {
+                    WebPConvert::convert($fileTmpPath, $dest_path, [
+                        'quality' => 50
+                    ]);
                     $rutasImagenes[$imagen] = $newFileName;
-                } else {
-                    $_SESSION['registro'] = 'Error al subir la imagen.';
-                    header("Location: ../vista_Admin/productos.php?mensaje=Error al subir la imagen");
+                } catch (Exception $e) {
+                    $_SESSION['registro'] = 'Error al convertir la imagen a WebP: ' . $e->getMessage();
+                    header("Location: ../vista_Admin/productos.php?mensaje=Error al convertir la imagen a WebP");
                     exit;
                 }
             } else {
-                $rutasImagenes[$imagen] = $_POST['original_' . $imagen] ?? null; // Mantener la ruta original si no se sube una nueva imagen
+                $rutasImagenes[$imagen] = $_POST['original_' . $imagen] ?? null;
             }
         }
     }
 
-    // Obtener las rutas de las imágenes
     $img1 = $rutasImagenes['img1'] ?? null;
     $img2 = $rutasImagenes['img2'] ?? null;
     $img3 = $rutasImagenes['img3'] ?? null;
 
-    $modelo = new ModeloProducto();
+    // Mover imágenes a la nueva categoría si esta cambia
+    if ($categoriaOriginal && $categoriaOriginal != $categoria_idcategoria) {
+        $nombreCategoriaOriginal = obtenerNombreCategoriaDesdeBD($categoriaOriginal);
+        $directorioOriginal = $directorioBase . $nombreCategoriaOriginal . '/';
 
-    if ($idproducto) {
-        // Actualizar el producto existente
-        $producto = $modelo->obtenerProductoPorId($idproducto);
-        if ($producto) {
-            $resultado = $modelo->actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
-        } else {
-            $_SESSION['registro'] = 'Producto no encontrado.';
-            header("Location: ../vista_Admin/productos.php?mensaje=Producto no encontrado");
-            exit;
+        foreach ($imagenes as $imagen) {
+            if (isset($_POST['original_' . $imagen]) && $_POST['original_' . $imagen]) {
+                $rutaOriginal = $directorioOriginal . $_POST['original_' . $imagen];
+                $rutaNueva = $directorioImagenes . $_POST['original_' . $imagen];
+                if (is_file($rutaOriginal)) {
+                    rename($rutaOriginal, $rutaNueva);
+                }
+            }
         }
+    }
+
+    // Guardar o actualizar el producto en la base de datos
+    if ($idproducto) {
+        $resultado = $modelo->actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
     } else {
-        // Agregar un nuevo producto
         $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
     }
 
@@ -84,7 +116,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         header("Location: ../vista_Admin/productos.php?mensaje=Error al guardar producto");
     }
 }
+
+function obtenerNombreCategoriaDesdeBD($idCategoria) {
+    global $conn; // Asegura que $conn está disponible aquí
+
+    $sql = "SELECT nombre FROM categoria WHERE idcategoria = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $idCategoria);
+    $stmt->execute();
+    $stmt->bind_result($nombreCategoria);
+    $stmt->fetch();
+
+    $stmt->close();
+
+    return $nombreCategoria;
+}
+
+function obtenerProductoPorId($idProducto) {
+    global $conn; // Asegura que $conn está disponible aquí
+
+    $sql = "SELECT p.*, c.nombre AS categoria
+            FROM producto p
+            JOIN almacen a ON p.idproducto = a.producto_idproducto
+            JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
+            WHERE p.idproducto = ?";
+            
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $idProducto);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $producto = $resultado->fetch_assoc();
+
+    $stmt->close();
+    
+    return $producto;
+}
 ?>
-
-
-

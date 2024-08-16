@@ -7,9 +7,10 @@ $idproducto = $_GET['idproducto'];
 
 // Consulta para obtener los detalles del producto junto con la categoría
 $query_producto = "
-    SELECT p.*, a.categoria_idcategoria
+    SELECT p.*, c.nombre AS categoria_nombre
     FROM producto p
     LEFT JOIN almacen a ON p.idproducto = a.producto_idproducto
+    LEFT JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
     WHERE p.idproducto = $idproducto
 ";
 $result_producto = mysqli_query($conn, $query_producto);
@@ -27,7 +28,8 @@ if (!$result_categorias) {
 
 // Verifica si 'categoria_idcategoria' está definido en el array $producto
 $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['categoria_idcategoria'] : '';
-
+$nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+$directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
 ?>
 
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -105,10 +107,18 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                                 <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; OTROS DATOS</legend><br>
                             </div>
 
+                            <?php
+                            // Supongamos que $nombreCategoria contiene el nombre de la categoría del producto
+                            $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+
+                            // Construir el directorio de imágenes basado en el nombre de la categoría
+                            $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
+                            ?>
+
                             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield file-upload-container">
                                     <label>Imagen 1:</label><br>
-                                    <img id="imgPreview1" class="img-thumbnail" src="<?php echo $producto['img1'] ? 'img/vestidos/' . htmlspecialchars($producto['img1']) : ''; ?>" alt="Imagen 1" />
+                                    <img id="imgPreview1" class="img-thumbnail" src="<?php echo $producto['img1'] ? $directorioImagenes . htmlspecialchars($producto['img1']) : 'path/to/default-image.jpg'; ?>" alt="Imagen 1" />
                                     <div class="file-upload-controls">
                                         <button type="button" class="btn-remove" onclick="removeImage(1)">Quitar</button>
                                         <input type="file" id="fileUpload1" accept="image/*" name="img1" onchange="updatePreview(this, 'imgPreview1')" />
@@ -122,7 +132,7 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield file-upload-container">
                                     <label>Imagen 2:</label><br>
-                                    <img id="imgPreview2" class="img-thumbnail" src="<?php echo $producto['img2'] ? 'img/vestidos/' . htmlspecialchars($producto['img2']) : ''; ?>" alt="Imagen 2" />
+                                    <img id="imgPreview2" class="img-thumbnail" src="<?php echo $producto['img2'] ? $directorioImagenes . htmlspecialchars($producto['img2']) : 'path/to/default-image.jpg'; ?>" alt="Imagen 2" />
                                     <div class="file-upload-controls">
                                         <button type="button" class="btn-remove" onclick="removeImage(2)">Quitar</button>
                                         <input type="file" id="fileUpload2" accept="image/*" name="img2" onchange="updatePreview(this, 'imgPreview2')" />
@@ -136,7 +146,7 @@ $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['
                             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield file-upload-container">
                                     <label>Imagen 3:</label><br>
-                                    <img id="imgPreview3" class="img-thumbnail" src="<?php echo $producto['img3'] ? 'img/vestidos/' . htmlspecialchars($producto['img3']) : ''; ?>" alt="Imagen 3" />
+                                    <img id="imgPreview3" class="img-thumbnail" src="<?php echo $producto['img3'] ? $directorioImagenes . htmlspecialchars($producto['img3']) : 'path/to/default-image.jpg'; ?>" alt="Imagen 3" />
                                     <div class="file-upload-controls">
                                         <button type="button" class="btn-remove" onclick="removeImage(3)">Quitar</button>
                                         <input type="file" id="fileUpload3" accept="image/*" name="img3" onchange="updatePreview(this, 'imgPreview3')" />

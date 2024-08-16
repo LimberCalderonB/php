@@ -179,36 +179,29 @@ class ModeloProducto extends conexionBase {
             if ($categoria_idcategoria !== null) {
                 $queryAlmacen = "UPDATE almacen SET categoria_idcategoria = ? WHERE producto_idproducto = ?";
                 $stmtAlmacen = $this->GetConnection()->prepare($queryAlmacen);
-                
                 if ($stmtAlmacen === false) {
                     throw new Exception('Error al preparar la consulta de almacen: ' . $this->GetConnection()->error);
                 }
+                $stmtAlmacen->bind_param('ii', $categoria_idcategoria, $idproducto);
     
-                $stmtAlmacen->bind_param("ii", $categoria_idcategoria, $idproducto);
-    
+                // Ejecutar la consulta de almacen
                 if (!$stmtAlmacen->execute()) {
                     throw new Exception('Error al actualizar almacen: ' . $stmtAlmacen->error);
                 }
-    
-                $stmtAlmacen->close();
             }
     
             // Confirmar la transacción
             $this->GetConnection()->commit();
-            
-            // Cerrar la consulta
-            $stmtProducto->close();
-            
-            return ['success' => true];
+    
+            return true;
     
         } catch (Exception $e) {
             // Revertir la transacción en caso de error
             $this->GetConnection()->rollback();
-            return ['success' => false, 'error' => $e->getMessage()];
+            error_log($e->getMessage());
+            return false;
         }
     }
-    
-    
 public function obtenerProductos() {
         // Consulta modificada para agrupar por nombre, precio, talla y categoría, y sumar la cantidad y obtener la última fecha
         $sql = "SELECT 
@@ -233,7 +226,7 @@ public function obtenerProductos() {
         }
         return $productos;
     }
-
+// OBTENCION DE PARA LA TABLA DE STOCK
     public function obtenerProductosConDescuento() {
         $sql = "SELECT 
                     p.nombre, 

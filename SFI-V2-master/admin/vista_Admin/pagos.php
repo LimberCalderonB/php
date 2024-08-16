@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                       toast: true,
                       position: 'top-end',
                       showConfirmButton: false,
-                      timer: 3000,
+                      timer: 2000,
                       timerProgressBar: true,
                       didOpen: (toast) => {
                         toast.onmouseenter = Swal.stopTimer;
@@ -134,6 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
               </script>";
     }
 }
+
 ?>
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
@@ -156,23 +157,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             <div class="productos-grid">
                 <?php foreach ($_SESSION['productos_seleccionados'] as $producto): ?>
                     <div class="product-card">
-                        <div class="product-images">
-                            <?php if (!empty($producto['img1'])): ?>
-                                <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img1']); ?>" alt="img de producto 1" class="product-image active">
-                            <?php endif; ?>
-                            <?php if (!empty($producto['img2'])): ?>
-                                <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img2']); ?>" alt="img de producto 2" class="product-image">
-                            <?php endif; ?>
-                            <?php if (!empty($producto['img3'])): ?>
-                                <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img3']); ?>" alt="img de producto 3" class="product-image">
-                            <?php endif; ?>
-                            <button class="prev-button">
-                                <i class="fi fi-rr-angle-small-left"></i>
-                            </button>
-                            <button class="next-button">
-                                <i class="fi fi-rr-angle-small-right"></i>
-                            </button>
-                        </div>
+                    <div class="product-images">
+                        
+                    <?php
+
+                                $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+
+                                $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
+                                ?>
+
+                                <div class="product-images">
+                                    <?php if (!empty($producto['img1'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img2'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img3'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
+                                    <?php endif; ?>
+                                </div>
+                        <button class="prev-button">
+                            <i class="fi fi-rr-angle-small-left"></i>
+                        </button>
+                        <button class="next-button">
+                            <i class="fi fi-rr-angle-small-right"></i>
+                        </button>
+                    </div>
+
                         <div class="product-info">
                             <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                             <small class="separator">|</small>

@@ -191,17 +191,27 @@
                         <?php foreach ($productos as $producto): ?>
                             <div class="mdl-card mdl-shadow--2dp full-width product-card">
                                 <div class="mdl-card__title">
-                                    <div class="product-images">
-                                        <?php if (!empty($producto['img1'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
-                                        <?php endif; ?>
-                                        <?php if (!empty($producto['img2'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
-                                        <?php endif; ?>
-                                        <?php if (!empty($producto['img3'])): ?>
-                                            <img src="<?php echo htmlspecialchars('../vista_Admin/img/vestidos/' . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
-                                        <?php endif; ?>
-                                    </div>
+                                <?php
+                                // Supongamos que $nombreCategoria contiene el nombre de la categoría, por ejemplo, "Electronics"
+                                $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+
+                                // Construir el directorio de imágenes basado en el nombre de la categoría
+                                $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
+                                ?>
+
+                                <!-- Mostrar las imágenes -->
+                                <div class="product-images">
+                                    <?php if (!empty($producto['img1'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img2'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
+                                    <?php endif; ?>
+                                    <?php if (!empty($producto['img3'])): ?>
+                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
+                                    <?php endif; ?>
+                                </div>
+
                                     <button class="prev-button">
                                         <i class="fi fi-rr-angle-small-left"></i>
                                     </button>
@@ -216,7 +226,7 @@
                                         <small>Talla:<?php echo htmlspecialchars($producto['talla']); ?></small>
                                     </div>
                                     <div class="product-date">
-                                        <!--<small><?php echo htmlspecialchars($producto['fecha_actualizacion']); ?></small> -->
+                                        
                                         <small>Cantidad: </small>
                                     </div>
                                 </div>
