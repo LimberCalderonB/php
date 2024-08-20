@@ -11,45 +11,52 @@ class ModeloProducto extends conexionBase {
         $this->CloseConnection();
     }
 
-    public function agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3) {
-        $sql = "INSERT INTO producto (nombre, precio, descuento, precioConDescuento, descripcion, talla, img1, img2, img3) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
-        $stmt = $this->GetConnection()->prepare($sql);
-        if ($stmt === false) {
-            return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
-        }
-
-        $stmt->bind_param("sddssssss", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $img1, $img2, $img3);
-        
-        if ($stmt->execute()) {
-            $idproducto = $stmt->insert_id;
-            $stmt->close();
-
-            if ($categoria_idcategoria !== null) {
-                $sqlAlmacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria, cantidad) VALUES (?, ?, ?)";
-                $stmtAlmacen = $this->GetConnection()->prepare($sqlAlmacen);
-                
-                if ($stmtAlmacen === false) {
-                    return ['success' => false, 'error' => 'Error al preparar la consulta de almacen: ' . $this->GetConnection()->error];
-                }
-
-                $cantidad = 1;
-                $stmtAlmacen->bind_param("iii", $idproducto, $categoria_idcategoria, $cantidad);
-                
-                if ($stmtAlmacen->execute()) {
-                    $stmtAlmacen->close();
-                    return ['success' => true];
-                } else {
-                    return ['success' => false, 'error' => 'Error al insertar en almacen: ' . $stmtAlmacen->error];
-                }
-            } else {
-                return ['success' => false, 'error' => 'Categoría no especificada'];
+    public function agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3, $cantidad) {
+        $idproductos = [];
+    
+        for ($i = 0; $i < $cantidad; $i++) {
+            $sql = "INSERT INTO producto (nombre, precio, descuento, precioConDescuento, descripcion, talla, img1, img2, img3) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmt = $this->GetConnection()->prepare($sql);
+            if ($stmt === false) {
+                return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
             }
-        } else {
-            return ['success' => false, 'error' => 'Error al insertar en producto: ' . $stmt->error];
+        
+            // Vinculación de parámetros
+            $stmt->bind_param("sddssssss", $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $img1, $img2, $img3);
+            
+            if ($stmt->execute()) {
+                $idproducto = $stmt->insert_id;
+                $idproductos[] = $idproducto;
+            } else {
+                return ['success' => false, 'error' => 'Error al ejecutar la consulta: ' . $stmt->error];
+            }
+            $stmt->close();
         }
+    
+        // Insertar en la tabla `almacen`
+        if ($categoria_idcategoria !== null) {
+            foreach ($idproductos as $idproducto) {
+                $sql_almacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria) VALUES (?, ?)";
+                $stmt_almacen = $this->GetConnection()->prepare($sql_almacen);
+                if ($stmt_almacen === false) {
+                    return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
+                }
+                $stmt_almacen->bind_param("ii", $idproducto, $categoria_idcategoria);
+                if ($stmt_almacen->execute()) {
+                    $stmt_almacen->close();
+                } else {
+                    return ['success' => false, 'error' => 'Error al ejecutar la consulta: ' . $stmt_almacen->error];
+                }
+            }
+        }
+    
+        return ['success' => true, 'idproductos' => $idproductos];
     }
+    
+    
+    
 
     public function eliminarProducto($idproducto) {
         $sqlAlmacen = "DELETE FROM almacen WHERE producto_idproducto = ?";
@@ -170,38 +177,36 @@ class ModeloProducto extends conexionBase {
     
             $stmtProducto->bind_param($types, ...$params);
     
-            // Ejecutar la consulta de producto
+            // Ejecutar la consulta
             if (!$stmtProducto->execute()) {
-                throw new Exception('Error al actualizar producto: ' . $stmtProducto->error);
+                throw new Exception('Error al ejecutar la consulta de producto: ' . $stmtProducto->error);
             }
     
-            // Actualizar la categoría en la tabla almacen
-            if ($categoria_idcategoria !== null) {
-                $queryAlmacen = "UPDATE almacen SET categoria_idcategoria = ? WHERE producto_idproducto = ?";
-                $stmtAlmacen = $this->GetConnection()->prepare($queryAlmacen);
-                if ($stmtAlmacen === false) {
-                    throw new Exception('Error al preparar la consulta de almacen: ' . $this->GetConnection()->error);
-                }
-                $stmtAlmacen->bind_param('ii', $categoria_idcategoria, $idproducto);
+            // Actualizar la categoría en la tabla "almacen"
+            $queryAlmacen = "UPDATE almacen SET categoria_idcategoria = ? WHERE producto_idproducto = ?";
+            $stmtAlmacen = $this->GetConnection()->prepare($queryAlmacen);
     
-                // Ejecutar la consulta de almacen
-                if (!$stmtAlmacen->execute()) {
-                    throw new Exception('Error al actualizar almacen: ' . $stmtAlmacen->error);
-                }
+            if ($stmtAlmacen === false) {
+                throw new Exception('Error al preparar la consulta de almacen: ' . $this->GetConnection()->error);
             }
     
-            // Confirmar la transacción
+            $stmtAlmacen->bind_param('ii', $categoria_idcategoria, $idproducto);
+    
+            if (!$stmtAlmacen->execute()) {
+                throw new Exception('Error al ejecutar la consulta de almacen: ' . $stmtAlmacen->error);
+            }
+    
+            // Confirmar transacción
             $this->GetConnection()->commit();
-    
             return true;
     
         } catch (Exception $e) {
-            // Revertir la transacción en caso de error
+            // Revertir la transacción si hay algún error
             $this->GetConnection()->rollback();
-            error_log($e->getMessage());
             return false;
         }
     }
+    
 public function obtenerProductos() {
         // Consulta modificada para agrupar por nombre, precio, talla y categoría, y sumar la cantidad y obtener la última fecha
         $sql = "SELECT 
@@ -226,7 +231,7 @@ public function obtenerProductos() {
         }
         return $productos;
     }
-// OBTENCION DE PARA LA TABLA DE STOCK
+// OBTENCION PARA LA TABLA DE STOCK
     public function obtenerProductosConDescuento() {
         $sql = "SELECT 
                     p.nombre, 

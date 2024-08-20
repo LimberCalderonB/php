@@ -7,12 +7,13 @@ $idproducto = $_GET['idproducto'];
 
 // Consulta para obtener los detalles del producto junto con la categoría
 $query_producto = "
-    SELECT p.*, c.nombre AS categoria_nombre
+    SELECT p.*, a.categoria_idcategoria, c.nombre AS categoria_nombre
     FROM producto p
     LEFT JOIN almacen a ON p.idproducto = a.producto_idproducto
     LEFT JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
     WHERE p.idproducto = $idproducto
 ";
+
 $result_producto = mysqli_query($conn, $query_producto);
 if (!$result_producto) {
     die('Error en la consulta del producto: ' . mysqli_error($conn));
@@ -54,19 +55,55 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                                 </div>
                             </div>
                             <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
-                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                    <input class="mdl-textfield__input" type="text" pattern="-?[0-9.]*(\.[0-9]+)?" id="precio" name="precio" value="<?php echo htmlspecialchars($producto['precio']); ?>">
-                                    <label class="mdl-textfield__label" for="precio">Precio</label>
-                                    <span class="mdl-textfield__error" style="color:red;">Precio Invalido</span>
-                                </div>
-                            </div>
-                            <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
-                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                    <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="descuento" name="descuento" value="<?php echo htmlspecialchars($producto['descuento']); ?>">
-                                    <label class="mdl-textfield__label" for="descuento">% Descuento</label>
-                                    <span class="mdl-textfield__error" style="color:red;">Descuento Invalido</span>
-                                </div>
-                            </div>
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                            <input class="mdl-textfield__input" type="text" pattern="^[0-9]*\.?[0-9]*$" id="precio" name="precio" oninput="validatePrice(this)" value="<?php echo htmlspecialchars($producto['precio']); ?>">
+                                            <label class="mdl-textfield__label" for="precio">Precio</label>
+                                            <span class="mdl-textfield__error">Precio Inválido</span>
+                                        </div>
+                                    </div>
+                            <script>
+                                    function validatePrice(input) {
+                                        // Elimina cualquier caracter que no sea un número o punto decimal
+                                        input.value = input.value.replace(/[^0-9.]/g, '');
+                                        
+                                        // Asegura que solo haya un punto decimal
+                                        const parts = input.value.split('.');
+                                        if (parts.length > 2) {
+                                            input.value = parts[0] + '.' + parts.slice(1).join('');
+                                        }
+                                    }
+                                    </script>
+                            
+                                    <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                            <input class="mdl-textfield__input" type="text" pattern="^[0-9]*\.?[0-9]{0,2}$" id="descuento" name="descuento" min="0" max="100" oninput="validateDiscount(this)" value="<?php echo htmlspecialchars($producto['descuento']); ?>">
+                                            <label class="mdl-textfield__label" for="descuento">% Descuento</label>
+                                            <span class="mdl-textfield__error">Descuento Inválido</span>
+                                        </div>
+                                    </div>
+                                    <script>
+                                    function validateDiscount(input) {
+                                        // Permite solo números y un punto decimal
+                                        input.value = input.value.replace(/[^0-9.]/g, '');
+
+                                        // Asegura que solo haya un punto decimal
+                                        const parts = input.value.split('.');
+                                        if (parts.length > 2) {
+                                            input.value = parts[0] + '.' + parts.slice(1).join('');
+                                        }
+
+                                        // Limita a dos decimales
+                                        if (parts[1] && parts[1].length > 2) {
+                                            input.value = parts[0] + '.' + parts[1].substring(0, 2);
+                                        }
+
+                                        // Asegura que el valor no supere el máximo permitido
+                                        const max = 100;
+                                        if (parseFloat(input.value) > max) {
+                                            input.value = max;
+                                        }
+                                    }
+                                    </script>
                             <div class="mdl-cell mdl-cell--2-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="number" pattern="-?[0-9]*(\.[0-9]+)?" id="talla" name="talla" value="<?php echo htmlspecialchars($producto['talla']); ?>">
@@ -108,12 +145,46 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                             </div>
 
                             <?php
-                            // Supongamos que $nombreCategoria contiene el nombre de la categoría del producto
-                            $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+                                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-                            // Construir el directorio de imágenes basado en el nombre de la categoría
-                            $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
-                            ?>
+                                    if ($conn->connect_error) {
+                                        die("Error de conexión: " . $conn->connect_error);
+                                    }
+
+                                    $idproducto = $_POST['idproducto'];
+                                    $nombreCategoria = $_POST['categoria_nombre'];
+                                    $remove_img1 = $_POST['remove_img1'];
+                                    $remove_img2 = $_POST['remove_img2'];
+                                    $remove_img3 = $_POST['remove_img3'];
+
+                                    $directorioImagenes = 'img/categorias/' . htmlspecialchars($nombreCategoria) . '/';
+
+                                    $imagenes = ['img1' => $remove_img1, 'img2' => $remove_img2, 'img3' => $remove_img3];
+                                    foreach ($imagenes as $key => $remove_img) {
+                                        if ($remove_img == '1') {
+
+                                            $imagenOriginal = $_POST['original_' . $key];
+                                            if (!empty($imagenOriginal)) {
+                                                $rutaCompleta = $directorioImagenes . $imagenOriginal;
+
+                                                if (file_exists($rutaCompleta)) {
+                                                    unlink($rutaCompleta);
+                                                }
+
+                                                $sql_update = "UPDATE producto SET $key = NULL WHERE idproducto = ?";
+                                                $stmt_update = $conn->prepare($sql_update);
+                                                $stmt_update->bind_param("i", $idproducto);
+                                                $stmt_update->execute();
+                                            }
+                                        }
+                                    }
+
+                                    $conn->close();
+                                    echo "success";
+                                } else {
+
+                                }
+                                ?>
 
                             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield file-upload-container">
@@ -179,3 +250,10 @@ include_once "pie.php";
 include_once "validaciones/val_producto.php";
 ?>
 
+<script>
+    function removeImage(imgIndex) {
+    document.getElementById('remove_img' + imgIndex).value = "1";
+    document.getElementById('imgPreview' + imgIndex).src = 'path/to/default-image.jpg';
+}
+
+</script>

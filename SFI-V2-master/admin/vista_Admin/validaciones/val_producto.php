@@ -16,57 +16,143 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 }
 ?>
 <!--ALERTA DE ELIMINACION DE PRODUCTO-->
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.btn-delete').forEach(button => {
-            button.addEventListener('click', function() {
-                var idproducto = this.getAttribute('data-id');  // Cambié 'productId' por 'idproducto'
-                confirmDelete(idproducto);  // Asegúrate de pasar 'idproducto' y no 'productId'
-            });
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-delete').forEach(button => {
+        button.addEventListener('click', function() {
+            var idproducto = this.getAttribute('data-id');
+            promptDelete(idproducto);
         });
     });
+});
 
-    function confirmDelete(productId) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "¡No podrás revertir esto!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, eliminarlo!',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Realizar la solicitud AJAX para eliminar el producto
-                $.ajax({
-                    type: 'POST',
-                    url: '../crud/productos/eliminar.php',
-                    data: {idproducto: productId},
-                    success: function(response) {
-                        // Mensaje de eliminación
+function promptDelete(productId) {
+    Swal.fire({
+        title: '¿Cuántos productos quieres eliminar?',
+        input: 'number',
+        inputLabel: 'Cantidad',
+        inputPlaceholder: 'Ingresa la cantidad',
+        inputAttributes: {
+            min: 1
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value || value <= 0) {
+                return 'Por favor ingresa una cantidad válida.';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            var cantidad = result.value;
+            $.ajax({
+                type: 'POST',
+                url: '../crud/productos/eliminar.php',
+                data: {
+                    idproducto: productId,
+                    cantidad: cantidad
+                },
+                success: function(response) {
+                    if (response.trim() === "success") {
                         Swal.fire({
                             title: '¡Eliminado!',
-                            text: 'El producto ha sido eliminado.',
+                            text: 'Los productos han sido eliminados.',
                             icon: 'success'
                         }).then(() => {
-                            // Recargar la página después de eliminar el producto
-                            location.reload();
+                            location.reload(); // Recargar la página para reflejar los cambios
                         });
-                    },
-                    error: function(xhr, status, error) {
-                        // Error de eliminación
+                    } else {
                         Swal.fire({
                             title: 'Error',
-                            text: 'Se produjo un error al intentar eliminar el producto.',
+                            text: response || 'Hubo un error al intentar eliminar los productos.',
                             icon: 'error'
                         });
                     }
-                });
-            }
-        });
-    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Se produjo un error al intentar eliminar los productos.',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+}
+
 </script>
+
+
+<!--CAMPO DE CANTIDAD-->
+<style>
+.col-md-6 {
+        position: relative;
+}
+
+.form-control {
+        width: 100%; /* Hace que el campo de entrada ocupe el 100% del contenedor */
+}
+
+.feedback {
+    display: none; /* Inicialmente oculto */
+    color: red;
+    margin-top: 5px; /* Espacio entre el campo y el mensaje de error */
+    font-size: 0.875rem; /* Tamaño de fuente más pequeño para el mensaje de error */
+}
+
+.is-invalid {
+    border-color: red; /* Cambia el borde del campo a rojo si es inválido */
+}
+
+/* Oculta los botones de incremento y decremento en los campos de tipo number */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+}
+
+input[type="number"] {
+        -moz-appearance: textfield; /* Oculta los botones en Firefox */
+    }
+</style>
+
+<!--FUNCIONAMIENTO DE CANTIDAD-->
+<script>
+function validateQuantity(input) {
+    const min = 1;
+    const max = 36;
+
+    // Solo procesa si el campo tiene algún valor
+    if (input.value.trim() !== '') {
+        input.value = input.value.replace(/[^0-9]/g, ''); // Elimina caracteres no numéricos
+
+        let value = parseInt(input.value, 10);
+
+        if (isNaN(value) || value < min) {
+            input.value = min;
+        } else if (value > max) {
+            input.value = max;
+        }
+    }
+}
+
+function resetDefaultValue(input) {
+    const defaultValue = 1;
+
+    // Restablece el valor al predeterminado solo si el campo está vacío
+    if (input.value.trim() === '') {
+        input.value = defaultValue;
+    }
+}
+
+</script>
+
+
 
 <!--Estilo de Boton de la imagen-->
 <script>
@@ -186,6 +272,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 }
 
 </style>
+<!--BOTON DE ANTES Y DESPUES-->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const productCards = document.querySelectorAll('.product-card');
@@ -227,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .product-info {
     display: flex;
     align-items: center;
-    font-size: 0.9rem; /* Ajusta el tamaño de la fuente si es necesario */
+    font-size: 0.9rem; /* Ajusta el tamaño */
 }
 
 .product-info small {
@@ -284,6 +371,43 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
     }
 });
 </script>
+<!--VALIDACION DE NUERMEROS Y SIMBOLOS DE PRECIO-->
+<script>
+                                    function validatePrice(input) {
+                                        // Elimina cualquier caracter que no sea un número o punto decimal
+                                        input.value = input.value.replace(/[^0-9.]/g, '');
+                                        
+                                        // Asegura que solo haya un punto decimal
+                                        const parts = input.value.split('.');
+                                        if (parts.length > 2) {
+                                            input.value = parts[0] + '.' + parts.slice(1).join('');
+                                        }
+                                    }
+                                    </script>
+<!--VALIDACION DE NUMEROS Y SIMBOLOS DE DESCUENTO-->
+<script>
+                                    function validateDiscount(input) {
+                                        // Permite solo números y un punto decimal
+                                        input.value = input.value.replace(/[^0-9.]/g, '');
+
+                                        // Asegura que solo haya un punto decimal
+                                        const parts = input.value.split('.');
+                                        if (parts.length > 2) {
+                                            input.value = parts[0] + '.' + parts.slice(1).join('');
+                                        }
+
+                                        // Limita a dos decimales
+                                        if (parts[1] && parts[1].length > 2) {
+                                            input.value = parts[0] + '.' + parts[1].substring(0, 2);
+                                        }
+
+                                        // Asegura que el valor no supere el máximo permitido
+                                        const max = 100;
+                                        if (parseFloat(input.value) > max) {
+                                            input.value = max;
+                                        }
+                                    }
+                                    </script>
 <!--ESTILO DE VALIDACION DE CAMPO-->
 <style>
     .is-invalid .mdl-textfield__input {
@@ -421,7 +545,105 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
         margin-right: 5px;
     }
 </style>
+<!--Estilo responsivo de campos de imagenes-->
+<!--IMG1-->
+<style>
+    .preview-container {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* Mantiene la relación de aspecto cuadrada */
+        border: 2px dashed #ccc;
+        text-align: center;
+        display: block;
+    }
 
+    .preview-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+        display: none;
+    }
+
+    .remove-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: #dae2cb;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+    }
+</style>
+<!--IMGE 2 3-->
+<style>
+    .preview-container {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* Mantiene la relación de aspecto cuadrada */
+        border: 2px dashed #ccc;
+        text-align: center;
+        display: block;
+    }
+
+    .preview-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+        display: none;
+    }
+
+    .remove-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: #dae2cb;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+    }
+</style>
+<style>
+    .preview-container {
+        position: relative;
+        width: 100%;
+        padding-top: 100%; /* Mantiene la relación de aspecto cuadrada */
+        border: 2px dashed #ccc;
+        text-align: center;
+        display: block;
+    }
+
+    .preview-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.3;
+        display: none;
+    }
+
+    .remove-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background-color: #dae2cb;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: none;
+    }
+</style>
 <!----------------------------------------------------------------------------------------------------------------->
 <!--VALIDACIONES DE EDITAR_PRODUCTO.PHP-->
 <!----------------------------------------------------------------------------------------------------------------->
@@ -577,27 +799,34 @@ input[type="file"] {
 }
 
 </style>
-<script>
-    document.getElementById('cantidad').addEventListener('input', function() {
-        let value = this.value;
-        let feedback = document.getElementById('cantidadFeedback');
-
-        let filteredValue = value.replace(/[^0-9]/g, '');
-
-        let numValue = parseInt(filteredValue, 10);
-
-            if (filteredValue === '' || isNaN(numValue)) {
-                this.value = '';
-                feedback.style.display = 'none';
-            } else if (numValue > 30) {
-                this.value = 30;
-                feedback.style.display = 'block';
-            } else if (numValue < 0) {
-                this.value = 0;
-                feedback.style.display = 'block';
-            } else {
-                this.value = numValue;
-                feedback.style.display = 'none';
-            }
-        });
-</script>
+    <!--BOTON PARA RETIRAR LA IMAGEN-->
+    <script>
+    function previewImage(event, index) {
+        const fileInput = document.getElementById(`fileUpload${index}`);
+        const previewImage = document.getElementById(`preview${index}`);
+        const removeButton = document.getElementById(`removeButton${index}`);
+        
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';  // Muestra la imagen de vista previa
+                previewImage.style.opacity = '1';  // Asegura que la imagen sea completamente visible
+                removeButton.style.display = 'block';  // Muestra el botón de eliminar
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    //BOTON DE QUITAR LA IMAGEN SELECCIONADAS
+    function removeImage(index) {
+        const previewImage = document.getElementById(`preview${index}`);
+        const removeButton = document.getElementById(`removeButton${index}`);
+        
+        previewImage.style.display = 'none';
+        removeButton.style.display = 'none';
+        
+        const fileInput = document.getElementById(`fileUpload${index}`);
+        fileInput.value = ''; 
+    }
+    </script>

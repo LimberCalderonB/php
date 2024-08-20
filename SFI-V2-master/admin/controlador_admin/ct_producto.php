@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $descripcion = $_POST['descripcion'] ?? '';
     $talla = $_POST['talla'] ?? '';
     $categoria_idcategoria = $_POST['categoria_idcategoria'] ?? null;
+    $cantidad = $_POST['cantidad'] ?? 1;
 
     if (empty($nombre) || empty($precio) || empty($descripcion) || empty($talla) || empty($categoria_idcategoria)) {
         $_SESSION['registro'] = 'Todos los campos son obligatorios.';
@@ -23,10 +24,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $precioConDescuento = $precio - ($precio * ($descuento / 100));
 
-    // Obtener la categoría original del producto si se está editando
     $modelo = new ModeloProducto();
-    $categoriaOriginal = null;
 
+    $categoriaOriginal = null;
     if ($idproducto) {
         $productoExistente = $modelo->obtenerProductoPorId($idproducto);
         if ($productoExistente) {
@@ -58,11 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $rutasImagenes[$imagen] = null;
         } else {
             if (isset($_FILES[$imagen]) && $_FILES[$imagen]['error'] == UPLOAD_ERR_OK) {
+                if ($imgPath && is_file($imgPath)) {
+                    unlink($imgPath);
+                }
+
                 $fileTmpPath = $_FILES[$imagen]['tmp_name'];
                 $fileName = $_FILES[$imagen]['name'];
                 $fileNameCmps = explode(".", $fileName);
                 $fileExtension = strtolower(end($fileNameCmps));
-                $newFileName = md5(time() . $fileName) . '.webp';
+                $newFileName = md5(time() . $fileName . rand(0, 1000)) . '.webp';
                 $dest_path = $directorioImagenes . $newFileName;
 
                 try {
@@ -85,7 +89,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $img2 = $rutasImagenes['img2'] ?? null;
     $img3 = $rutasImagenes['img3'] ?? null;
 
-    // Mover imágenes a la nueva categoría si esta cambia
     if ($categoriaOriginal && $categoriaOriginal != $categoria_idcategoria) {
         $nombreCategoriaOriginal = obtenerNombreCategoriaDesdeBD($categoriaOriginal);
         $directorioOriginal = $directorioBase . $nombreCategoriaOriginal . '/';
@@ -101,12 +104,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    // Guardar o actualizar el producto en la base de datos
     if ($idproducto) {
         $resultado = $modelo->actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
     } else {
-        $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
+        for ($i = 0; $i < $cantidad; $i++) {
+            $img1_final = $img1;
+            $img2_final = $img2;
+            $img3_final = $img3;
+    
+            // Solo generar nuevas copias de las imágenes para productos adicionales (i > 0)
+            if ($i > 0) {
+                $img1_final = $img1 ? md5(time() . $img1 . $i) . '.webp' : null;
+                $img2_final = $img2 ? md5(time() . $img2 . $i) . '.webp' : null;
+                $img3_final = $img3 ? md5(time() . $img3 . $i) . '.webp' : null;
+    
+                // Verifica si la imagen original existe antes de copiar
+                if ($img1 && file_exists($directorioImagenes . $img1)) {
+                    copy($directorioImagenes . $img1, $directorioImagenes . $img1_final);
+                }
+                if ($img2 && file_exists($directorioImagenes . $img2)) {
+                    copy($directorioImagenes . $img2, $directorioImagenes . $img2_final);
+                }
+                if ($img3 && file_exists($directorioImagenes . $img3)) {
+                    copy($directorioImagenes . $img3, $directorioImagenes . $img3_final);
+                }
+            }
+    
+            // Agregar el producto con las imágenes correspondientes
+            $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1_final, $img2_final, $img3_final, 1);
+        }
     }
+    
 
     if ($resultado) {
         $_SESSION['registro'] = 'Producto guardado correctamente.';
@@ -118,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 function obtenerNombreCategoriaDesdeBD($idCategoria) {
-    global $conn; // Asegura que $conn está disponible aquí
+    global $conn;
 
     $sql = "SELECT nombre FROM categoria WHERE idcategoria = ?";
     $stmt = $conn->prepare($sql);
@@ -133,14 +161,14 @@ function obtenerNombreCategoriaDesdeBD($idCategoria) {
 }
 
 function obtenerProductoPorId($idProducto) {
-    global $conn; // Asegura que $conn está disponible aquí
+    global $conn;
 
     $sql = "SELECT p.*, c.nombre AS categoria
             FROM producto p
             JOIN almacen a ON p.idproducto = a.producto_idproducto
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
             WHERE p.idproducto = ?";
-            
+
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $idProducto);
     $stmt->execute();
@@ -148,7 +176,7 @@ function obtenerProductoPorId($idProducto) {
     $producto = $resultado->fetch_assoc();
 
     $stmt->close();
-    
+
     return $producto;
 }
 ?>

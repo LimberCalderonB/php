@@ -1,8 +1,9 @@
 <?php
 
-if (isset($_POST['idproducto'])) {
-
+if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     $idproducto = $_POST['idproducto'];
+    $cantidad = (int) $_POST['cantidad'];
+
     include_once "../../../conexion.php";
     
     if ($conn->connect_error) {
@@ -12,23 +13,26 @@ if (isset($_POST['idproducto'])) {
     $conn->begin_transaction();
 
     try {
-        // Primero, obtener la categoría del producto
-        $sql_select_categoria = "SELECT categoria_idcategoria FROM almacen WHERE producto_idproducto = ?";
-        $stmt_select_categoria = $conn->prepare($sql_select_categoria);
-        $stmt_select_categoria->bind_param("i", $idproducto);
-        $stmt_select_categoria->execute();
-        $resultado_categoria = $stmt_select_categoria->get_result();
+        // Obtener los detalles del producto que se quiere eliminar
+        $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, a.categoria_idcategoria 
+                                FROM producto p
+                                INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
+                                WHERE p.idproducto = ?";
+        $stmt_select_producto = $conn->prepare($sql_select_producto);
+        $stmt_select_producto->bind_param("i", $idproducto);
+        $stmt_select_producto->execute();
+        $resultado_producto = $stmt_select_producto->get_result();
 
-        if ($resultado_categoria->num_rows > 0) {
-            $categoria = $resultado_categoria->fetch_assoc()['categoria_idcategoria'];
+        if ($resultado_producto->num_rows > 0) {
+            $producto = $resultado_producto->fetch_assoc();
         } else {
-            throw new Exception("No se encontró la categoría asociada al producto.");
+            throw new Exception("Producto no encontrado.");
         }
 
         // Obtener el nombre de la categoría
         $sql_nombre_categoria = "SELECT nombre FROM categoria WHERE idcategoria = ?";
         $stmt_nombre_categoria = $conn->prepare($sql_nombre_categoria);
-        $stmt_nombre_categoria->bind_param("i", $categoria);
+        $stmt_nombre_categoria->bind_param("i", $producto['categoria_idcategoria']);
         $stmt_nombre_categoria->execute();
         $resultado_nombre_categoria = $stmt_nombre_categoria->get_result();
 
@@ -38,57 +42,77 @@ if (isset($_POST['idproducto'])) {
             throw new Exception("No se encontró el nombre de la categoría.");
         }
 
-        // Luego, recuperar las rutas de las imágenes asociadas al producto
-        $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
-        $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
-        $stmt_select_imagenes->bind_param("i", $idproducto);
-        $stmt_select_imagenes->execute();
-        $resultado_imagenes = $stmt_select_imagenes->get_result();
+        // Buscar productos que coincidan con los detalles en la tabla `producto` y `almacen`
+        $sql_match_productos = "SELECT p.idproducto 
+                                FROM producto p
+                                INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
+                                WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? AND a.categoria_idcategoria = ? 
+                                ORDER BY p.idproducto ASC
+                                LIMIT ?";
+        $stmt_match_productos = $conn->prepare($sql_match_productos);
+        $stmt_match_productos->bind_param("sddssi", 
+                                          $producto['nombre'], 
+                                          $producto['precio'], 
+                                          $producto['descuento'], 
+                                          $producto['talla'], 
+                                          $producto['categoria_idcategoria'], 
+                                          $cantidad);
+        $stmt_match_productos->execute();
+        $resultado_match = $stmt_match_productos->get_result();
 
-        if ($resultado_imagenes->num_rows > 0) {
-            $imagenes = $resultado_imagenes->fetch_assoc();
+        if ($resultado_match->num_rows < $cantidad) {
+            throw new Exception("No se encontraron suficientes productos para eliminar.");
+        }
 
-            // Directorio base donde están almacenadas las imágenes, ajustado con el nombre de la categoría
-            $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
+        // Array para almacenar los IDs de los productos a eliminar
+        $idsAEliminar = [];
 
-            // Eliminar cada imagen si existe
-            foreach ($imagenes as $img) {
-                if (!empty($img)) {
-                    $rutaCompleta = $directorioImagenes . $img;
-                    if (file_exists($rutaCompleta)) {
-                        unlink($rutaCompleta);
+        while ($fila = $resultado_match->fetch_assoc()) {
+            $idsAEliminar[] = $fila['idproducto'];
+        }
+
+        // Eliminar cada producto encontrado
+        foreach ($idsAEliminar as $id) {
+            // Eliminar el producto de la tabla `almacen`
+            $sql_delete_almacen = "DELETE FROM almacen WHERE producto_idproducto = ? AND categoria_idcategoria = ?";
+            $stmt_delete_almacen = $conn->prepare($sql_delete_almacen);
+            $stmt_delete_almacen->bind_param("ii", $id, $producto['categoria_idcategoria']);
+            $stmt_delete_almacen->execute();
+            
+
+            // Eliminar imágenes asociadas a este producto
+            $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
+            $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
+            $stmt_select_imagenes->bind_param("i", $id);
+            $stmt_select_imagenes->execute();
+            $resultado_imagenes = $stmt_select_imagenes->get_result();
+
+            if ($resultado_imagenes->num_rows > 0) {
+                $imagenes = $resultado_imagenes->fetch_assoc();
+                $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
+
+                foreach ($imagenes as $img) {
+                    if (!empty($img)) {
+                        $rutaCompleta = $directorioImagenes . $img;
+                        if (file_exists($rutaCompleta)) {
+                            unlink($rutaCompleta);
+                        }
                     }
                 }
             }
-        } else {
-            throw new Exception("No se encontraron imágenes para el producto.");
+
+            // Eliminar el producto de la tabla `producto`
+            $sql_delete_producto = "DELETE FROM producto WHERE idproducto = ?";
+            $stmt_delete_producto = $conn->prepare($sql_delete_producto);
+            $stmt_delete_producto->bind_param("i", $id);
+            $stmt_delete_producto->execute();
         }
 
-        // Luego, elimina las entradas relacionadas en la tabla almacen
-        $sql_almacen = "DELETE FROM almacen WHERE producto_idproducto = ?";
-        $stmt_almacen = $conn->prepare($sql_almacen);
-        $stmt_almacen->bind_param("i", $idproducto);
-        $stmt_almacen->execute();
-        
-        if ($stmt_almacen->affected_rows === 0) {
-            throw new Exception("No se encontraron entradas relacionadas en la tabla almacen.");
-        }
-
-        // Luego, elimina el producto de la tabla producto
-        $sql_producto = "DELETE FROM producto WHERE idproducto = ?";
-        $stmt_producto = $conn->prepare($sql_producto);
-        $stmt_producto->bind_param("i", $idproducto);
-        $stmt_producto->execute();
-
-        if ($stmt_producto->affected_rows === 0) {
-            throw new Exception("No se encontró el producto para eliminar.");
-        }
-
-        // Si todo va bien, confirmar la transacción
+        // Confirmar la transacción
         $conn->commit();
         echo "success";
     } catch (Exception $e) {
-        // En caso de error, revertir la transacción
+        // Revertir la transacción en caso de error
         $conn->rollback();
         echo "Error al eliminar el producto: " . $e->getMessage();
     }
@@ -96,6 +120,6 @@ if (isset($_POST['idproducto'])) {
     // Cerrar la conexión
     $conn->close();
 } else {
-    echo "ID de producto no proporcionado";
+    echo "ID de producto o cantidad no proporcionados";
 }
 ?>

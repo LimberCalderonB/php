@@ -68,6 +68,18 @@ $conn->close();
 	<script src="//cdnjs.cloudflare.com/ajax/libs/validate.js/0.13.1/validate.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
 
+<!--ESTILOS DE LETRA -->
+	<style>
+        .mdl-textfield__input {
+            color: #333;
+        }
+        .mdl-textfield__label {
+            color: #666;
+        }
+        .mdl-textfield--floating-label.is-focused .mdl-textfield__label {
+            color: #333;
+        }
+    </style>
 
 </head>
 <body>
