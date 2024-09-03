@@ -4,23 +4,42 @@
     include_once "../../conexion.php";
     $query_categorias = "SELECT idcategoria, nombre FROM categoria";
     $result_categorias = mysqli_query($conn, $query_categorias);
-
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
     ?>
-
     <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
         <div class="mdl-tabs__tab-bar">
         <a href="#tabListProducts" class="mdl-tabs__tab is-active">LISTA DE PRODUCTOS</a>
             <a href="#tabNewProduct" class="mdl-tabs__tab">NUEVO</a>
-            
-            
         </div>
-        <div class="mdl-tabs__panel" id="tabNewProduct">
-            <div class="mdl-grid">
-                <div class="mdl-cell mdl-cell--12-col">
-                    <div class="full-width panel mdl-shadow--2dp">
-                    <div class="full-width panel-tittle bg-primary text-center tittles">
-                            Nuevo Producto
+                <div class="mdl-tabs__panel" id="tabNewProduct">
+                    <div class="mdl-grid">
+                        <div class="mdl-cell mdl-cell--12-col">
+                            <div class="full-width panel mdl-shadow--2dp">
+                            <div class="full-width panel-tittle bg-primary text-center tittles">
+                                    Nuevo Producto
+                                </div>
+                        <div class="mdl-cell mdl-cell--4-col">
+                            <!-- Ajustar posición del botón -->
+                            <div class="button-container-left">
+                                <button id="btnAgregarCategoria" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect bg-primary text-white">
+                                    Agregar Categoría
+                                </button>
+                            </div>
+                            <!-- Modal para el formulario -->
+                            <div id="formularioCategoria" class="modal hidden">
+                                <div class="modal-content">
+                                    <span class="close" id="btnCancelar">&times;</span>
+                                    <form id="formAgregarCategoria" action="../controlador_admin/ct_btncat.php" method="POST">
+                                        <h3 class="modal-title">Nombre de la Categoría</h3>
+                                        <input type="text" id="nombre" name="nombre" class="modal-input" placeholder="Escribe aquí..." required>
+                                        <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect bg-success text-white">Agregar</button>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
+
                         <div class="full-width panel-content">
                             <form action="../controlador_admin/ct_producto.php" method="POST" id="guardado" enctype="multipart/form-data">
                                 <div class="mdl-grid">
@@ -32,10 +51,10 @@
                                 </div>
 
                                     <div class="mdl-cell mdl-cell--12-col">
-                                        <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION DEL PRODUCTO</legend><br>
+                                        <!--<legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION DEL PRODUCTO</legend><br>-->
                                     </div>
 
-                                    <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                             <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ ]*(\.[0-9]+)?" id="nombre" name="nombre">
                                             <label class="mdl-textfield__label" for="nombre">Nombre</label>
@@ -66,18 +85,7 @@
                                             <span class="mdl-textfield__error">Talla Invalida</span>
                                         </div>
                                     </div>
-                                    <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
-                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                            <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion">
-                                            <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
-                                            <span class="mdl-textfield__error">Falta la Descripcción</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mdl-cell mdl-cell--12-col">
-                                        <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; CATEGORIA</legend><br>
-                                    </div>
-                                    <div class="mdl-cell mdl-cell--12-col">
+                                    <div class="mdl-cell mdl-cell--3-col">
                                         <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
                                             <select class="mdl-textfield__input" name="categoria_idcategoria" id="categoria_idcategoria">
                                                 <option value="" disabled="" selected="">Selecciona Categoria</option>
@@ -88,10 +96,14 @@
                                             <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
                                         </div>
                                     </div>
-                                    <div class="mdl-cell mdl-cell--12-col">
-                                        <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; OTROS DATOS</legend><br>
+                                    <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
+                                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                            <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion">
+                                            <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
+                                            <span class="mdl-textfield__error">Falta la Descripcción</span>
+                                        </div>
                                     </div>
-                                    
+
                                     <div class="mdl-cell mdl-cell--3-col mdl-cell--4-col-tablet mdl-cell--6-col-phone">
                                         <div class="custom-file-upload">
                                             <input type="file" id="fileUpload1" accept="image/*" name="img1" onchange="previewImage(event, 1);" />
@@ -144,6 +156,98 @@
                 </div>
             </div>
         </div>
+        <script>
+    // script.js
+    document.addEventListener('DOMContentLoaded', () => {
+        const btnAgregarCategoria = document.getElementById('btnAgregarCategoria');
+        const formularioCategoria = document.getElementById('formularioCategoria');
+        const btnCancelar = document.getElementById('btnCancelar');
+
+        btnAgregarCategoria.addEventListener('click', () => {
+            formularioCategoria.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Evitar scroll en el fondo
+        });
+
+        btnCancelar.addEventListener('click', () => {
+            formularioCategoria.classList.add('hidden');
+            document.body.style.overflow = ''; // Restaurar scroll
+        });
+
+        // Cerrar el modal al hacer clic fuera de él
+        window.addEventListener('click', (event) => {
+            if (event.target === formularioCategoria) {
+                formularioCategoria.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+</script>
+
+<style>
+    .button-container-left {
+    display: flex;
+    justify-content: flex-start; /* Alinea el botón a la izquierda */
+}
+
+#btnAgregarCategoria {
+    color: white; /* Texto blanco */
+}
+
+/* Alineación y diseño del modal */
+.hidden {
+    display: none;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    position: relative;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.modal-title {
+    margin-bottom: 20px;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+button[type="submit"] {
+    margin-top: 10px;
+    width: 100%;
+}
+</style>
             <?php
 
     $sql = "WITH Imagenes AS (
@@ -264,13 +368,14 @@
                                         </div>
                                         
                                         <div class="btn-container">
-                                            <form method="post" action="pagos.php" style="display:inline;">
-                                                <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-                                                <button type="submit" class="btn success">
-                                                    <i class="fi fi-ss-social-network"></i>
-                                                    <span>Seleccionar</span>
-                                                </button>
-                                            </form>
+                                        <form method="post" action="pagos.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
+                                        <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                        <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                        <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
+                                            <i class="fi fi-ss-social-network"></i>
+                                            <span>Seleccionar</span>
+                                        </button>
+                                    </form>
                                             <div class="btn-right">
                                                     <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
                                                         <i class="zmdi zmdi-edit"></i>
@@ -312,3 +417,29 @@
     }
     </script>
 
+<script>
+function seleccionarProducto(idProducto) {
+    Swal.fire({
+        title: 'Seleccionar cantidad',
+        input: 'number',
+        inputLabel: 'Cantidad',
+        inputPlaceholder: 'Ingrese la cantidad',
+        showCancelButton: true,
+        confirmButtonText: 'Enviar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value || value <= 0) {
+                return 'Por favor ingrese una cantidad válida';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Asignar la cantidad al campo oculto
+            document.getElementById('cantidad' + idProducto).value = result.value;
+            // Enviar el formulario
+            document.getElementById('formSeleccionar' + idProducto).submit();
+        }
+    });
+}
+
+</script>

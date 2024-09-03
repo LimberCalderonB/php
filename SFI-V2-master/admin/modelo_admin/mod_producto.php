@@ -38,12 +38,12 @@ class ModeloProducto extends conexionBase {
         // Insertar en la tabla `almacen`
         if ($categoria_idcategoria !== null) {
             foreach ($idproductos as $idproducto) {
-                $sql_almacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria) VALUES (?, ?)";
+                $sql_almacen = "INSERT INTO almacen (producto_idproducto, categoria_idcategoria, cantidad) VALUES (?, ?, ?)";
                 $stmt_almacen = $this->GetConnection()->prepare($sql_almacen);
                 if ($stmt_almacen === false) {
                     return ['success' => false, 'error' => 'Error al preparar la consulta: ' . $this->GetConnection()->error];
                 }
-                $stmt_almacen->bind_param("ii", $idproducto, $categoria_idcategoria);
+                $stmt_almacen->bind_param("iii", $idproducto, $categoria_idcategoria, $cantidad);
                 if ($stmt_almacen->execute()) {
                     $stmt_almacen->close();
                 } else {

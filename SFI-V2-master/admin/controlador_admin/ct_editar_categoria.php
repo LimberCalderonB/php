@@ -13,7 +13,7 @@ if (isset($_POST["idcategoria"]) && isset($_POST["nombre"])) {
         $_SESSION['nombre_categoria'] = $nuevo_nombre;
         header("Location: ../vista_Admin/editar_categoria.php?idcategoria=" . urlencode($idcategoria));
         exit();
-    } elseif (!preg_match("/^[a-zA-Z\s]+$/", $nuevo_nombre)) {
+    } elseif (!preg_match("/^[a-zA-Zñ-Ñ-´\s]+$/", $nuevo_nombre)) {
         $_SESSION['error_categoria'] = true;
         $_SESSION['mensaje_categoria'] = "El nombre de la categoría solo puede contener letras y espacios.";
         $_SESSION['nombre_categoria'] = $nuevo_nombre;

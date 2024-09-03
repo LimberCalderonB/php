@@ -34,7 +34,7 @@ $query = "INSERT INTO venta (pago, detalle_pedido_iddetalle_pedido, fecha_venta,
 $stmt = $conn->prepare($query);
 $stmt->bind_param("di", $pago_total, $usuario_id);
 $stmt->execute();
-$venta_id = $conn->insert_id; // ID de la venta recién insertada
+$venta_id = $conn->insert_id;
 
 // Paso 3: Insertar en la tabla detalle_venta
 foreach ($productos as $producto_id) {

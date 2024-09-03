@@ -42,7 +42,7 @@ if (isset($_POST["nombre"])) {
                     } else {
                         $_SESSION['registro_exitoso_categoria'] = true; // Carpeta ya existe, continuar normalmente
                     }
-                    header("Location: ../vista_Admin/categoria.php");
+                    header("Location: ../vista_Admin/productos.php");
                     exit();
                 } else {
                     $_SESSION['error_categoria'] = true;
@@ -66,11 +66,5 @@ if (isset($_POST["nombre"])) {
     $_SESSION['mensaje_categoria'] = "Error: No se recibieron datos del formulario.";
 }
 
-// Redirigir a la página correspondiente según el contexto
-if (isset($_POST['editar'])) {
-    header("Location: ../vista_Admin/editar_categoria.php?idcategoria=" . htmlspecialchars($_POST['idcategoria']));
-} else {
-    header("Location: ../vista_Admin/categoria.php");
-}
 exit();
 ?>

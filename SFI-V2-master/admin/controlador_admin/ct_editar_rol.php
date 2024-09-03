@@ -15,7 +15,7 @@ if (isset($_POST["idrol"]) && isset($_POST["nombre"])) {
         $_SESSION['nombre_rol'] = $nombre;
         header("Location: ../vista_Admin/editar_rol.php?idrol=" . urlencode($idrol));
         exit();
-    } elseif (!preg_match("/^[a-zA-Z\s]+$/", $nombre)) {
+    } elseif (!preg_match("/^[a-zA-Zñ-Ñ-´\s]+$/", $nombre)) {
         $_SESSION['error_rol'] = true;
         $_SESSION['mensaje_rol'] = "El nombre del rol solo puede contener letras y espacios.";
         $_SESSION['nombre_rol'] = $nombre;

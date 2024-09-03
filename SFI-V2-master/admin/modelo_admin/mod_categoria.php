@@ -37,6 +37,17 @@ class Categoria {
         return $stmt->execute();
     }
 
+    public function obtenerUltimoId() {
+        $query = "SELECT LAST_INSERT_ID() as id";
+        $result = $this->conexion->query($query);
+        if ($result) {
+            $row = $result->fetch_assoc();
+            return $row['id'];
+        }
+        return null;
+    }
+    
+
     public function actualizarCategoria() {
         $sql = "UPDATE categoria SET nombre = ? WHERE idcategoria = ?";
         $stmt = $this->con->GetConnection()->prepare($sql);
