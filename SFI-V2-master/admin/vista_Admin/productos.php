@@ -11,7 +11,7 @@
     <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
         <div class="mdl-tabs__tab-bar">
         <a href="#tabListProducts" class="mdl-tabs__tab is-active">LISTA DE PRODUCTOS</a>
-            <a href="#tabNewProduct" class="mdl-tabs__tab">NUEVO</a>
+            <a href="#tabNewProduct" class="mdl-tabs__tab">AGREGAR NUEVO PRODUCTO</a>
         </div>
                 <div class="mdl-tabs__panel" id="tabNewProduct">
                     <div class="mdl-grid">
@@ -19,26 +19,7 @@
                             <div class="full-width panel mdl-shadow--2dp">
                             <div class="full-width panel-tittle bg-primary text-center tittles">
                                     Nuevo Producto
-                                </div>
-                        <div class="mdl-cell mdl-cell--4-col">
-                            <!-- Ajustar posición del botón -->
-                            <div class="button-container-left">
-                                <button id="btnAgregarCategoria" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect bg-primary text-white">
-                                    Agregar Categoría
-                                </button>
                             </div>
-                            <!-- Modal para el formulario -->
-                            <div id="formularioCategoria" class="modal hidden">
-                                <div class="modal-content">
-                                    <span class="close" id="btnCancelar">&times;</span>
-                                    <form id="formAgregarCategoria" action="../controlador_admin/ct_btncat.php" method="POST">
-                                        <h3 class="modal-title">Nombre de la Categoría</h3>
-                                        <input type="text" id="nombre" name="nombre" class="modal-input" placeholder="Escribe aquí..." required>
-                                        <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect bg-success text-white">Agregar</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="full-width panel-content">
                             <form action="../controlador_admin/ct_producto.php" method="POST" id="guardado" enctype="multipart/form-data">
@@ -86,16 +67,42 @@
                                         </div>
                                     </div>
                                     <div class="mdl-cell mdl-cell--3-col">
-                                        <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
-                                            <select class="mdl-textfield__input" name="categoria_idcategoria" id="categoria_idcategoria">
-                                                <option value="" disabled="" selected="">Selecciona Categoria</option>
-                                                <?php while ($fila = mysqli_fetch_assoc($result_categorias)): ?>
-                                                    <option value="<?php echo $fila['idcategoria']; ?>"><?php echo $fila['nombre']; ?></option>
-                                                <?php endwhile; ?>
-                                            </select>
-                                            <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
-                                        </div>
-                                    </div>
+    <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
+        <select class="mdl-textfield__input" name="categoria_idcategoria" id="categoria_idcategoria" onchange="redirectIfNewCategory(this)">
+            <option value="" disabled selected>Selecciona Categoria</option>
+            <?php while ($fila = mysqli_fetch_assoc($result_categorias)): ?>
+                <option value="<?php echo $fila['idcategoria']; ?>"><?php echo $fila['nombre']; ?></option>
+            <?php endwhile; ?>
+            <!-- Opción de nueva categoría con clase específica para estilizar -->
+            <option value="new-category" class="new-category-option">+ Añadir Nueva Categoría</option>
+        </select>
+        <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
+    </div>
+</div>
+
+<script>
+    function redirectIfNewCategory(selectElement) {
+        // Redirige a la página de categorías con el parámetro 'tab=new-category'
+        if (selectElement.value === 'new-category') {
+            window.location.href = 'categoria.php?tab=new-category';
+        }
+    }
+</script>
+
+<style>
+    /* Estilo para la opción de "Añadir Nueva Categoría" */
+    .new-category-option {
+        font-weight: bold;
+        color: #ffffff; /* Texto blanco */
+        background-color: #81c170; /* Fondo rojo llamativo */
+    }
+    
+    /* Hack para aplicar color en algunos navegadores */
+    #categoria_idcategoria {
+        color: initial;
+    }
+</style>
+
                                     <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
                                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                             <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion">
@@ -156,98 +163,6 @@
                 </div>
             </div>
         </div>
-        <script>
-    // script.js
-    document.addEventListener('DOMContentLoaded', () => {
-        const btnAgregarCategoria = document.getElementById('btnAgregarCategoria');
-        const formularioCategoria = document.getElementById('formularioCategoria');
-        const btnCancelar = document.getElementById('btnCancelar');
-
-        btnAgregarCategoria.addEventListener('click', () => {
-            formularioCategoria.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Evitar scroll en el fondo
-        });
-
-        btnCancelar.addEventListener('click', () => {
-            formularioCategoria.classList.add('hidden');
-            document.body.style.overflow = ''; // Restaurar scroll
-        });
-
-        // Cerrar el modal al hacer clic fuera de él
-        window.addEventListener('click', (event) => {
-            if (event.target === formularioCategoria) {
-                formularioCategoria.classList.add('hidden');
-                document.body.style.overflow = '';
-            }
-        });
-    });
-</script>
-
-<style>
-    .button-container-left {
-    display: flex;
-    justify-content: flex-start; /* Alinea el botón a la izquierda */
-}
-
-#btnAgregarCategoria {
-    color: white; /* Texto blanco */
-}
-
-/* Alineación y diseño del modal */
-.hidden {
-    display: none;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* Fondo oscuro */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: #fff;
-    padding: 30px;
-    border-radius: 8px;
-    position: relative;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
-}
-
-.close {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-.modal-title {
-    margin-bottom: 20px;
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.modal-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-button[type="submit"] {
-    margin-top: 10px;
-    width: 100%;
-}
-</style>
             <?php
 
     $sql = "WITH Imagenes AS (
@@ -441,5 +356,4 @@ function seleccionarProducto(idProducto) {
         }
     });
 }
-
 </script>

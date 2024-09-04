@@ -263,3 +263,25 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
     display: none;
 }
 </style>
+
+<style>
+    /* Estilos para la opción de "Añadir Nuevo Rol" */
+    .new-role-option {
+        font-weight: bold;
+        color: #ffffff; /* Texto blanco */
+        background-color: #4CAF50; /* Fondo verde llamativo */
+    }
+</style>
+
+<style>
+    .mdl-textfield__error {
+    color: red;
+    display: none; /* Oculto por defecto */
+}
+
+.mdl-textfield.is-invalid .mdl-textfield__error {
+    display: block; /* Mostrar si hay error */
+}
+
+</style>
+<!--pattern="[a-zA-Z]*" inputmode="text"-->

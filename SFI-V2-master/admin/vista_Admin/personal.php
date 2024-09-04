@@ -27,25 +27,9 @@ unset($_SESSION['form_data']);
                     <div class="full-width panel-content">
                     <form action="../controlador_admin/ct_PU.php" method="POST" id="formulario" enctype="multipart/form-data">
                             <div class="mdl-grid">
-                                <div class="mdl-cell mdl-cell--12-col">
+                                <!--<div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN</legend><br>
-                                </div>
-                                <div class="mdl-cell mdl-cell--6-col">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['ci']) ? ' is-invalid' : ''; ?>" id="ci-field">
-                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci"  maxlength="7" value="<?php echo htmlspecialchars($form_data['ci'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="ci">DNI</label>
-                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['ci'] ?? ''); ?></span>
-                                    </div>
-                                </div>
-
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['celular']) ? ' is-invalid' : ''; ?>" id="celular-field">
-                                        <input class="mdl-textfield__input" type="text" id="celular" name="celular" maxlength="8" value="<?php echo htmlspecialchars($form_data['celular'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="celular">Celular</label>
-                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['celular'] ?? ''); ?></span>
-                                    </div>
-                                </div>
-
+                                </div>-->
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['nombre']) ? ' is-invalid' : ''; ?>" id="nombre-field">
                                         <input class="mdl-textfield__input" type="text" id="nombre" name="nombre"  value="<?php echo htmlspecialchars($form_data['nombre'] ?? ''); ?>">
@@ -69,26 +53,50 @@ unset($_SESSION['form_data']);
                                         <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['apellido2'] ?? ''); ?></span>
                                     </div>
                                 </div>
-
-                                <div class="mdl-cell mdl-cell--12-col">
-                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; TIPO DE CARGO</legend><br>
+                                <div class="mdl-cell mdl-cell--4-col">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['ci']) ? ' is-invalid' : ''; ?>" id="ci-field">
+                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci"  maxlength="7" value="<?php echo htmlspecialchars($form_data['ci'] ?? ''); ?>">
+                                        <label class="mdl-textfield__label" for="ci">DNI</label>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['ci'] ?? ''); ?></span>
+                                    </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--12-col">
+
+                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['celular']) ? ' is-invalid' : ''; ?>" id="celular-field">
+                                        <input class="mdl-textfield__input" type="text" id="celular" name="celular" maxlength="8" value="<?php echo htmlspecialchars($form_data['celular'] ?? ''); ?>">
+                                        <label class="mdl-textfield__label" for="celular">Celular</label>
+                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['celular'] ?? ''); ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="mdl-cell mdl-cell--4-col">
                                     <div class="mdl-textfield mdl-js-textfield" id="idRol-field">
-                                        <select class="mdl-textfield__input" name="idRol" id="idRol">
-                                            <option value="" disabled="" selected="">Selecciona Rol</option>
+                                        <select class="mdl-textfield__input" name="idRol" id="idRol" onchange="redirectIfNewRole(this)">
+                                            <option value="" disabled selected>Selecciona Rol</option>
                                             <?php
                                             while ($fila = mysqli_fetch_assoc($result_roles)) {
                                                 $selected = ($form_data['idRol'] ?? '') == $fila['idrol'] ? 'selected' : '';
                                                 echo "<option value=\"" . htmlspecialchars($fila['idrol']) . "\" $selected>" . htmlspecialchars($fila['nombre']) . "</option>";
                                             }
                                             ?>
+                                            <!-- Opción para añadir nuevo rol -->
+                                            <option value="new-role" class="new-role-option">+ Añadir Nuevo Rol</option>
                                         </select>
                                         <span class="mdl-textfield__error" id="idRol-error">
                                             <?php echo $errores['idRol'] ?? ''; ?>
                                         </span>
                                     </div>
                                 </div>
+
+                                <script>
+                                    function redirectIfNewRole(selectElement) {
+                                        // Redirige a rol.php con el parámetro que activa la pestaña "AGREGAR NUEVO ROL"
+                                        if (selectElement.value === 'new-role') {
+                                            window.location.href = 'rol.php?tab=new-role';
+                                        }
+                                    }
+                                </script>
+
                                 <div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; Detalles de Cuenta</legend><br>
                                 </div>
@@ -208,15 +216,3 @@ include_once "pie.php";
 
 mysqli_close($conn);
 ?>
-<style>
-    .mdl-textfield__error {
-    color: red;
-    display: none; /* Oculto por defecto */
-}
-
-.mdl-textfield.is-invalid .mdl-textfield__error {
-    display: block; /* Mostrar si hay error */
-}
-
-</style>
-<!--pattern="[a-zA-Z]*" inputmode="text"-->

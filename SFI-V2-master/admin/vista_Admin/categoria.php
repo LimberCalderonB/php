@@ -22,6 +22,14 @@ $activeTab = 'tabListCategory';
 if (isset($_SESSION['error_categoria'])) {
     $activeTab = 'tabNewCategory';
 }
+
+?>
+<?php
+$activeTab = 'tabListCategory';
+
+if (isset($_GET['tab']) && $_GET['tab'] === 'new-category') {
+    $activeTab = 'tabNewCategory';
+}
 ?>
 
 <br>
@@ -101,7 +109,7 @@ if (isset($_SESSION['error_categoria'])) {
             <div class="mdl-cell mdl-cell--12-col">
                 <div class="full-width panel mdl-shadow--2dp">
                     <div class="full-width panel-tittle bg-primary text-center tittles">
-                        Nueva Categoría
+                        NUEVA CATEGORIA
                     </div>
                     <div class="full-width panel-content">
                         <form action="../controlador_admin/ct_categoria.php" method="post" class="row g-3 needs-validation" novalidate>

@@ -16,16 +16,29 @@ if(isset($_SESSION['registro_exitoso_rol']) && $_SESSION['registro_exitoso_rol']
     </script>";
     unset($_SESSION['registro_exitoso_rol']); 
 }
+$activeTab = 'tabListrol';
+if (isset($_SESSION['error_rol'])) {
+    $activeTab = 'tabNewProduct';
+}
+?>
+<?php
+// Detecta si se ha pasado el parámetro para activar la pestaña de "AGREGAR NUEVO ROL"
+$activeTab = 'tabListrol'; // Valor por defecto
+
+if (isset($_GET['tab']) && $_GET['tab'] === 'new-role') {
+    $activeTab = 'tabNewProduct';
+}
 ?>
 <!--------------------------------------------------------->
 <br>
 
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
+
     <div class="mdl-tabs__tab-bar">
-        <a href="#tabNewProduct" class="mdl-tabs__tab is-active">NUEVO</a>
-        <a href="#tabListrol" class="mdl-tabs__tab">LISTA DE ROLES</a>
+        <a href="#tabListrol" class="mdl-tabs__tab <?php echo $activeTab == 'tabListrol' ? 'is-active' : ''; ?>">LISTA DE ROLES</a>
+        <a href="#tabNewProduct" class="mdl-tabs__tab <?php echo $activeTab == 'tabNewProduct' ? 'is-active' : ''; ?>">AGREGAR NUEVO ROL</a>
     </div>
-    <div class="mdl-tabs__panel is-active" id="tabNewProduct">
+    <div class="mdl-tabs__panel <?php echo $activeTab == 'tabNewProduct' ? 'is-active' : ''; ?>" id="tabNewProduct">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--12-col">
                 <div class="full-width panel mdl-shadow--2dp">
@@ -60,8 +73,8 @@ if(isset($_SESSION['registro_exitoso_rol']) && $_SESSION['registro_exitoso_rol']
             </div>
         </div>
     </div>
+    <div class="mdl-tabs__panel <?php echo $activeTab == 'tabListrol' ? 'is-active' : ''; ?>" id="tabListrol">
 
-    <div class="mdl-tabs__panel" id="tabListrol">
         <div class="mdl-grid">
             <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--8-col-desktop mdl-cell--2-offset-desktop">
                 <div class="full-width panel mdl-shadow--2dp">
