@@ -44,10 +44,8 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                     <form action="../controlador_admin/ct_producto.php" method="POST" id="guardado" enctype="multipart/form-data">
                         <input type="hidden" name="idproducto" value="<?php echo htmlspecialchars($producto['idproducto']); ?>">
                         <div class="mdl-grid">
-                            <div class="mdl-cell mdl-cell--12-col">
-                                <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION DEL PRODUCTO</legend><br>
-                            </div>
-                            <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+
+                            <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
                                     <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ ]*(\.[0-9]+)?" id="nombre" name="nombre" value="<?php echo htmlspecialchars($producto['nombre']); ?>">
                                     <label class="mdl-textfield__label" for="nombre">Nombre</label>
@@ -61,7 +59,7 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                                             <span class="mdl-textfield__error">Precio Inválido</span>
                                         </div>
                                     </div>
-                            <script>
+                                    <script>
                                     function validatePrice(input) {
                                         // Elimina cualquier caracter que no sea un número o punto decimal
                                         input.value = input.value.replace(/[^0-9.]/g, '');
@@ -111,18 +109,7 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                                     <span class="mdl-textfield__error" style="color:red;">Talla Invalida</span>
                                 </div>
                             </div>
-                            <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
-                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                    <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion" value="<?php echo htmlspecialchars($producto['descripcion']); ?>">
-                                    <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
-                                    <span class="mdl-textfield__error" style="color:red;">Falta la Descripción</span>
-                                </div>
-                            </div>
-                            
-                            <div class="mdl-cell mdl-cell--12-col">
-                                <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; CATEGORIA</legend><br>
-                            </div>
-                            <div class="mdl-cell mdl-cell--12-col">
+                            <div class="mdl-cell mdl-cell--3-col">
                                 <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
                                 <?php
                                 // Verifica si 'categoria_idcategoria' está definido en el array $producto
@@ -140,10 +127,14 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                                     <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
                                 </div>
                             </div>
-                            <div class="mdl-cell mdl-cell--12-col">
-                                <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; OTROS DATOS</legend><br>
+                            <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
+                                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                    <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="descripcion" name="descripcion" value="<?php echo htmlspecialchars($producto['descripcion']); ?>">
+                                    <label class="mdl-textfield__label" for="descripcion">Descripcion de Producto</label>
+                                    <span class="mdl-textfield__error" style="color:red;">Falta la Descripción</span>
+                                </div>
                             </div>
-
+                            
                             <?php
                                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 

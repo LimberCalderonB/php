@@ -190,11 +190,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                             <small class="separator">|</small>
                             <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
                         </div>
+                        <div class="product-info">
+                            <small>Cantidad:</small>
+                        </div>
                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                             <?php if ($producto['descuento'] > 0): ?>
                                 <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
                                 | Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
                                 | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
+                                
                             <?php else: ?>
                                 <?php echo htmlspecialchars($producto['precio']); ?>-Bs
                             <?php endif; ?>

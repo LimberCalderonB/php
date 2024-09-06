@@ -285,3 +285,16 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 
 </style>
 <!--pattern="[a-zA-Z]*" inputmode="text"-->
+<style>
+    /* Estilo para la opción de "Añadir Nueva Categoría" */
+    .new-category-option {
+        font-weight: bold;
+        color: #ffffff; /* Texto blanco */
+        background-color: #81c170; /* Fondo rojo llamativo */
+    }
+    
+    /* Hack para aplicar color en algunos navegadores */
+    #categoria_idcategoria {
+        color: initial;
+    }
+</style>

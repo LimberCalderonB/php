@@ -67,41 +67,27 @@
                                         </div>
                                     </div>
                                     <div class="mdl-cell mdl-cell--3-col">
-    <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
-        <select class="mdl-textfield__input" name="categoria_idcategoria" id="categoria_idcategoria" onchange="redirectIfNewCategory(this)">
-            <option value="" disabled selected>Selecciona Categoria</option>
-            <?php while ($fila = mysqli_fetch_assoc($result_categorias)): ?>
-                <option value="<?php echo $fila['idcategoria']; ?>"><?php echo $fila['nombre']; ?></option>
-            <?php endwhile; ?>
-            <!-- Opción de nueva categoría con clase específica para estilizar -->
-            <option value="new-category" class="new-category-option">+ Añadir Nueva Categoría</option>
-        </select>
-        <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
-    </div>
-</div>
+                                        <div class="mdl-textfield mdl-js-textfield" id="idCategoria-field">
+                                            <select class="mdl-textfield__input" name="categoria_idcategoria" id="categoria_idcategoria" onchange="redirectIfNewCategory(this)">
+                                                <option value="" disabled selected>Selecciona Categoria</option>
+                                                <?php while ($fila = mysqli_fetch_assoc($result_categorias)): ?>
+                                                    <option value="<?php echo $fila['idcategoria']; ?>"><?php echo $fila['nombre']; ?></option>
+                                                <?php endwhile; ?>
+                                                <!-- Opción de nueva categoría con clase específica para estilizar -->
+                                                <option value="new-category" class="new-category-option">+ Añadir Nueva Categoría</option>
+                                            </select>
+                                            <span class="mdl-textfield__error" id="idCategoria-error">Debe seleccionar una categoría</span>
+                                        </div>
+                                    </div>
 
-<script>
-    function redirectIfNewCategory(selectElement) {
-        // Redirige a la página de categorías con el parámetro 'tab=new-category'
-        if (selectElement.value === 'new-category') {
-            window.location.href = 'categoria.php?tab=new-category';
-        }
-    }
-</script>
-
-<style>
-    /* Estilo para la opción de "Añadir Nueva Categoría" */
-    .new-category-option {
-        font-weight: bold;
-        color: #ffffff; /* Texto blanco */
-        background-color: #81c170; /* Fondo rojo llamativo */
-    }
-    
-    /* Hack para aplicar color en algunos navegadores */
-    #categoria_idcategoria {
-        color: initial;
-    }
-</style>
+                                    <script>
+                                        function redirectIfNewCategory(selectElement) {
+                                            // Redirige a la página de categorías con el parámetro 'tab=new-category'
+                                            if (selectElement.value === 'new-category') {
+                                                window.location.href = 'categoria.php?tab=new-category';
+                                            }
+                                        }
+                                    </script>
 
                                     <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
                                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
@@ -163,8 +149,7 @@
                 </div>
             </div>
         </div>
-            <?php
-
+        <?php
     $sql = "WITH Imagenes AS (
         SELECT 
             producto.idproducto AS idproducto_img,
@@ -284,13 +269,14 @@
                                         
                                         <div class="btn-container">
                                         <form method="post" action="pagos.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
-                                        <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-                                        <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
-                                        <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
-                                            <i class="fi fi-ss-social-network"></i>
-                                            <span>Seleccionar</span>
-                                        </button>
-                                    </form>
+                                            <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                            <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                            <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
+                                                <i class="fi fi-ss-social-network"></i>
+                                                <span>Seleccionar</span>
+                                            </button>
+                                        </form>
+
                                             <div class="btn-right">
                                                     <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
                                                         <i class="zmdi zmdi-edit"></i>
@@ -339,6 +325,10 @@ function seleccionarProducto(idProducto) {
         input: 'number',
         inputLabel: 'Cantidad',
         inputPlaceholder: 'Ingrese la cantidad',
+        inputAttributes: {
+            min: 1,
+            step: 1
+        },
         showCancelButton: true,
         confirmButtonText: 'Enviar',
         cancelButtonText: 'Cancelar',
@@ -349,11 +339,11 @@ function seleccionarProducto(idProducto) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Asignar la cantidad al campo oculto
+            // Asigna la cantidad seleccionada al campo oculto y envía el formulario.
             document.getElementById('cantidad' + idProducto).value = result.value;
-            // Enviar el formulario
             document.getElementById('formSeleccionar' + idProducto).submit();
         }
     });
 }
+
 </script>

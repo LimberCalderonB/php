@@ -51,25 +51,6 @@ unset($_SESSION['form_data']);
                     <input type="hidden" name="idusuario" value="<?php echo htmlspecialchars($data['idusuario']); ?>">
                     <input type="hidden" name="idpersona" value="<?php echo htmlspecialchars($data['idpersona']); ?>">
                     <div class="mdl-grid">
-                        <div class="mdl-cell mdl-cell--12-col">
-                            <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN PERSONAL</legend><br>
-                        </div>
-
-                        <div class="mdl-cell mdl-cell--6-col">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['ci']) ? 'is-invalid' : ''; ?>" id="ci-field">
-                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo isset($data['ci']) ? htmlspecialchars($data['ci']) : ''; ?>" maxlength="7">
-                                <label class="mdl-textfield__label" for="ci">DNI</label>
-                                <span class="mdl-textfield__error" id="ci-error"><?php echo isset($errors['ci']) ? htmlspecialchars($errors['ci']) : ''; ?></span>
-                            </div>
-                        </div>
-
-                        <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['celular']) ? 'is-invalid' : ''; ?>" id="celular-field">
-                                <input class="mdl-textfield__input" type="text" id="celular" name="celular" value="<?php echo isset($data['celular']) ? htmlspecialchars($data['celular']) : ''; ?>" maxlength="8">
-                                <label class="mdl-textfield__label" for="celular">Celular</label>
-                                <span class="mdl-textfield__error" id="celular-error"><?php echo isset($errors['celular']) ? htmlspecialchars($errors['celular']) : ''; ?></span>
-                            </div>
-                        </div>
 
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['nombre']) ? 'is-invalid' : ''; ?>" id="nombre-field">
@@ -94,11 +75,23 @@ unset($_SESSION['form_data']);
                                 <span class="mdl-textfield__error" id="apellido2-error"><?php echo isset($errors['apellido2']) ? htmlspecialchars($errors['apellido2']) : ''; ?></span>
                             </div>
                         </div>
-
-                        <div class="mdl-cell mdl-cell--12-col">
-                            <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; SELECCIONAR ROL</legend><br>
+                        <div class="mdl-cell mdl-cell--4-col">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['ci']) ? 'is-invalid' : ''; ?>" id="ci-field">
+                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo isset($data['ci']) ? htmlspecialchars($data['ci']) : ''; ?>" maxlength="7">
+                                <label class="mdl-textfield__label" for="ci">DNI</label>
+                                <span class="mdl-textfield__error" id="ci-error"><?php echo isset($errors['ci']) ? htmlspecialchars($errors['ci']) : ''; ?></span>
+                            </div>
                         </div>
-                        <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet" id="idRol-field">
+
+                        <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['celular']) ? 'is-invalid' : ''; ?>" id="celular-field">
+                                <input class="mdl-textfield__input" type="text" id="celular" name="celular" value="<?php echo isset($data['celular']) ? htmlspecialchars($data['celular']) : ''; ?>" maxlength="8">
+                                <label class="mdl-textfield__label" for="celular">Celular</label>
+                                <span class="mdl-textfield__error" id="celular-error"><?php echo isset($errors['celular']) ? htmlspecialchars($errors['celular']) : ''; ?></span>
+                            </div>
+                        </div>
+
+                        <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet" id="idRol-field">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['idRol']) ? 'is-invalid' : ''; ?>">
                                 <select class="mdl-textfield__input" id="idRol" name="idRol">
                                     <?php while ($role = mysqli_fetch_assoc($result_roles)): ?>
