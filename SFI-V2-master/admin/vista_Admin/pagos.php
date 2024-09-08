@@ -157,33 +157,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             <div class="productos-grid">
                 <?php foreach ($_SESSION['productos_seleccionados'] as $producto): ?>
                     <div class="product-card">
-                    <div class="product-images">
-                        
-                    <?php
-
+                        <div class="product-images">
+                            <?php
                                 $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
-
                                 $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
-                                ?>
+                                $imagenes = [
+                                    'img1' => isset($producto['ruta_imagen1']) ? htmlspecialchars($producto['ruta_imagen1']) : '',
+                                    'img2' => isset($producto['ruta_imagen2']) ? htmlspecialchars($producto['ruta_imagen2']) : '',
+                                    'img3' => isset($producto['ruta_imagen3']) ? htmlspecialchars($producto['ruta_imagen3']) : ''
+                                ];
+                                
+                                // Filtrar las imágenes vacías
+                                $imagenes = array_filter($imagenes);
+                                
+                                // Asegurarse de que al menos una imagen esté activa
+                                if (!empty($imagenes)) {
+                                    $primerImagen = array_shift($imagenes); // La primera imagen activa
+                                }
+                            ?>
 
-                                <div class="product-images">
-                                    <?php if (!empty($producto['img1'])): ?>
-                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
-                                    <?php endif; ?>
-                                    <?php if (!empty($producto['img2'])): ?>
-                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
-                                    <?php endif; ?>
-                                    <?php if (!empty($producto['img3'])): ?>
-                                        <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
-                                    <?php endif; ?>
-                                </div>
-                        <button class="prev-button">
-                            <i class="fi fi-rr-angle-small-left"></i>
-                        </button>
-                        <button class="next-button">
-                            <i class="fi fi-rr-angle-small-right"></i>
-                        </button>
-                    </div>
+                            <div class="product-images">
+                                <?php if (!empty($primerImagen)): ?>
+                                    <img src="<?php echo $primerImagen; ?>" alt="img de producto principal" class="img-responsive product-image active">
+                                <?php endif; ?>
+
+                                <?php foreach ($imagenes as $imagen): ?>
+                                    <img src="<?php echo $imagen; ?>" alt="img de producto" class="img-responsive product-image">
+                                <?php endforeach; ?>
+                            </div>
+
+                            <button class="prev-button">
+                                <i class="fi fi-rr-angle-small-left"></i>
+                            </button>
+                            <button class="next-button">
+                                <i class="fi fi-rr-angle-small-right"></i>
+                            </button>
+                        </div>
 
                         <div class="product-info">
                             <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>

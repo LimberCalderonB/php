@@ -1,5 +1,20 @@
 
 
+<script>
+        //BUSCADOR DE PRODUCTOS
+        function searchProduct() {
+        var searchTerm = document.getElementById("searchProduct").value;
+        console.log(searchTerm); //VERIFICAR LO QUE SE ENVIA
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "buscador/buscar_producto.php?search=" + encodeURIComponent(searchTerm), true);
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                document.getElementById("product-results").innerHTML = xhr.responseText;
+            }
+        };
+        xhr.send();
+    }
+    </script>
 <?php
 //ALERTA DE REGISTRO
 if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){

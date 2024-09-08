@@ -266,21 +266,23 @@
                                                 <?php echo htmlspecialchars($producto['precio']); ?>-Bs
                                             <?php endif; ?>
                                         </div>
-                                        
+
                                         <div class="btn-container">
-                                        <form method="post" action="pagos.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
+                                        <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
                                             <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
                                             <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                            <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
+                                                <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                            </span>
                                             <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
                                                 <i class="fi fi-ss-social-network"></i>
                                                 <span>Seleccionar</span>
                                             </button>
                                         </form>
-
                                             <div class="btn-right">
-                                                    <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
-                                                        <i class="zmdi zmdi-edit"></i>
-                                                    </button>
+                                                <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
+                                                    <i class="zmdi zmdi-edit"></i>
+                                                </button>
                                                 <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
                                                     <i class="zmdi zmdi-delete"></i>
                                                 </button>
@@ -296,28 +298,10 @@
                 </div>
             </div>
         </div>
-
     <?php 
     include_once "pie.php"; 
     include_once "validaciones/val_producto.php";
     ?>
-
-    <script>
-        //BUSCADOR DE PRODUCTOS
-        function searchProduct() {
-        var searchTerm = document.getElementById("searchProduct").value;
-        console.log(searchTerm); //VERIFICAR LO QUE SE ENVIA
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "buscador/buscar_producto.php?search=" + encodeURIComponent(searchTerm), true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                document.getElementById("product-results").innerHTML = xhr.responseText;
-            }
-        };
-        xhr.send();
-    }
-    </script>
-
 <script>
 function seleccionarProducto(idProducto) {
     Swal.fire({
@@ -336,14 +320,24 @@ function seleccionarProducto(idProducto) {
             if (!value || value <= 0) {
                 return 'Por favor ingrese una cantidad válida';
             }
+            const cantidadDisponible = parseInt(document.getElementById('cantidadDisponible' + idProducto).textContent);
+            if (value > cantidadDisponible) {
+                return `No puedes seleccionar más de ${cantidadDisponible} productos.`;
+            }
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Asigna la cantidad seleccionada al campo oculto y envía el formulario.
-            document.getElementById('cantidad' + idProducto).value = result.value;
+            const cantidadSeleccionada = parseInt(result.value);
+            const cantidadDisponibleElement = document.getElementById('cantidadDisponible' + idProducto);
+            const cantidadDisponibleActual = parseInt(cantidadDisponibleElement.textContent);
+
+            // Actualizar cantidad disponible en la vista
+            cantidadDisponibleElement.textContent = cantidadDisponibleActual - cantidadSeleccionada;
+
+            // Asigna la cantidad seleccionada al campo oculto del formulario
+            document.getElementById('cantidad' + idProducto).value = cantidadSeleccionada;
             document.getElementById('formSeleccionar' + idProducto).submit();
         }
     });
 }
-
 </script>
