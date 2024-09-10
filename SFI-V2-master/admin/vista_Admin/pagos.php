@@ -198,6 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                             <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                             <small class="separator">|</small>
                             <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                            <small>ID: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
                         </div>
                         <div class="product-info">
                             <small>Cantidad:</small>

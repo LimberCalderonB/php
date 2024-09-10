@@ -150,52 +150,49 @@
             </div>
         </div>
         <?php
-    $sql = "WITH Imagenes AS (
-        SELECT 
-            producto.idproducto AS idproducto_img,
-            MAX(COALESCE(producto.img1, '')) AS img1,
-            MAX(COALESCE(producto.img2, '')) AS img2,
-            MAX(COALESCE(producto.img3, '')) AS img3
-        FROM 
-            producto
-        GROUP BY 
-            producto.idproducto
-    )
-
-    -- Consulta principal
+// Modificación en la consulta y manejo de resultados
+$sql = "WITH Imagenes AS (
     SELECT 
-        producto.idproducto, 
-        producto.nombre, 
-        producto.precio, 
-        producto.talla, 
-        producto.descuento, 
-        categoria.nombre AS categoria_nombre, 
-        COUNT(almacen.producto_idproducto) AS cantidad,
-        Imagenes.img1,
-        Imagenes.img2,
-        Imagenes.img3
+        producto.idproducto AS idproducto_img,
+        MAX(COALESCE(producto.img1, '')) AS img1,
+        MAX(COALESCE(producto.img2, '')) AS img2,
+        MAX(COALESCE(producto.img3, '')) AS img3
     FROM 
-        producto 
-    JOIN 
-        almacen ON producto.idproducto = almacen.producto_idproducto 
-    JOIN 
-        categoria ON almacen.categoria_idcategoria = categoria.idcategoria
-    JOIN 
-        Imagenes ON producto.idproducto = Imagenes.idproducto_img
+        producto
     GROUP BY 
-        producto.nombre, producto.precio, producto.talla, producto.descuento, categoria.nombre";
+        producto.idproducto
+)
+SELECT 
+    producto.idproducto, 
+    producto.nombre, 
+    producto.precio, 
+    producto.talla, 
+    producto.descuento, 
+    categoria.nombre AS categoria_nombre, 
+    COUNT(almacen.producto_idproducto) AS cantidad,
+    Imagenes.img1,
+    Imagenes.img2,
+    Imagenes.img3
+FROM 
+    producto 
+JOIN 
+    almacen ON producto.idproducto = almacen.producto_idproducto 
+JOIN 
+    categoria ON almacen.categoria_idcategoria = categoria.idcategoria
+JOIN 
+    Imagenes ON producto.idproducto = Imagenes.idproducto_img
+GROUP BY 
+    producto.nombre, producto.precio, producto.talla, producto.descuento, categoria.nombre";
 
-        $result = $conn->query($sql);
-        $productos = [];
-        if ($result->num_rows > 0) {
-            while ($row = $result->fetch_assoc()) {
-                if (!isset($_SESSION['productos_seleccionados'][$row['idproducto']])) {
-                    $productos[] = $row;
-                }
-            }
-        }
-        $conn->close();
-        ?>
+$result = $conn->query($sql);
+$productos = [];
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $productos[] = $row;
+    }
+}
+$conn->close();
+?>
 
         <div class="mdl-tabs__panel is-active" id="tabListProducts">
             <div class="mdl-grid">
