@@ -65,32 +65,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 
             $usuario_idusuario = $_SESSION['user_id'];
 
-            // Asegúrate de que la zona horaria esté configurada correctamente
-            date_default_timezone_set('America/La_Paz'); // Ajusta la zona horaria según tu ubicación
+            date_default_timezone_set('America/La_Paz');
             $fecha_venta = date("Y-m-d H:i:s");
 
-            // Insertar en la tabla `venta`
             $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("ids", $usuario_idusuario, $total, $fecha_venta);
             $stmt->execute();
-            $venta_id = $stmt->insert_id; // Obtener el ID de la venta recién insertada
+            $venta_id = $stmt->insert_id;
 
-            // Insertar en la tabla `venta_producto` y actualizar el inventario
             foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
-                // Insertar en la tabla `venta_producto`
                 $sql = "INSERT INTO venta_producto (venta_idventa, producto_idproducto) VALUES (?, ?)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("ii", $venta_id, $idproducto);
                 $stmt->execute();
 
-                // Actualizar el inventario en la tabla `almacen`
                 $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
                 $stmt->execute();
 
-                // Opcional: Eliminar el producto si la cantidad se vuelve 0
                 $sql = "DELETE FROM almacen WHERE cantidad <= 0 AND producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
@@ -99,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 
             $conn->commit();
             $_SESSION['productos_seleccionados'] = [];
-            $total = 0; // Restablecer el total a 0 después de la venta exitosa
+            $total = 0;
             echo "<script>
                     const Toast = Swal.mixin({
                       toast: true,
@@ -134,7 +128,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
               </script>";
     }
 }
-
 ?>
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
@@ -198,10 +191,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                             <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                             <small class="separator">|</small>
                             <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
-                            <small>ID: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
-                        </div>
-                        <div class="product-info">
-                            <small>Cantidad:</small>
                         </div>
                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                             <?php if ($producto['descuento'] > 0): ?>
