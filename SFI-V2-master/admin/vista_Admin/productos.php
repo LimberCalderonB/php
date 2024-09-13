@@ -37,7 +37,7 @@
 
                                     <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                         <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                                            <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ ]*(\.[0-9]+)?" id="nombre" name="nombre">
+                                            <input class="mdl-textfield__input" type="text" pattern="-?[A-Za-z0-9áéíóúÁÉÍÓÚ-ñÑ ]*(\.[0-9]+)?" id="nombre" name="nombre">
                                             <label class="mdl-textfield__label" for="nombre">Nombre</label>
                                             <span class="mdl-textfield__error">Nombre Invalido</span>
                                         </div>

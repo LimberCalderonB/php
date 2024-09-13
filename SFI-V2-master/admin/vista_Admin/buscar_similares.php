@@ -13,7 +13,6 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     $conn->begin_transaction();
 
     try {
-        // Seleccionar el producto
         $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, p.img1, p.img2, p.img3, a.categoria_idcategoria, c.nombre AS categoria_nombre
                                 FROM producto p
                                 INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
@@ -37,7 +36,6 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             $img2 = isset($producto['img2']) ? $producto['img2'] : '';
             $img3 = isset($producto['img3']) ? $producto['img3'] : '';
 
-            // Buscar productos similares
             $sql_match_productos = "SELECT p.idproducto 
                                     FROM producto p
                                     INNER JOIN almacen a ON p.idproducto = a.producto_idproducto

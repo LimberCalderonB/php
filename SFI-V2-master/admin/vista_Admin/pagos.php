@@ -52,8 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     $conn->close();
 }
 
-// Manejar la cancelación del producto
-// Manejar la cancelación del producto
 if (isset($_GET['cancelar_id'])) {
     $cancelar_id = $_GET['cancelar_id'];
     if (isset($_SESSION['productos_seleccionados'][$cancelar_id])) {
@@ -193,13 +191,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                                     'img2' => isset($producto['ruta_imagen2']) ? htmlspecialchars($producto['ruta_imagen2']) : '',
                                     'img3' => isset($producto['ruta_imagen3']) ? htmlspecialchars($producto['ruta_imagen3']) : ''
                                 ];
-                                
-                                // Filtrar las imágenes vacías
                                 $imagenes = array_filter($imagenes);
-                                
-                                // Asegurarse de que al menos una imagen esté activa
+
                                 if (!empty($imagenes)) {
-                                    $primerImagen = array_shift($imagenes); // La primera imagen activa
+                                    $primerImagen = array_shift($imagenes);
                                 }
                             ?>
 
