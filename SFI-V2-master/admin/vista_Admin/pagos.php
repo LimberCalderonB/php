@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     $idproducto = $_POST['idproducto'];
     include_once "../../conexion.php";
 
+    // Obtener los detalles del producto
     $sql = "SELECT producto.*, categoria.nombre AS categoria_nombre 
             FROM producto 
             JOIN almacen ON producto.idproducto = almacen.producto_idproducto 
@@ -27,16 +28,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     if ($result->num_rows > 0) {
         $producto = $result->fetch_assoc();
         $_SESSION['productos_seleccionados'][$idproducto] = $producto;
+
+        // Actualizar el estado del producto a 'casi_vendido'
+        $sql = "UPDATE almacen SET estado = 'casi_vendido' WHERE producto_idproducto = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $idproducto);
+        if (!$stmt->execute()) {
+            echo "Error en la actualización: " . $stmt->error;
+        } else {
+            // Verificar el estado después de la actualización
+            $sql = "SELECT estado FROM almacen WHERE producto_idproducto = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $idproducto);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result->num_rows > 0) {
+                $row = $result->fetch_assoc();
+                echo "Estado actual del producto: " . htmlspecialchars($row['estado']);
+            }
+        }
     }
 
     $conn->close();
 }
 
 // Manejar la cancelación del producto
+// Manejar la cancelación del producto
 if (isset($_GET['cancelar_id'])) {
     $cancelar_id = $_GET['cancelar_id'];
     if (isset($_SESSION['productos_seleccionados'][$cancelar_id])) {
         unset($_SESSION['productos_seleccionados'][$cancelar_id]);
+        
+        // Revertir el estado del producto a 'disponible'
+        include_once "../../conexion.php";
+        $sql = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $cancelar_id);
+        if (!$stmt->execute()) {
+            echo "Error en la actualización: " . $stmt->error;
+        }
+        $conn->close();
     }
 }
 
@@ -83,7 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                 $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
-                $stmt->execute();
+                if (!$stmt->execute()) {
+                    echo "Error en la actualización de cantidad: " . $stmt->error;
+                }
 
                 $sql = "DELETE FROM almacen WHERE cantidad <= 0 AND producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
@@ -129,6 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
     }
 }
 ?>
+
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
     PRODUCTOS SELECCIONADOS

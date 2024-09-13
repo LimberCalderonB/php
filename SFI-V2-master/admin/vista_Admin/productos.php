@@ -150,7 +150,7 @@
             </div>
         </div>
         <?php
-// Modificación en la consulta y manejo de resultados
+// Modificación en la consulta para filtrar por estado 'disponible'
 $sql = "WITH Imagenes AS (
     SELECT 
         producto.idproducto AS idproducto_img,
@@ -172,7 +172,8 @@ SELECT
     COUNT(almacen.producto_idproducto) AS cantidad,
     Imagenes.img1,
     Imagenes.img2,
-    Imagenes.img3
+    Imagenes.img3,
+    almacen.estado
 FROM 
     producto 
 JOIN 
@@ -181,6 +182,8 @@ JOIN
     categoria ON almacen.categoria_idcategoria = categoria.idcategoria
 JOIN 
     Imagenes ON producto.idproducto = Imagenes.idproducto_img
+WHERE
+    almacen.estado = 'disponible'  -- Filtrar por estado 'disponible'
 GROUP BY 
     producto.nombre, producto.precio, producto.talla, producto.descuento, categoria.nombre";
 
@@ -193,6 +196,7 @@ if ($result->num_rows > 0) {
 }
 $conn->close();
 ?>
+
 
         <div class="mdl-tabs__panel is-active" id="tabListProducts">
             <div class="mdl-grid">
@@ -247,11 +251,14 @@ $conn->close();
                                         <div class="product-date">
                                             
                                         <small>Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?></small>
+                                        
                                         </div>
                                     </div>
                                     <div class="mdl-card__actions mdl-card--border">
                                         <div class="product-info">
                                             <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
+                                            <small class="separator">|</small>
+        <small>Estado: <?php echo htmlspecialchars($producto['estado']); ?></small>
                                             
                                         </div>
                                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
