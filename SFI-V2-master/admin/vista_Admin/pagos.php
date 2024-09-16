@@ -25,31 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        $producto = $result->fetch_assoc();
-        $_SESSION['productos_seleccionados'][$idproducto] = $producto;
-
-        // Actualizar el estado del producto a 'casi_vendido'
-        $sql = "UPDATE almacen SET estado = 'casi_vendido' WHERE producto_idproducto = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $idproducto);
-        if (!$stmt->execute()) {
-            echo "Error en la actualización: " . $stmt->error;
-        } else {
-            // Verificar el estado después de la actualización
-            $sql = "SELECT estado FROM almacen WHERE producto_idproducto = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $idproducto);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            if ($result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                echo "Estado actual del producto: " . htmlspecialchars($row['estado']);
-            }
-        }
-    }
-
-    $conn->close();
+    
 }
 
 if (isset($_GET['cancelar_id'])) {
@@ -220,6 +196,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                             <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                             <small class="separator">|</small>
                             <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                            <small class="separator">|</small>
+                            <small>id: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
                         </div>
                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                             <?php if ($producto['descuento'] > 0): ?>

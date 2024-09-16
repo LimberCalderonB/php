@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 try {
                     WebPConvert::convert($fileTmpPath, $dest_path, [
-                        'quality' => 50
+                        'quality' => 30
                     ]);
                     $rutasImagenes[$imagen] = $newFileName;
                 } catch (Exception $e) {
@@ -134,8 +134,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1_final, $img2_final, $img3_final, 1);
         }
     }
-    
-
     if ($resultado) {
         $_SESSION['registro'] = 'Producto guardado correctamente.';
         header("Location: ../vista_Admin/productos.php?mensaje=Producto guardado exitosamente");

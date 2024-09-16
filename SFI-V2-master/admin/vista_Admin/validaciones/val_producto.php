@@ -1,5 +1,171 @@
+<!--ALERTA DE AÑADIR-->
+<script>
+function mostrarAlerta(idProducto) {
+    // Usar SweetAlert2 para pedir la cantidad de productos
+    Swal.fire({
+        title: '¿Cuántos productos quieres añadir?',
+        input: 'number', // Campo de entrada numérico
+        inputAttributes: {
+            min: 1 // Asegurarse de que el número sea positivo
+        },
+        showCancelButton: true, // Mostrar el botón de cancelar
+        confirmButtonText: 'Añadir',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value || isNaN(value) || value <= 0) {
+                return 'Por favor, introduce un número válido.';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let cantidad = result.value; // Obtener el valor ingresado
 
+            // Realizar la solicitud AJAX
+            $.ajax({
+                url: '../controlador_admin/ct_aniadir.php', // Archivo que gestionará la duplicación
+                type: 'POST',
+                data: {
+                    idproducto: idProducto,
+                    cantidad: cantidad
+                },
+                success: function(response) {
+                    // Mostrar mensaje de éxito con SweetAlert2
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'Se han añadido ' + cantidad + ' productos correctamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar'
+                    }).then(() => {
+                        // Redirigir a productos.php después de que el usuario presione "Aceptar"
+                        window.location.href = 'productos.php';
+                    });
+                },
+                error: function(xhr, status, error) {
+                    // Mostrar error con SweetAlert2
+                    Swal.fire('Error', 'Hubo un error al añadir los productos: ' + error, 'error');
+                }
+            });
+        }
+    });
+}
+</script>
+<!--ESTILO DE BOTON DE AÑADIR-->
+<style>
+    /* Contenedor del botón */
+.btn-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 10px 0;
+    padding: 5px;
+}
 
+/* Estilo del botón "Añadir" */
+.btn-aniadir {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #00b4d1; /* Color verde */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 3px 7px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animación de hover del botón */
+.btn-aniadir:hover {
+    background-color: #007897; /* Cambio a un tono de verde más oscuro */
+    transform: translateY(-3px); /* Efecto de desplazamiento */
+}
+
+/* Estilo del icono dentro del botón */
+.btn-aniadir i {
+    margin-left: 8px;
+    font-size: 18px;
+}
+
+/* Animación de clic en el botón */
+.btn-aniadir:active {
+    background-color: #004a66; /* Verde más oscuro al hacer clic */
+    transform: translateY(0);
+}
+
+/* Efecto de onda al hacer clic */
+.btn-aniadir::after {
+    content: '';
+    position: absolute;
+    width: 300%;
+    height: 300%;
+    top: 50%;
+    left: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s ease;
+}
+
+.btn-aniadir:active::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 768px) {
+    .btn-aniadir {
+        font-size: 14px;
+        padding: 8px 16px;
+    }
+    .btn-aniadir i {
+        font-size: 16px;
+    }
+}
+
+</style>
+<!--MANEJO DE CANTIDAD DE LOS PRODUCTOS QUE SE ENVIAN A LA PARTE DE PAGOS-->
+<script>
+function seleccionarProducto(idProducto) {
+    Swal.fire({
+        title: 'Seleccionar cantidad',
+        input: 'number',
+        inputLabel: 'Cantidad',
+        inputPlaceholder: 'Ingrese la cantidad',
+        inputAttributes: {
+            min: 1,
+            step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Enviar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value || value <= 0) {
+                return 'Por favor ingrese una cantidad válida';
+            }
+            const cantidadDisponible = parseInt(document.getElementById('cantidadDisponible' + idProducto).textContent);
+            if (value > cantidadDisponible) {
+                return `No puedes seleccionar más de ${cantidadDisponible} productos.`;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const cantidadSeleccionada = parseInt(result.value);
+            const cantidadDisponibleElement = document.getElementById('cantidadDisponible' + idProducto);
+            const cantidadDisponibleActual = parseInt(cantidadDisponibleElement.textContent);
+
+            // Actualizar cantidad disponible en la vista
+            cantidadDisponibleElement.textContent = cantidadDisponibleActual - cantidadSeleccionada;
+
+            // Asigna la cantidad seleccionada al campo oculto del formulario
+            document.getElementById('cantidad' + idProducto).value = cantidadSeleccionada;
+            document.getElementById('formSeleccionar' + idProducto).submit();
+        }
+    });
+}
+</script>
 <script>
         //BUSCADOR DE PRODUCTOS
         function searchProduct() {

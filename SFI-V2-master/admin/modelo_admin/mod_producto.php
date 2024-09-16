@@ -54,9 +54,6 @@ class ModeloProducto extends conexionBase {
     
         return ['success' => true, 'idproductos' => $idproductos];
     }
-    
-    
-    
 
     public function eliminarProducto($idproducto) {
         $sqlAlmacen = "DELETE FROM almacen WHERE producto_idproducto = ?";

@@ -1,5 +1,4 @@
     <?php
-
     include_once "cabecera.php";
     include_once "../../conexion.php";
     $query_categorias = "SELECT idcategoria, nombre FROM categoria";
@@ -234,7 +233,6 @@ $conn->close();
                                             <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
                                         <?php endif; ?>
                                     </div>
-
                                         <button class="prev-button">
                                             <i class="fi fi-rr-angle-small-left"></i>
                                         </button>
@@ -246,19 +244,24 @@ $conn->close();
                                         <div class="product-info">
                                             <small>CAT: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                                             <small class="separator">|</small>
-                                            <small>Talla:<?php echo htmlspecialchars($producto['talla']); ?></small>
+                                            <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
                                         </div>
-                                        <div class="product-date">
-                                            
-                                        <small>Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?></small>
-                                        
+                                        <div class="btn-container">
+                                            <small>Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?></small>
+                                            <div class="btn-right">
+                                                <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
+                                                    <span>Añadir</span>
+                                                    <i class="fi fi-sr-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
+
                                     </div>
                                     <div class="mdl-card__actions mdl-card--border">
                                         <div class="product-info">
                                             <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
                                             <small class="separator">|</small>
-        <small>Estado: <?php echo htmlspecialchars($producto['estado']); ?></small>
+                                            <small>id: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
                                             
                                         </div>
                                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
@@ -270,19 +273,18 @@ $conn->close();
                                                 <?php echo htmlspecialchars($producto['precio']); ?>-Bs
                                             <?php endif; ?>
                                         </div>
-
                                         <div class="btn-container">
-                                        <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
-                                            <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-                                            <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
-                                            <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
-                                                <?php echo htmlspecialchars($producto['cantidad']); ?>
-                                            </span>
-                                            <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
-                                                <i class="fi fi-ss-social-network"></i>
-                                                <span>Seleccionar</span>
-                                            </button>
-                                        </form>
+                                            <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
+                                                <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                                <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                                <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
+                                                    <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                                </span>
+                                                <button type="button" class="btn success" onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')">
+                                                <i class="fi fi-sr-shopping-cart"></i>
+                                                    <span>Enviar</span>
+                                                </button>
+                                            </form>
                                             <div class="btn-right">
                                                 <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
                                                     <i class="zmdi zmdi-edit"></i>
@@ -292,6 +294,7 @@ $conn->close();
                                                 </button>
                                             </div>
                                         </div>
+                                        
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -306,42 +309,3 @@ $conn->close();
     include_once "pie.php"; 
     include_once "validaciones/val_producto.php";
     ?>
-<script>
-function seleccionarProducto(idProducto) {
-    Swal.fire({
-        title: 'Seleccionar cantidad',
-        input: 'number',
-        inputLabel: 'Cantidad',
-        inputPlaceholder: 'Ingrese la cantidad',
-        inputAttributes: {
-            min: 1,
-            step: 1
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Enviar',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (value) => {
-            if (!value || value <= 0) {
-                return 'Por favor ingrese una cantidad válida';
-            }
-            const cantidadDisponible = parseInt(document.getElementById('cantidadDisponible' + idProducto).textContent);
-            if (value > cantidadDisponible) {
-                return `No puedes seleccionar más de ${cantidadDisponible} productos.`;
-            }
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const cantidadSeleccionada = parseInt(result.value);
-            const cantidadDisponibleElement = document.getElementById('cantidadDisponible' + idProducto);
-            const cantidadDisponibleActual = parseInt(cantidadDisponibleElement.textContent);
-
-            // Actualizar cantidad disponible en la vista
-            cantidadDisponibleElement.textContent = cantidadDisponibleActual - cantidadSeleccionada;
-
-            // Asigna la cantidad seleccionada al campo oculto del formulario
-            document.getElementById('cantidad' + idProducto).value = cantidadSeleccionada;
-            document.getElementById('formSeleccionar' + idProducto).submit();
-        }
-    });
-}
-</script>

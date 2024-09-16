@@ -13,6 +13,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     $conn->begin_transaction();
 
     try {
+        // Obtener información del producto base
         $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, p.img1, p.img2, p.img3, a.categoria_idcategoria, c.nombre AS categoria_nombre
                                 FROM producto p
                                 INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
@@ -36,10 +37,12 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             $img2 = isset($producto['img2']) ? $producto['img2'] : '';
             $img3 = isset($producto['img3']) ? $producto['img3'] : '';
 
+            // Buscar productos similares con estado 'disponible'
             $sql_match_productos = "SELECT p.idproducto 
                                     FROM producto p
                                     INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
-                                    WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? AND a.categoria_idcategoria = ? 
+                                    WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? 
+                                    AND a.categoria_idcategoria = ? AND a.estado = 'disponible'
                                     ORDER BY p.idproducto ASC
                                     LIMIT ?";
             $stmt_match_productos = $conn->prepare($sql_match_productos);
@@ -54,7 +57,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             $resultado_match = $stmt_match_productos->get_result();
 
             if ($resultado_match->num_rows < $cantidad) {
-                throw new Exception("No se encontraron suficientes productos para realizar la venta.");
+                throw new Exception("No se encontraron suficientes productos disponibles para realizar la venta.");
             }
 
             if (!isset($_SESSION['productos_seleccionados'])) {
@@ -64,22 +67,26 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             // Actualizar el estado de los productos a 'casi_vendido'
             $productos_actualizar = [];
             while ($row = $resultado_match->fetch_assoc()) {
-                $productos_actualizar[] = $row['idproducto'];
+                $id_producto_actual = $row['idproducto'];
+                $productos_actualizar[] = $id_producto_actual;
                 $directorioImagenes = 'img/categorias/' . $categoria_nombre . '/';
                 
                 $ruta_imagen1 = !empty($img1) ? $directorioImagenes . $img1 : '';
                 $ruta_imagen2 = !empty($img2) ? $directorioImagenes . $img2 : '';
                 $ruta_imagen3 = !empty($img3) ? $directorioImagenes . $img3 : '';
 
-                if (!isset($_SESSION['productos_seleccionados'][$row['idproducto']])) {
-                    $row['categoria_nombre'] = $categoria_nombre;
-                    $row['talla'] = $talla;
-                    $row['descuento'] = $descuento;
-                    $row['precio'] = $precio;
-                    $row['ruta_imagen1'] = $ruta_imagen1;
-                    $row['ruta_imagen2'] = $ruta_imagen2;
-                    $row['ruta_imagen3'] = $ruta_imagen3;
-                    $_SESSION['productos_seleccionados'][$row['idproducto']] = $row;
+                // Verificar si ya está en la sesión y agregar de forma independiente por idproducto
+                if (!isset($_SESSION['productos_seleccionados'][$id_producto_actual])) {
+                    $_SESSION['productos_seleccionados'][$id_producto_actual] = [
+                        'idproducto' => $id_producto_actual,
+                        'categoria_nombre' => $categoria_nombre,
+                        'talla' => $talla,
+                        'descuento' => $descuento,
+                        'precio' => $precio,
+                        'ruta_imagen1' => $ruta_imagen1,
+                        'ruta_imagen2' => $ruta_imagen2,
+                        'ruta_imagen3' => $ruta_imagen3
+                    ];
                 }
             }
 
