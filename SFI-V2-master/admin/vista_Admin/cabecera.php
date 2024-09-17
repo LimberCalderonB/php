@@ -258,9 +258,7 @@ $conn->close();
 						</li>
 						<li class="text-condensedLight noLink" ><small>-</small></li>
 						<li class="noLink">
-						<figure>
-                                <img src="<?php echo isset($user_data['foto']) ? htmlspecialchars($user_data['foto']) : 'default-avatar.png'; ?>" alt="Avatar" class="img-responsive">
-                            </figure>
+.
 						</li>
 					</ul>
 				</nav>

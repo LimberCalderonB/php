@@ -407,12 +407,22 @@ function resetDefaultValue(input) {
 
 </script>
 
-<!--navegacion de fotos de producto-->
+<!--TAMAÑO DE LAS CARTAS DE LOS PRODUCTOS-->
 <style>
-    .product-images {
+.product-card {
+    flex: 1 1 30%; /* Cada producto ocupa 30% del ancho disponible */
+    min-width: 250px; /* Mínimo tamaño de un producto */
+    max-width: 190px; /* Máximo tamaño de un producto más razonable */
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.product-images {
     position: relative;
-    width: 100%;
-    height: 200px; /* Ajusta la altura según sea necesario */
+    width: 200px;
+    height: 180px; /* Ajusta la altura según sea necesario */
     overflow: hidden;
 }
 
@@ -430,8 +440,8 @@ function resetDefaultValue(input) {
 
 .prev-button, .next-button {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 30%;
+    transform: translateY(-70%);
     background-color: rgba(0, 0, 0, 0.5);
     color: white;
     border: none;
@@ -449,9 +459,8 @@ function resetDefaultValue(input) {
 }
 
 .prev-button i, .next-button i {
-    font-size: 24px;
+    font-size: 19px;
 }
-
 </style>
 <!--BOTON DE ANTES Y DESPUES-->
 <script>
@@ -495,7 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .product-info {
     display: flex;
     align-items: center;
-    font-size: 0.9rem; /* Ajusta el tamaño */
+    font-size: 0.8rem; /* Ajusta el tamaño */
 }
 
 .product-info small {
@@ -508,7 +517,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .product-date {
     margin-top: 5px;
-    font-size: 0.75rem; /* Ajusta el tamaño de la fuente si es necesario */
+    font-size: 0.7rem; /* Ajusta el tamaño de la fuente si es necesario */
 }
 </style>
 <!--VALIDACIONES DE CAMPO-->
@@ -714,7 +723,7 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
     .product-info small,
     .product-date small,
     .product-price {
-        font-size: 0.875em; 
+        font-size: 0.8em; 
     }
 
     .product-price.discount {

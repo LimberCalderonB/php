@@ -1,222 +1,152 @@
-
-
-
-
 <style>
-/* Estilos existentes */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 15px;
-}
 
-.top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-}
 
-.product-search {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-    width: 400px;
-}
-
-.dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: #f9f9f9;
-    min-width: 400px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
-}
-
-.dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
-    display: block;
-}
-
-.dropdown-content a:hover {
-    background-color: #f1f1f1;
-}
-
-.dropdown:hover .dropdown-content {
-    display: block;
-}
-
+/* Botón para realizar la venta */
 .btn-realizar-venta {
-    background-color: #176098;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    transition: transform 0.2s ease-in-out;
+    background-color: #176098; /* Color de fondo del botón */
+    color: white; /* Color del texto del botón */
+    padding: 10px 20px; /* Espaciado interno del botón */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 1rem; /* Tamaño de fuente del texto */
+    display: flex; /* Flexbox para alinear el contenido */
+    align-items: center; /* Alinea verticalmente el contenido */
+    transition: transform 0.2s ease-in-out; /* Transición suave al hacer hover */
 }
 
 .btn-realizar-venta i {
-    margin-right: 5px;
+    margin-right: 5px; /* Espacio entre el icono y el texto */
 }
 
-/* Estilo de animación para el botón */
+/* Efecto hover en el botón de venta */
 .btn-realizar-venta:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px); /* Mueve el botón hacia arriba al pasar el mouse */
 }
 
-/* Estilos adicionales */
+/* Coste total, alineado a la derecha */
 .total-cost {
-    text-align: right;
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin-bottom: 20px;
+    text-align: right; /* Alinea el texto a la derecha */
+    font-size: 1.2rem; /* Tamaño de fuente del total */
+    font-weight: bold; /* Negrita */
+    margin-bottom: 20px; /* Margen inferior */
 }
 
+/* Grid para organizar las tarjetas de productos */
 .productos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
+    display: flex;             /* Activamos flexbox */
+    flex-wrap: wrap;           /* Permite que los elementos se envuelvan a la siguiente línea si no caben en una fila */
+    justify-content: space-between; /* Distribuye las tarjetas uniformemente */
 }
 
 .product-card {
     background: #fff;
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
+    border: 1px solid #ddd;
+    margin: 0px;             /* Añade espacio entre las tarjetas */
+    padding: 1px;
+    box-sizing: border-box;    /* Asegura que padding y borde se incluyan en el tamaño total */
+    width: 200px;             /* Establece un ancho fijo para las tarjetas */
 }
 
-.product-images {
-    position: relative;
-    width: 100%;
-    height: 200px;
-    overflow: hidden;
-}
-
-.product-image {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-}
-
-.product-image.active {
-    display: block;
-}
-
-.prev-button, .next-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
+.container {
+    max-width: 1200px; /* Limita el ancho del contenedor */
+    margin: 0 auto;    /* Centra el contenedor */
     padding: 5px;
-    cursor: pointer;
-    z-index: 1;
+    box-sizing: border-box; /* Padding y borde se incluyen en el tamaño total */
 }
 
-.prev-button {
-    left: 5px;
-}
 
-.next-button {
-    right: 5px;
-}
-
+/* Información del producto (categoría y talla) */
 .product-info {
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
+    padding: 5px; /* Espaciado interno de la sección de información */
+
+    justify-content: space-between; /* Alinea los elementos a los extremos */
 }
 
 .product-info small {
-    font-size: 0.875em;
+    font-size: 0.85em; /* Tamaño de fuente reducido */
 }
 
 .separator {
-    margin: 0 5px;
+    margin: 0 5px; /* Espacio entre la categoría y la talla */
 }
 
+/* Estilo del precio del producto */
 .product-price {
-    padding: 10px;
-    font-size: 0.75rem;
+    padding: 5px; /* Espaciado interno de la sección de precio */
+    font-size: 0.85rem; /* Tamaño de fuente del precio */
 }
 
 .product-price.discount {
-    color: black;
+    color: #d9534f; /* Color rojo para precios con descuento */
 }
 
+/* Precio original con línea tachada */
 .original-price {
-    text-decoration: line-through;
-    margin-right: 5px;
+    text-decoration: line-through; /* Tachado del precio original */
+    margin-right: 5px; /* Espacio a la derecha del precio original */
 }
 
+/* Contenedor para el botón de cancelar */
 .btn-container {
-    padding: 10px;
-    display: flex;
-    justify-content: flex-end;
+    padding: 5px; /* Espaciado interno del contenedor */
+    display: flex; /* Flexbox para alinear el botón */
+
 }
 
+/* Estilo del botón de cancelar */
 .btn-danger {
-    background-color: #dc3545;
-    color: white;
-    padding: 7px 10px;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
+    background-color: #dc3545; /* Color de fondo rojo */
+    color: white; /* Texto en blanco */
+    padding: 4px 7px; /* Espaciado interno del botón */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    text-decoration: none; /* Sin subrayado en el texto */
+    font-size: 1rem; /* Tamaño de fuente */
+    display: flex; /* Flexbox para alinear el contenido */
+    align-items: center; /* Alinea verticalmente el contenido */
+}
+</style>
+<style>
+    /* Botón para realizar la venta */
+.btn-realizar-venta {
+    font-size: 0.9rem; /* Reducido el tamaño de fuente del botón */
 }
 
-.btn-danger i {
-    margin-right: 5px;
+/* Coste total, alineado a la derecha */
+.total-cost {
+    font-size: 0.6rem; /* Reducido el tamaño de fuente del total */
+}
+
+/* Grid para organizar las tarjetas de productos */
+.product-card {
+    font-size: 0.5rem; /* Reducido el tamaño de fuente general de las tarjetas */
+}
+
+/* Información del producto (categoría y talla) */
+.product-info small {
+    font-size: 0.71rem; /* Tamaño de fuente aún más reducido para la información del producto */
+}
+
+/* Estilo del precio del producto */
+.product-price {
+    font-size: 0.67rem; /* Reducido el tamaño de fuente del precio */
+}
+
+.product-price.discount {
+    font-size: 0.67rem; /* Aplicado también para los precios con descuento */
+}
+
+/* Precio original con línea tachada */
+.original-price {
+    font-size: 0.67rem; /* Reducido el tamaño de fuente del precio original */
+}
+
+/* Estilo del botón de cancelar */
+.btn-danger {
+    font-size: 0.9rem; /* Reducido el tamaño de fuente del botón cancelar */
 }
 
 </style>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const productCards = document.querySelectorAll('.product-card');
-
-    productCards.forEach(card => {
-        const images = card.querySelectorAll('.product-image');
-        const prevButton = card.querySelector('.prev-button');
-        const nextButton = card.querySelector('.next-button');
-
-        let currentIndex = 0;
-
-        const showImage = index => {
-            images.forEach((img, i) => img.classList.toggle('active', i === index));
-        };
-
-        prevButton.addEventListener('click', () => {
-            currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
-            showImage(currentIndex);
-        });
-
-        nextButton.addEventListener('click', () => {
-            currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
-            showImage(currentIndex);
-        });
-
-        showImage(currentIndex);
-    });
-});
-
-</script>
-

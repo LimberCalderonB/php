@@ -80,6 +80,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
                     $_SESSION['productos_seleccionados'][$id_producto_actual] = [
                         'idproducto' => $id_producto_actual,
                         'categoria_nombre' => $categoria_nombre,
+                        'nombre' => $nombre,
                         'talla' => $talla,
                         'descuento' => $descuento,
                         'precio' => $precio,

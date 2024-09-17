@@ -137,7 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 }
 ?>
 
-
 <div class="full-width panel-tittle bg-primary text-center tittles">
     PRODUCTOS SELECCIONADOS
 </div>
@@ -146,75 +145,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
     <form method="POST" action="pagos.php">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
-            <i class="fi fi-rr-usd-circle"></i>
+            <i class="fi fi-rr-dollar"></i>
             REALIZAR VENTA
         </button>
     </form>
     <div class="total-cost">
         <h5>Total: <?php echo number_format($total, 2); ?> Bs</h5>
     </div>
+
     <div class="productos-seleccionados">
         <?php if (!empty($_SESSION['productos_seleccionados'])): ?>
-            <div class="productos-grid">
-                <?php foreach ($_SESSION['productos_seleccionados'] as $producto): ?>
-                    <div class="product-card">
-                        <div class="product-images">
-                            <?php
-                                $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
-                                $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
-                                $imagenes = [
-                                    'img1' => isset($producto['ruta_imagen1']) ? htmlspecialchars($producto['ruta_imagen1']) : '',
-                                    'img2' => isset($producto['ruta_imagen2']) ? htmlspecialchars($producto['ruta_imagen2']) : '',
-                                    'img3' => isset($producto['ruta_imagen3']) ? htmlspecialchars($producto['ruta_imagen3']) : ''
-                                ];
-                                $imagenes = array_filter($imagenes);
+            <div class="productos">
 
-                                if (!empty($imagenes)) {
-                                    $primerImagen = array_shift($imagenes);
-                                }
-                            ?>
+                <?php
+                // 1. Agrupar productos por categoría
+                $productos_por_categoria = [];
+                foreach ($_SESSION['productos_seleccionados'] as $producto) {
+                    $categoria = $producto['categoria_nombre'];
+                    if (!isset($productos_por_categoria[$categoria])) {
+                        $productos_por_categoria[$categoria] = [];
+                    }
+                    $productos_por_categoria[$categoria][] = $producto;
+                }
 
-                            <div class="product-images">
-                                <?php if (!empty($primerImagen)): ?>
-                                    <img src="<?php echo $primerImagen; ?>" alt="img de producto principal" class="img-responsive product-image active">
-                                <?php endif; ?>
+                // 2. Mostrar los productos agrupados por categoría
+                foreach ($productos_por_categoria as $categoria => $productos): ?>
+                    <div class="categoria">
+                        <h6 class="categoria-titulo">Categoria: <?php echo htmlspecialchars($categoria); ?></h6> <!-- Nombre de la categoría -->
 
-                                <?php foreach ($imagenes as $imagen): ?>
-                                    <img src="<?php echo $imagen; ?>" alt="img de producto" class="img-responsive product-image">
-                                <?php endforeach; ?>
+                        <?php foreach ($productos as $producto): ?>
+                            <div class="product-card">
+                                <div class="product-info">
+                                    <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
+                                    <small class="separator">|</small>
+                                    <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                                </div>
+                                <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
+                                    <?php if ($producto['descuento'] > 0): ?>
+                                        <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
+                                        Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
+                                        |Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
+                                    <?php else: ?>
+                                        <?php echo htmlspecialchars($producto['precio']); ?>-Bs
+                                    <?php endif; ?>
+                                </div>
+                                <div class="btn-container">
+                                    <a href="pagos.php?cancelar_id=<?php echo htmlspecialchars($producto['idproducto']); ?>" class="btn btn-danger">
+                                        Cancelar
+                                    </a>
+                                </div>
                             </div>
-
-                            <button class="prev-button">
-                                <i class="fi fi-rr-angle-small-left"></i>
-                            </button>
-                            <button class="next-button">
-                                <i class="fi fi-rr-angle-small-right"></i>
-                            </button>
-                        </div>
-
-                        <div class="product-info">
-                            <small>Categoria: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
-                            <small class="separator">|</small>
-                            <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
-                            <small class="separator">|</small>
-                            <small>id: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
-                        </div>
-                        <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
-                            <?php if ($producto['descuento'] > 0): ?>
-                                <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
-                                | Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
-                                | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
-                                
-                            <?php else: ?>
-                                <?php echo htmlspecialchars($producto['precio']); ?>-Bs
-                            <?php endif; ?>
-                        </div>
-                        <div class="btn-container">
-                            <a href="pagos.php?cancelar_id=<?php echo htmlspecialchars($producto['idproducto']); ?>" class="btn btn-danger">
-                                <i class="fi fi-rs-cross"></i>
-                                Cancelar
-                            </a>
-                        </div>
+                        <?php endforeach; ?>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -223,7 +204,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
         <?php endif; ?>
     </div>
 </div>
+
 <?php 
 include_once "pie.php"; 
 include_once "validaciones/val_pagos.php";
 ?>
+
+
