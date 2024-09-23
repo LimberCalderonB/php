@@ -1,24 +1,32 @@
 <?php
-include_once "../../../conexion.php";
+include_once "../../../conexion.php"; // Asegúrate de incluir tu archivo de conexión
 
-if (isset($_POST['query'])) {
-    $query = $_POST['query'];
-    $sql = "SELECT nombre_cliente, apellido_cliente FROM cliente WHERE nombre_cliente LIKE ? OR apellido_cliente LIKE ? LIMIT 10";
+header('Content-Type: application/json');
+$query = isset($_GET['query']) ? $_GET['query'] : '';
+
+if (!empty($query)) {
+    // Prepara la consulta
+    $sql = "SELECT uc.idusuario_cliente, c.nombre_cliente, c.apellido_cliente, c.apellido2_cliente, c.celular_cliente 
+    FROM cliente c 
+    JOIN usuario_cliente uc ON c.idcliente = uc.cliente_idcliente 
+    WHERE c.nombre_cliente LIKE ? OR 
+          c.apellido_cliente LIKE ? OR 
+          c.apellido2_cliente LIKE ? OR 
+          uc.idusuario_cliente LIKE ? OR 
+          c.celular_cliente LIKE ?";
+
+
     $stmt = $conn->prepare($sql);
-    $search = "%$query%";
-    $stmt->bind_param("ss", $search, $search);
+    $param = '%' . $query . '%';
+    $stmt->bind_param("sssss", $param, $param, $param, $param, $param);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            echo '<a href="#" class="client-item">' . htmlspecialchars($row['nombre_cliente'] . ' ' . $row['apellido_cliente']) . '</a>';
-        }
-    } else {
-        echo '<a href="#" class="client-item">No se encontraron resultados</a>';
+    $clientes = [];
+    while ($row = $result->fetch_assoc()) {
+        $clientes[] = $row;
     }
 
-    $stmt->close();
-    $conn->close();
+    echo json_encode($clientes);
 }
 ?>

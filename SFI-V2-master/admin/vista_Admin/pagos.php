@@ -28,22 +28,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
     
 }
 
-if (isset($_GET['cancelar_id'])) {
+if (isset($_GET['cancelar_id']) && isset($_GET['cantidad'])) {
     $cancelar_id = $_GET['cancelar_id'];
-    if (isset($_SESSION['productos_seleccionados'][$cancelar_id])) {
-        unset($_SESSION['productos_seleccionados'][$cancelar_id]);
-        
-        // Revertir el estado del producto a 'disponible'
-        include_once "../../conexion.php";
-        $sql = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $cancelar_id);
-        if (!$stmt->execute()) {
-            echo "Error en la actualización: " . $stmt->error;
+    $cantidad_a_cancelar = (int)$_GET['cantidad'];
+
+    if ($cantidad_a_cancelar > 0) {
+        // Obtener los detalles del producto a cancelar
+
+        @$producto_a_cancelar = $_SESSION['productos_seleccionados'][$cancelar_id];
+
+        // Filtrar los productos que coinciden con los criterios: nombre, precio, talla, descuento, categoría
+        @$productos_similares = array_filter($_SESSION['productos_seleccionados'], function($producto) use ($producto_a_cancelar) {
+            return $producto['nombre'] == $producto_a_cancelar['nombre'] &&
+                   $producto['precio'] == $producto_a_cancelar['precio'] &&
+                   $producto['talla'] == $producto_a_cancelar['talla'] &&
+                   $producto['descuento'] == $producto_a_cancelar['descuento'] &&
+                   $producto['categoria_nombre'] == $producto_a_cancelar['categoria_nombre'];
+        });
+
+        // Cancelar solo la cantidad indicada
+        $contador = 0;
+        include_once "../../conexion.php"; // Conectar solo una vez
+        foreach ($productos_similares as $id => $producto) {
+            if ($contador < $cantidad_a_cancelar) {
+                unset($_SESSION['productos_seleccionados'][$id]); // Eliminar el producto de la sesión
+                $contador++;
+
+                // Revertir el estado del producto a 'disponible'
+                $sql = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto = ?";
+                $stmt = $conn->prepare($sql);
+                if (!$stmt) {
+                    echo "Error en la preparación de la consulta: " . $conn->error;
+                    break;
+                }
+                $stmt->bind_param("i", $producto['idproducto']);
+                if (!$stmt->execute()) {
+                    echo "Error en la actualización: " . $stmt->error;
+                    break;
+                }
+                $stmt->close(); // Cerrar el statement después de usarlo
+            } else {
+                break;
+            }
         }
-        $conn->close();
+        $conn->close(); // Cerrar la conexión después de procesar todos los productos
+
+
     }
 }
+
+
 
 // Calcular el total
 $total = 0;
@@ -57,7 +91,6 @@ if (!empty($_SESSION['productos_seleccionados'])) {
     }
 }
 
-// Manejar la realización de la venta
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
     if (!empty($_SESSION['productos_seleccionados'])) {
         include_once "../../conexion.php";
@@ -69,13 +102,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             }
 
             $usuario_idusuario = $_SESSION['user_id'];
+            $pedido_idpedido = null; // Inicializamos el ID del pedido
+
+            // Verificar si hay un cliente seleccionado
+            if (!empty($_POST['usuario_cliente_id'])) {
+                $usuario_cliente_id = intval($_POST['usuario_cliente_id']);
+                
+                // Verifica que el cliente existe
+                $sql = "SELECT * FROM usuario_cliente WHERE idusuario_cliente = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $usuario_cliente_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            
+                if ($result->num_rows > 0) {
+                    // El cliente existe, proceder a crear el pedido
+                    $sql = "INSERT INTO pedido (usuario_cliente_idusuario_cliente) VALUES (?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $usuario_cliente_id);
+                    $stmt->execute();
+                    $pedido_idpedido = $stmt->insert_id; // Obtener el ID del nuevo pedido
+                } else {
+                    throw new Exception("El cliente no existe.");
+                }
+            }
+            
 
             date_default_timezone_set('America/La_Paz');
             $fecha_venta = date("Y-m-d H:i:s");
 
-            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta) VALUES (?, ?, ?)";
+            // Insertar la venta
+            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_idpedido) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ids", $usuario_idusuario, $total, $fecha_venta);
+            $stmt->bind_param("idsi", $usuario_idusuario, $total, $fecha_venta, $pedido_idpedido);
             $stmt->execute();
             $venta_id = $stmt->insert_id;
 
@@ -125,25 +184,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
         }
 
         $conn->close();
-    } else {
-        echo "<script>
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Error',
-                  text: 'No hay productos seleccionados para la venta',
-                });
-              </script>";
     }
 }
+
 ?>
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
     PRODUCTOS SELECCIONADOS
 </div>
 <br>
+<div class="container text-center" style="position: relative;"> <!-- Añadido position: relative -->
+    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control">
+    <div id="resultados" class="mt-2" style="display: none;"></div> <!-- Cambios aquí -->
+</div>
+
 <div class="container">
     <form method="POST" action="pagos.php">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" id="usuario_cliente_id" name="usuario_cliente_id" value="">
+
         <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
             <i class="fi fi-rr-dollar"></i>
             REALIZAR VENTA
@@ -156,43 +215,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
     <div class="productos-seleccionados">
         <?php if (!empty($_SESSION['productos_seleccionados'])): ?>
             <div class="productos">
-
                 <?php
-                // 1. Agrupar productos por categoría
+                // 1. Agrupar productos por categoría, nombre, precio, talla, descuento
                 $productos_por_categoria = [];
+
                 foreach ($_SESSION['productos_seleccionados'] as $producto) {
                     $categoria = $producto['categoria_nombre'];
+                    $clave = $producto['nombre'] . '|' . $producto['precio'] . '|' . $producto['talla'] . '|' . $producto['descuento'];
+
                     if (!isset($productos_por_categoria[$categoria])) {
                         $productos_por_categoria[$categoria] = [];
                     }
-                    $productos_por_categoria[$categoria][] = $producto;
+
+                    if (!isset($productos_por_categoria[$categoria][$clave])) {
+                        $productos_por_categoria[$categoria][$clave] = [
+                            'producto' => $producto,
+                            'cantidad' => 0
+                        ];
+                    }
+
+                    $productos_por_categoria[$categoria][$clave]['cantidad']++;
                 }
 
                 // 2. Mostrar los productos agrupados por categoría
-                foreach ($productos_por_categoria as $categoria => $productos): ?>
+                foreach ($productos_por_categoria as $categoria => $productos_agrupados): ?>
                     <div class="categoria">
-                        <h6 class="categoria-titulo">Categoria: <?php echo htmlspecialchars($categoria); ?></h6> <!-- Nombre de la categoría -->
+                        <h6 class="categoria-titulo">Categoría: <?php echo htmlspecialchars($categoria); ?></h6>
 
-                        <?php foreach ($productos as $producto): ?>
+                        <?php foreach ($productos_agrupados as $clave => $item):
+                            $producto = $item['producto'];
+                            $cantidad = $item['cantidad'];
+                        ?>
                             <div class="product-card">
                                 <div class="product-info">
                                     <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
                                     <small class="separator">|</small>
                                     <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
                                 </div>
+                                <div class="product-info">
+                                    <small>Cantidad: <?php echo $cantidad; ?></small>
+                                </div>
                                 <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                                     <?php if ($producto['descuento'] > 0): ?>
-                                        <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
+                                        <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span>
                                         Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
-                                        |Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
+                                        | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
                                     <?php else: ?>
                                         <?php echo htmlspecialchars($producto['precio']); ?>-Bs
                                     <?php endif; ?>
                                 </div>
                                 <div class="btn-container">
-                                    <a href="pagos.php?cancelar_id=<?php echo htmlspecialchars($producto['idproducto']); ?>" class="btn btn-danger">
+                                    <button onclick="cancelarProducto(<?php echo htmlspecialchars($producto['idproducto']); ?>, <?php echo $cantidad; ?>)" class="btn btn-danger">
                                         Cancelar
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -209,5 +284,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 include_once "pie.php"; 
 include_once "validaciones/val_pagos.php";
 ?>
+
+<!--SCRIPT DEL BUSCADOR -->
+<script>
+document.getElementById('buscar').addEventListener('input', function() {
+    let query = this.value;
+    if (query.length > 0) {
+        fetch(`buscador/buscar_cliente.php?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                let resultadosDiv = document.getElementById('resultados');
+                resultadosDiv.innerHTML = ''; // Limpiar resultados previos
+                data.forEach(cliente => {
+                    resultadosDiv.innerHTML += `<div class="resultado" data-id="${cliente.idusuario_cliente}" data-nombre="${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})"><p>${cliente.idusuario_cliente} ${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})</p></div>`;
+                });
+                resultadosDiv.style.display = data.length > 0 ? 'block' : 'none'; // Mostrar u ocultar los resultados
+            });
+    } else {
+        document.getElementById('resultados').innerHTML = ''; // Limpiar resultados si la búsqueda está vacía
+        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
+    }
+});
+
+// Agregar evento de clic para seleccionar un resultado
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.resultado')) {
+        const selectedResult = event.target.closest('.resultado');
+        const clienteId = selectedResult.getAttribute('data-id'); // Obtener el ID del cliente
+        console.log('ID del cliente seleccionado:', clienteId); // Verificar ID
+        document.getElementById('buscar').value = selectedResult.getAttribute('data-nombre'); // Completar el campo de búsqueda
+        document.getElementById('usuario_cliente_id').value = clienteId; // Guardar el ID del cliente
+        document.getElementById('resultados').innerHTML = ''; // Limpiar los resultados
+        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
+    }
+});
+
+</script>
+
+
 
 

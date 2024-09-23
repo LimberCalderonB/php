@@ -1,6 +1,85 @@
+
+<!--ESTILOS DE CAMPO DE BUSQUEDA-->
 <style>
+#resultados {
+    background: white; /* Fondo blanco para los resultados */
+    border: 1px solid #ccc; /* Borde gris */
+    border-radius: 4px; /* Bordes redondeados */
+    max-height: 150px; /* Altura máxima */
+    overflow-y: auto; /* Desplazamiento si hay muchos resultados */
+    position: absolute; /* Posicionamiento absoluto */
+    z-index: 1000; /* Para que se superponga sobre otros elementos */
+    width: 400px; /* Ajustar al ancho deseado */
+    left: 50%; /* Centrar horizontalmente */
+    transform: translateX(-50%); /* Ajustar para que quede centrado */
+    margin-top: 5px; /* Margen superior para separación */
+    display: none; /* Ocultar por defecto */
+}
+
+.resultado {
+    padding: 10px; /* Espaciado interno */
+    border-bottom: 1px solid #eee; /* Línea entre resultados */
+}
+
+.resultado:last-child {
+    border-bottom: none; /* Sin borde en el último elemento */
+}
+
+.resultado p {
+    margin: 0; /* Eliminar márgenes del párrafo */
+}
+#buscar {
+    padding: 10px 15px; /* Aumenta el relleno */
+    border: 1px solid #ccc; /* Borde suave */
+    border-radius: 5px; /* Esquinas redondeadas */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Sombra */
+    width: 80%; /* Ajustar al 80% del contenedor */
+    max-width: 400px; /* Máximo ancho para el campo */
+    transition: border-color 0.3s; /* Transición suave para el borde */
+}
+
+#buscar:focus {
+    border-color: #007bff; /* Cambia el color del borde al enfocar */
+    outline: none; /* Sin borde de enfoque por defecto */
+}
+
+</style>
 
 
+<!--ALERTA DE BOTON DE CANCELAR--->
+<script>
+function cancelarProducto(idproducto, cantidadMaxima) {
+    Swal.fire({
+        title: 'Cancelar Productos',
+        text: `¿Cuántos productos deseas cancelar? (Máximo: ${cantidadMaxima})`,
+        input: 'number',
+        inputAttributes: {
+            min: 1,
+            max: cantidadMaxima,  // Limitar el máximo al número de productos disponibles
+            step: 1
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Cancelar Productos',
+        cancelButtonText: 'Volver',
+        inputValidator: (value) => {
+            if (!value || isNaN(value) || value <= 0) {
+                return 'Por favor, ingresa un número válido.';
+            } else if (value > cantidadMaxima) {
+                return `No puedes cancelar más de ${cantidadMaxima} productos.`;
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            let cantidad = result.value;
+            if (cantidad !== null && cantidad > 0 && cantidad <= cantidadMaxima) {
+                window.location.href = "pagos.php?cancelar_id=" + idproducto + "&cantidad=" + cantidad;
+            }
+        }
+    });
+}
+</script>
+
+<style>
 /* Botón para realizar la venta */
 .btn-realizar-venta {
     background-color: #176098; /* Color de fondo del botón */

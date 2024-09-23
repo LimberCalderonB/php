@@ -14,7 +14,7 @@
     }
 
     .mdl-data-table th, .mdl-data-table td {/*anchi de la tabla */
-        padding: 4px 40px;
+        padding: 4px 30px;
     }
 
     .mdl-data-table th {

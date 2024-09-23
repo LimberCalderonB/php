@@ -64,8 +64,16 @@ class ModeloCliente {
         $row = $resultado->fetch_assoc();
         return $row['count'] > 0;
     }
-    
+    // Función para verificar si el celular ya existe
+public function existeCelular($celular) {
+    $celular = $this->conexion->GetConnection()->real_escape_string($celular);
+    $sql = "SELECT COUNT(*) as count FROM cliente WHERE celular_cliente = '$celular'";
+    $resultado = $this->conexion->ExecuteQuery($sql);
+    $row = $resultado->fetch_assoc();
+    return $row['count'] > 0;
+}
 
+    
     // Función para obtener los datos de un cliente por su ID
     public function obtenerClientePorId($idCliente) {
         $idCliente = $this->conexion->GetConnection()->real_escape_string($idCliente);

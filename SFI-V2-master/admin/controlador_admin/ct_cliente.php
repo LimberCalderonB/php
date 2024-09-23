@@ -7,7 +7,7 @@ if (isset($_POST["nombre_cliente"])) {
     $nombre = trim($_POST["nombre_cliente"]);
     $apellidoP = trim($_POST["apellido_cliente"]);
     $apellidoM = trim($_POST["apellido2_cliente"]);
-    $celular = trim($_POST["celular_cliente"]); // Este es el campo a revisar
+    $celular = trim($_POST["celular_cliente"]); 
     $usuario = trim($_POST["usuario_cliente"]);
     $pass = trim($_POST["pass_cliente"]);
 
@@ -55,11 +55,15 @@ if (isset($_POST["nombre_cliente"])) {
         exit();
     } else {
         $modeloCliente = new ModeloCliente();
-
+    //VALIDAR LA EXISTENCIA DE NOMBRE DE USUARIO
         if ($modeloCliente->existeUsuario($usuario)) {
             $_SESSION['errores_cliente']['usuario_cliente'] = "El nombre de usuario ya está en uso.";
         }
 
+        //VALIDAR LA EXISTENCIA DEL NÚMERO DE CELULAR
+if ($modeloCliente->existeCelular($celular)) {
+    $_SESSION['errores_cliente']['celular_cliente'] = "El número de celular ya está en uso.";
+}
         // Si hay errores, guardar los errores y los datos en la sesión y redirigir
         if (!empty($_SESSION['errores_cliente'])) {
             $_SESSION['datos_cliente'] = $_POST;
