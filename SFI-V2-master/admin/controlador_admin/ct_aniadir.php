@@ -30,36 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Obtener nombre de la categoría
     $nombreCategoria = obtenerNombreCategoriaDesdeBD($categoria_idcategoria);
-    $directorioBase = '../vista_Admin/img/categorias/';
-    $directorioImagenes = $directorioBase . $nombreCategoria . '/';
 
-    // Crear las copias del producto
+    // No se necesitan duplicar las imágenes, solo se referencian las existentes
     for ($i = 0; $i < $cantidad; $i++) {
-        // Generar nombres únicos para las imágenes en cada iteración
-        $img1_final = $img1 ? md5(uniqid($img1 . $i, true)) . '.webp' : null;
-        $img2_final = $img2 ? md5(uniqid($img2 . $i, true)) . '.webp' : null;
-        $img3_final = $img3 ? md5(uniqid($img3 . $i, true)) . '.webp' : null;
+        // Se mantienen las mismas imágenes sin generar nombres únicos
+        $img1_final = $img1;
+        $img2_final = $img2;
+        $img3_final = $img3;
 
-        // Rutas de las imágenes
-        $ruta_original_img1 = $directorioImagenes . $img1;
-        $ruta_destino_img1 = $directorioImagenes . $img1_final;
-        $ruta_original_img2 = $directorioImagenes . $img2;
-        $ruta_destino_img2 = $directorioImagenes . $img2_final;
-        $ruta_original_img3 = $directorioImagenes . $img3;
-        $ruta_destino_img3 = $directorioImagenes . $img3_final;
-
-        // Verificar la existencia de las imágenes y duplicarlas
-        if ($img1 && file_exists($ruta_original_img1)) {
-            copy($ruta_original_img1, $ruta_destino_img1);
-        }
-        if ($img2 && file_exists($ruta_original_img2)) {
-            copy($ruta_original_img2, $ruta_destino_img2);
-        }
-        if ($img3 && file_exists($ruta_original_img3)) {
-            copy($ruta_original_img3, $ruta_destino_img3);
-        }
-
-        // Insertar el nuevo producto
+        // Insertar el nuevo producto con las imágenes referenciadas
         $precioConDescuento = $precio - ($precio * ($descuento / 100));
         $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1_final, $img2_final, $img3_final, 1);
 

@@ -50,38 +50,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $rutasImagenes = [];
 
     foreach ($imagenes as $imagen) {
-        $imgPath = isset($_POST['original_' . $imagen]) ? $directorioImagenes . $_POST['original_' . $imagen] : null;
-        if ($_POST['remove_' . $imagen] == '1') {
-            if ($imgPath && is_file($imgPath)) {
-                unlink($imgPath);
+        if (isset($_FILES[$imagen]) && $_FILES[$imagen]['error'] == UPLOAD_ERR_OK) {
+            $fileTmpPath = $_FILES[$imagen]['tmp_name'];
+            $fileName = $_FILES[$imagen]['name'];
+            $fileNameCmps = explode(".", $fileName);
+            $fileExtension = strtolower(end($fileNameCmps));
+            $newFileName = md5(time() . $fileName . rand(0, 1000)) . '.webp';
+            $dest_path = $directorioImagenes . $newFileName;
+
+            try {
+                WebPConvert::convert($fileTmpPath, $dest_path, ['quality' => 30]);
+                $rutasImagenes[$imagen] = $newFileName;
+            } catch (Exception $e) {
+                $_SESSION['registro'] = 'Error al convertir la imagen a WebP: ' . $e->getMessage();
+                header("Location: ../vista_Admin/productos.php?mensaje=Error al convertir la imagen a WebP");
+                exit;
             }
-            $rutasImagenes[$imagen] = null;
         } else {
-            if (isset($_FILES[$imagen]) && $_FILES[$imagen]['error'] == UPLOAD_ERR_OK) {
-                if ($imgPath && is_file($imgPath)) {
-                    unlink($imgPath);
-                }
-
-                $fileTmpPath = $_FILES[$imagen]['tmp_name'];
-                $fileName = $_FILES[$imagen]['name'];
-                $fileNameCmps = explode(".", $fileName);
-                $fileExtension = strtolower(end($fileNameCmps));
-                $newFileName = md5(time() . $fileName . rand(0, 1000)) . '.webp';
-                $dest_path = $directorioImagenes . $newFileName;
-
-                try {
-                    WebPConvert::convert($fileTmpPath, $dest_path, [
-                        'quality' => 30
-                    ]);
-                    $rutasImagenes[$imagen] = $newFileName;
-                } catch (Exception $e) {
-                    $_SESSION['registro'] = 'Error al convertir la imagen a WebP: ' . $e->getMessage();
-                    header("Location: ../vista_Admin/productos.php?mensaje=Error al convertir la imagen a WebP");
-                    exit;
-                }
-            } else {
-                $rutasImagenes[$imagen] = $_POST['original_' . $imagen] ?? null;
-            }
+            $rutasImagenes[$imagen] = $_POST['original_' . $imagen] ?? null;
         }
     }
 
@@ -89,51 +75,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $img2 = $rutasImagenes['img2'] ?? null;
     $img3 = $rutasImagenes['img3'] ?? null;
 
-    if ($categoriaOriginal && $categoriaOriginal != $categoria_idcategoria) {
-        $nombreCategoriaOriginal = obtenerNombreCategoriaDesdeBD($categoriaOriginal);
-        $directorioOriginal = $directorioBase . $nombreCategoriaOriginal . '/';
-
-        foreach ($imagenes as $imagen) {
-            if (isset($_POST['original_' . $imagen]) && $_POST['original_' . $imagen]) {
-                $rutaOriginal = $directorioOriginal . $_POST['original_' . $imagen];
-                $rutaNueva = $directorioImagenes . $_POST['original_' . $imagen];
-                if (is_file($rutaOriginal)) {
-                    rename($rutaOriginal, $rutaNueva);
-                }
-            }
-        }
-    }
-
+    // Actualización o creación del producto
     if ($idproducto) {
         $resultado = $modelo->actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3);
     } else {
-        for ($i = 0; $i < $cantidad; $i++) {
-            $img1_final = $img1;
-            $img2_final = $img2;
-            $img3_final = $img3;
-    
-            // Solo generar nuevas copias de las imágenes para productos adicionales (i > 0)
-            if ($i > 0) {
-                $img1_final = $img1 ? md5(time() . $img1 . $i) . '.webp' : null;
-                $img2_final = $img2 ? md5(time() . $img2 . $i) . '.webp' : null;
-                $img3_final = $img3 ? md5(time() . $img3 . $i) . '.webp' : null;
-    
-                // Verifica si la imagen original existe antes de copiar
-                if ($img1 && file_exists($directorioImagenes . $img1)) {
-                    copy($directorioImagenes . $img1, $directorioImagenes . $img1_final);
-                }
-                if ($img2 && file_exists($directorioImagenes . $img2)) {
-                    copy($directorioImagenes . $img2, $directorioImagenes . $img2_final);
-                }
-                if ($img3 && file_exists($directorioImagenes . $img3)) {
-                    copy($directorioImagenes . $img3, $directorioImagenes . $img3_final);
-                }
-            }
-    
-            // Agregar el producto con las imágenes correspondientes
-            $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1_final, $img2_final, $img3_final, 1);
-        }
+        // Crear una sola vez el producto con la imagen compartida
+        $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3, $cantidad);
     }
+
     if ($resultado) {
         $_SESSION['registro'] = 'Producto guardado correctamente.';
         header("Location: ../vista_Admin/productos.php?mensaje=Producto guardado exitosamente");
@@ -152,29 +101,8 @@ function obtenerNombreCategoriaDesdeBD($idCategoria) {
     $stmt->execute();
     $stmt->bind_result($nombreCategoria);
     $stmt->fetch();
-
     $stmt->close();
 
     return $nombreCategoria;
-}
-
-function obtenerProductoPorId($idProducto) {
-    global $conn;
-
-    $sql = "SELECT p.*, c.nombre AS categoria
-            FROM producto p
-            JOIN almacen a ON p.idproducto = a.producto_idproducto
-            JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
-            WHERE p.idproducto = ?";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $idProducto);
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-    $producto = $resultado->fetch_assoc();
-
-    $stmt->close();
-
-    return $producto;
 }
 ?>
