@@ -13,8 +13,8 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     $conn->begin_transaction();
 
     try {
-        // Obtener los detalles del producto que se quiere eliminar
-        $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, a.categoria_idcategoria 
+        // Obtener los detalles del producto que se quiere eliminar, primero revisando los productos con estado 'disponible'
+        $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, a.categoria_idcategoria, a.estado 
                                 FROM producto p
                                 INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
                                 WHERE p.idproducto = ?";
@@ -42,70 +42,73 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             throw new Exception("No se encontró el nombre de la categoría.");
         }
 
-        // Buscar productos que coincidan con los detalles en la tabla `producto` y `almacen`
-        $sql_match_productos = "SELECT p.idproducto 
-                                FROM producto p
-                                INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
-                                WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? AND a.categoria_idcategoria = ? 
-                                ORDER BY p.idproducto ASC
-                                LIMIT ?";
-        $stmt_match_productos = $conn->prepare($sql_match_productos);
-        $stmt_match_productos->bind_param("sddssi", 
-                                          $producto['nombre'], 
-                                          $producto['precio'], 
-                                          $producto['descuento'], 
-                                          $producto['talla'], 
-                                          $producto['categoria_idcategoria'], 
-                                          $cantidad);
-        $stmt_match_productos->execute();
-        $resultado_match = $stmt_match_productos->get_result();
+        // Intentar eliminar productos con estado 'disponible'
+        $sql_match_productos_disponibles = "SELECT p.idproducto 
+                                            FROM producto p
+                                            INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
+                                            WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? 
+                                            AND a.categoria_idcategoria = ? AND a.estado = 'disponible'
+                                            ORDER BY p.idproducto ASC
+                                            LIMIT ?";
+        $stmt_match_productos_disponibles = $conn->prepare($sql_match_productos_disponibles);
+        $stmt_match_productos_disponibles->bind_param("sddssi", 
+                                                      $producto['nombre'], 
+                                                      $producto['precio'], 
+                                                      $producto['descuento'], 
+                                                      $producto['talla'], 
+                                                      $producto['categoria_idcategoria'], 
+                                                      $cantidad);
+        $stmt_match_productos_disponibles->execute();
+        $resultado_match_disponibles = $stmt_match_productos_disponibles->get_result();
 
-        if ($resultado_match->num_rows < $cantidad) {
-            throw new Exception("No se encontraron suficientes productos para eliminar.");
-        }
+        // Si hay suficientes productos 'disponibles' para eliminar
+        if ($resultado_match_disponibles->num_rows == $cantidad) {
+            $idsAEliminar = [];
 
-        // Array para almacenar los IDs de los productos a eliminar
-        $idsAEliminar = [];
-
-        while ($fila = $resultado_match->fetch_assoc()) {
-            $idsAEliminar[] = $fila['idproducto'];
-        }
-
-        // Eliminar cada producto encontrado
-        foreach ($idsAEliminar as $id) {
-            // Eliminar el producto de la tabla `almacen`
-            $sql_delete_almacen = "DELETE FROM almacen WHERE producto_idproducto = ? AND categoria_idcategoria = ?";
-            $stmt_delete_almacen = $conn->prepare($sql_delete_almacen);
-            $stmt_delete_almacen->bind_param("ii", $id, $producto['categoria_idcategoria']);
-            $stmt_delete_almacen->execute();
-            
-
-            // Eliminar imágenes asociadas a este producto
-            $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
-            $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
-            $stmt_select_imagenes->bind_param("i", $id);
-            $stmt_select_imagenes->execute();
-            $resultado_imagenes = $stmt_select_imagenes->get_result();
-
-            if ($resultado_imagenes->num_rows > 0) {
-                $imagenes = $resultado_imagenes->fetch_assoc();
-                $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
-
-                foreach ($imagenes as $img) {
-                    if (!empty($img)) {
-                        $rutaCompleta = $directorioImagenes . $img;
-                        if (file_exists($rutaCompleta)) {
-                            unlink($rutaCompleta);
-                        }
-                    }
-                }
+            while ($fila = $resultado_match_disponibles->fetch_assoc()) {
+                $idsAEliminar[] = $fila['idproducto'];
             }
 
-            // Eliminar el producto de la tabla `producto`
-            $sql_delete_producto = "DELETE FROM producto WHERE idproducto = ?";
-            $stmt_delete_producto = $conn->prepare($sql_delete_producto);
-            $stmt_delete_producto->bind_param("i", $id);
-            $stmt_delete_producto->execute();
+            // Eliminar los productos con estado 'disponible'
+            foreach ($idsAEliminar as $id) {
+                eliminarProducto($id, $producto['categoria_idcategoria'], $nombreCategoria, $conn);
+            }
+        } else {
+            // Si no hay suficientes productos con estado 'disponible', intentar actualizar productos 'agotado' a 'vendido'
+            $sql_match_productos_agotados = "SELECT p.idproducto, a.cantidad 
+                                             FROM producto p
+                                             INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
+                                             WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? 
+                                             AND a.categoria_idcategoria = ? AND a.estado = 'agotado'
+                                             ORDER BY p.idproducto ASC";
+            $stmt_match_productos_agotados = $conn->prepare($sql_match_productos_agotados);
+            $stmt_match_productos_agotados->bind_param("sddsi", 
+                                                       $producto['nombre'], 
+                                                       $producto['precio'], 
+                                                       $producto['descuento'], 
+                                                       $producto['talla'], 
+                                                       $producto['categoria_idcategoria']);
+            $stmt_match_productos_agotados->execute();
+            $resultado_match_agotados = $stmt_match_productos_agotados->get_result();
+
+            if ($resultado_match_agotados->num_rows > 0) {
+                $idsAActualizar = [];
+
+                // Cambiar el estado de los productos 'agotado' a 'vendido' solo si su cantidad es 0
+                while ($fila = $resultado_match_agotados->fetch_assoc()) {
+                    if ($fila['cantidad'] == 0) {
+                        $idsAActualizar[] = $fila['idproducto'];
+                    } else {
+                        throw new Exception("Error: No se puede cambiar el estado de un producto 'agotado' si su cantidad no es 0.");
+                    }
+                }
+
+                foreach ($idsAActualizar as $id) {
+                    actualizarEstadoProducto($id, 'vendido', $conn);
+                }
+            } else {
+                throw new Exception("No se encontraron productos disponibles o agotados para eliminar o actualizar.");
+            }
         }
 
         // Confirmar la transacción
@@ -114,7 +117,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     } catch (Exception $e) {
         // Revertir la transacción en caso de error
         $conn->rollback();
-        echo "Error al eliminar el producto: " . $e->getMessage();
+        echo "Error al eliminar o actualizar el producto: " . $e->getMessage();
     }
 
     // Cerrar la conexión
@@ -122,4 +125,49 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
 } else {
     echo "ID de producto o cantidad no proporcionados";
 }
+
+// Función para eliminar el producto
+function eliminarProducto($idproducto, $categoria_idcategoria, $nombreCategoria, $conn) {
+    // Eliminar el producto de la tabla `almacen`
+    $sql_delete_almacen = "DELETE FROM almacen WHERE producto_idproducto = ? AND categoria_idcategoria = ?";
+    $stmt_delete_almacen = $conn->prepare($sql_delete_almacen);
+    $stmt_delete_almacen->bind_param("ii", $idproducto, $categoria_idcategoria);
+    $stmt_delete_almacen->execute();
+    
+    // Eliminar imágenes asociadas al producto
+    $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
+    $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
+    $stmt_select_imagenes->bind_param("i", $idproducto);
+    $stmt_select_imagenes->execute();
+    $resultado_imagenes = $stmt_select_imagenes->get_result();
+
+    if ($resultado_imagenes->num_rows > 0) {
+        $imagenes = $resultado_imagenes->fetch_assoc();
+        $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
+
+        foreach ($imagenes as $img) {
+            if (!empty($img)) {
+                $rutaCompleta = $directorioImagenes . $img;
+                if (file_exists($rutaCompleta)) {
+                    unlink($rutaCompleta);
+                }
+            }
+        }
+    }
+
+    // Eliminar el producto de la tabla `producto`
+    $sql_delete_producto = "DELETE FROM producto WHERE idproducto = ?";
+    $stmt_delete_producto = $conn->prepare($sql_delete_producto);
+    $stmt_delete_producto->bind_param("i", $idproducto);
+    $stmt_delete_producto->execute();
+}
+
+// Función para actualizar el estado del producto
+function actualizarEstadoProducto($idproducto, $nuevoEstado, $conn) {
+    $sql_update_estado = "UPDATE almacen SET estado = ? WHERE producto_idproducto = ?";
+    $stmt_update_estado = $conn->prepare($sql_update_estado);
+    $stmt_update_estado->bind_param("si", $nuevoEstado, $idproducto);
+    $stmt_update_estado->execute();
+}
+
 ?>

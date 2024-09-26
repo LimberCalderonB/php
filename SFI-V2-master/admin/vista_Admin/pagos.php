@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             }
 
             $usuario_idusuario = $_SESSION['user_id'];
-            $pedido_idpedido = null; // Inicializamos el ID del pedido
+            $pedido_idpedido = null;
 
             // Verificar si hay un cliente seleccionado
             if (!empty($_POST['usuario_cliente_id'])) {
@@ -126,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                     throw new Exception("El cliente no existe.");
                 }
             }
-            
 
             date_default_timezone_set('America/La_Paz');
             $fecha_venta = date("Y-m-d H:i:s");
@@ -139,27 +138,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             $venta_id = $stmt->insert_id;
 
             foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                // Insertar los productos vendidos en la tabla venta_producto
                 $sql = "INSERT INTO venta_producto (venta_idventa, producto_idproducto) VALUES (?, ?)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("ii", $venta_id, $idproducto);
                 $stmt->execute();
-
+            
+                // Reducir la cantidad en el almacén
                 $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
-                if (!$stmt->execute()) {
-                    echo "Error en la actualización de cantidad: " . $stmt->error;
-                }
-
-                $sql = "DELETE FROM almacen WHERE cantidad <= 0 AND producto_idproducto = ?";
+                $stmt->execute();
+            
+                // Actualizar el estado del producto a 'agotado'
+                $sql = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
                 $stmt->execute();
             }
-
+            
             $conn->commit();
             $_SESSION['productos_seleccionados'] = [];
             $total = 0;
+
+            // Mostrar mensaje de éxito
             echo "<script>
                     const Toast = Swal.mixin({
                       toast: true,
@@ -182,10 +184,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             $conn->rollback();
             echo "Error al realizar la venta: " . $e->getMessage();
         }
-
         $conn->close();
     }
 }
+
 
 ?>
 
@@ -284,43 +286,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 include_once "pie.php"; 
 include_once "validaciones/val_pagos.php";
 ?>
-
-<!--SCRIPT DEL BUSCADOR -->
-<script>
-document.getElementById('buscar').addEventListener('input', function() {
-    let query = this.value;
-    if (query.length > 0) {
-        fetch(`buscador/buscar_cliente.php?query=${encodeURIComponent(query)}`)
-            .then(response => response.json())
-            .then(data => {
-                let resultadosDiv = document.getElementById('resultados');
-                resultadosDiv.innerHTML = ''; // Limpiar resultados previos
-                data.forEach(cliente => {
-                    resultadosDiv.innerHTML += `<div class="resultado" data-id="${cliente.idusuario_cliente}" data-nombre="${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})"><p>${cliente.idusuario_cliente} ${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})</p></div>`;
-                });
-                resultadosDiv.style.display = data.length > 0 ? 'block' : 'none'; // Mostrar u ocultar los resultados
-            });
-    } else {
-        document.getElementById('resultados').innerHTML = ''; // Limpiar resultados si la búsqueda está vacía
-        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
-    }
-});
-
-// Agregar evento de clic para seleccionar un resultado
-document.addEventListener('click', function(event) {
-    if (event.target.closest('.resultado')) {
-        const selectedResult = event.target.closest('.resultado');
-        const clienteId = selectedResult.getAttribute('data-id'); // Obtener el ID del cliente
-        console.log('ID del cliente seleccionado:', clienteId); // Verificar ID
-        document.getElementById('buscar').value = selectedResult.getAttribute('data-nombre'); // Completar el campo de búsqueda
-        document.getElementById('usuario_cliente_id').value = clienteId; // Guardar el ID del cliente
-        document.getElementById('resultados').innerHTML = ''; // Limpiar los resultados
-        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
-    }
-});
-
-</script>
-
-
-
-

@@ -1,4 +1,38 @@
+<!--SCRIPT DEL BUSCADOR -->
+<script>
+document.getElementById('buscar').addEventListener('input', function() {
+    let query = this.value;
+    if (query.length > 0) {
+        fetch(`buscador/buscar_cliente.php?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                let resultadosDiv = document.getElementById('resultados');
+                resultadosDiv.innerHTML = ''; // Limpiar resultados previos
+                data.forEach(cliente => {
+                    resultadosDiv.innerHTML += `<div class="resultado" data-id="${cliente.idusuario_cliente}" data-nombre="${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})"><p>${cliente.idusuario_cliente} ${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})</p></div>`;
+                });
+                resultadosDiv.style.display = data.length > 0 ? 'block' : 'none'; // Mostrar u ocultar los resultados
+            });
+    } else {
+        document.getElementById('resultados').innerHTML = ''; // Limpiar resultados si la búsqueda está vacía
+        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
+    }
+});
 
+// Agregar evento de clic para seleccionar un resultado
+document.addEventListener('click', function(event) {
+    if (event.target.closest('.resultado')) {
+        const selectedResult = event.target.closest('.resultado');
+        const clienteId = selectedResult.getAttribute('data-id'); // Obtener el ID del cliente
+        console.log('ID del cliente seleccionado:', clienteId); // Verificar ID
+        document.getElementById('buscar').value = selectedResult.getAttribute('data-nombre'); // Completar el campo de búsqueda
+        document.getElementById('usuario_cliente_id').value = clienteId; // Guardar el ID del cliente
+        document.getElementById('resultados').innerHTML = ''; // Limpiar los resultados
+        document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
+    }
+});
+
+</script>
 <!--ESTILOS DE CAMPO DE BUSQUEDA-->
 <style>
 #resultados {

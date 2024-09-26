@@ -2,7 +2,7 @@
 require '../../../vendor/autoload.php';
 use WebPConvert\WebPConvert;
 include_once "../../conexion.php";
-include_once '../modelo_admin/mod_producto.php';
+include_once '../modelo_admin/mod_aniadir.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $idproducto = $_POST['idproducto'] ?? '';
@@ -50,41 +50,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Verificar la existencia de las imágenes y duplicarlas
         if ($img1 && file_exists($ruta_original_img1)) {
-            if (!copy($ruta_original_img1, $ruta_destino_img1)) {
-                echo "Error al copiar la imagen $img1 a $ruta_destino_img1.<br>";
-            } else {
-                echo "Imagen $img1 copiada a $img1_final.<br>";
-            }
+            copy($ruta_original_img1, $ruta_destino_img1);
         }
-
         if ($img2 && file_exists($ruta_original_img2)) {
-            if (!copy($ruta_original_img2, $ruta_destino_img2)) {
-                echo "Error al copiar la imagen $img2 a $ruta_destino_img2.<br>";
-            } else {
-                echo "Imagen $img2 copiada a $img2_final.<br>";
-            }
+            copy($ruta_original_img2, $ruta_destino_img2);
         }
-
         if ($img3 && file_exists($ruta_original_img3)) {
-            if (!copy($ruta_original_img3, $ruta_destino_img3)) {
-                echo "Error al copiar la imagen $img3 a $ruta_destino_img3.<br>";
-            } else {
-                echo "Imagen $img3 copiada a $img3_final.<br>";
-            }
+            copy($ruta_original_img3, $ruta_destino_img3);
         }
 
         // Insertar el nuevo producto
         $precioConDescuento = $precio - ($precio * ($descuento / 100));
         $resultado = $modelo->agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1_final, $img2_final, $img3_final, 1);
 
-        if (!$resultado) {
-            echo "Error al añadir el producto.<br>";
+        if (!$resultado['success']) {
+            echo "Error al añadir el producto: " . $resultado['error'] . "<br>";
         } else {
             echo "Producto añadido exitosamente.<br>";
         }
     }
 
-    echo "Productos añadidos exitosamente.";
+    // Cambiar el estado de los productos agotados a vendido si se añadieron productos iguales
+    $resultadoCambioEstado = $modelo->cambiarEstadoAgotadoAVendido($nombre, $precio, $talla, $descuento, $categoria_idcategoria);
+    if (!$resultadoCambioEstado['success']) {
+        echo "Error al cambiar el estado de productos agotados a vendidos: " . $resultadoCambioEstado['error'];
+    } else {
+        echo "Productos agotados cambiados a vendidos.<br>";
+    }
+
+    $conn->close();
 }
 
 function obtenerNombreCategoriaDesdeBD($idCategoria) {

@@ -92,7 +92,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             }
 
             // Actualizar el estado de los productos en la base de datos
-            $sql_update_estado = "UPDATE almacen SET estado = 'casi_vendido' WHERE producto_idproducto = ?";
+            $sql_update_estado = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
             $stmt_update_estado = $conn->prepare($sql_update_estado);
             foreach ($productos_actualizar as $idproducto_actualizar) {
                 $stmt_update_estado->bind_param("i", $idproducto_actualizar);

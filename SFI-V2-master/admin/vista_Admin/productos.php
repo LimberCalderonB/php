@@ -149,8 +149,8 @@
             </div>
         </div>
         <?php
-
-$sql = "WITH Imagenes AS (
+$sql = "
+WITH Imagenes AS (
     SELECT 
         producto.idproducto AS idproducto_img,
         MAX(COALESCE(producto.img1, '')) AS img1,
@@ -160,6 +160,22 @@ $sql = "WITH Imagenes AS (
         producto
     GROUP BY 
         producto.idproducto
+),
+CantidadDisponibles AS (
+    SELECT 
+        producto.nombre,
+        producto.precio,
+        producto.talla,
+        producto.descuento,
+        COUNT(*) AS cantidad_disponible
+    FROM 
+        producto
+    JOIN 
+        almacen ON producto.idproducto = almacen.producto_idproducto 
+    WHERE 
+        almacen.estado = 'disponible'
+    GROUP BY 
+        producto.nombre, producto.precio, producto.talla, producto.descuento
 )
 SELECT 
     producto.idproducto, 
@@ -181,10 +197,30 @@ JOIN
     categoria ON almacen.categoria_idcategoria = categoria.idcategoria
 JOIN 
     Imagenes ON producto.idproducto = Imagenes.idproducto_img
+LEFT JOIN 
+    CantidadDisponibles ON 
+        producto.nombre = CantidadDisponibles.nombre AND 
+        producto.precio = CantidadDisponibles.precio AND 
+        producto.talla = CantidadDisponibles.talla AND 
+        producto.descuento = CantidadDisponibles.descuento
 WHERE
-    almacen.estado = 'disponible'  -- Filtrar por estado 'disponible'
+    almacen.estado IN ('disponible', 'agotado')
 GROUP BY 
-    producto.nombre, producto.precio, producto.talla, producto.descuento, categoria.nombre";
+
+    producto.nombre, 
+    producto.precio, 
+    producto.talla, 
+    producto.descuento, 
+    categoria.nombre, 
+
+    almacen.estado
+HAVING 
+    (SELECT COUNT(*) FROM CantidadDisponibles WHERE 
+        nombre = producto.nombre AND 
+        precio = producto.precio AND 
+        talla = producto.talla AND 
+        descuento = producto.descuento) = 0 OR almacen.estado = 'disponible'
+";
 
 $result = $conn->query($sql);
 $productos = [];
@@ -195,7 +231,6 @@ if ($result->num_rows > 0) {
 }
 $conn->close();
 ?>
-
 
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">
@@ -209,7 +244,6 @@ $conn->close();
                     <label class="mdl-textfield__label" for="searchProduct"></label>
                 </div>
             </div>
-
             <!-- Menú de navegación por categorías -->
             <div class="category-navigation">
                 <?php 
@@ -228,7 +262,6 @@ $conn->close();
                     <?php endforeach; ?>
                 </ul>
             </div>
-
             <div id="product-results" class="mdl-grid full-width text-center" style="display: flex; flex-wrap: wrap; justify-content: center; padding: 30px 0;">
 
     <?php if (!empty($productos)): ?>
@@ -265,14 +298,28 @@ $conn->close();
                             <small>CAT: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
                             <small class="separator">|</small>
                             <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+
                         </div>
                         <div class="btn-container">
-                            <small>Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?></small>
+                            <small>
+                                <?php if ($producto['estado'] == 'agotado' || $producto['cantidad'] <= 0): ?>
+                                    Cantidad: 0 (Agotado)
+                                <?php else: ?>
+                                    Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                <?php endif; ?>
+                            </small>
                             <div class="btn-right">
-                                <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
-                                    <span>Añadir</span>
-                                    <i class="fi fi-sr-plus"></i>
-                                </button>
+                                <?php if ($producto['estado'] != 'agotado'): ?>
+                                    <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
+                                        <span>Añadir</span>
+                                        <i class="fi fi-sr-plus"></i>
+                                    </button>
+                                <?php else: ?>
+                                    <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
+                                        <span>Agotado</span>
+                                        <i class="fi fi-sr-plus"></i>
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -281,7 +328,9 @@ $conn->close();
                         <div class="product-info">
                             <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
                             <small class="separator">|</small>
-                            <small>id: <?php echo htmlspecialchars($producto['idproducto']); ?></small>
+                            <small> <?php echo htmlspecialchars($producto['estado']); ?></small>
+                            <small class="separator">|</small>
+                            <small> <?php echo htmlspecialchars($producto['idproducto']); ?></small>
                         </div>
                         <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
                             <?php if ($producto['descuento'] > 0): ?>
@@ -321,7 +370,6 @@ $conn->close();
         <p>No se encontraron productos.</p>
     <?php endif; ?>
 </div>
-
         </div>
     </div>
 </div>
