@@ -13,7 +13,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
     $conn->begin_transaction();
 
     try {
-        // Obtener los detalles del producto
+        // Obtener los detalles del producto que se quiere eliminar, primero revisando los productos con estado 'disponible'
         $sql_select_producto = "SELECT p.nombre, p.precio, p.descuento, p.talla, a.categoria_idcategoria, a.estado 
                                 FROM producto p
                                 INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
@@ -74,7 +74,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             }
         } else {
             // Si no hay suficientes productos con estado 'disponible', intentar actualizar productos 'agotado' a 'vendido'
-            $sql_match_productos_agotados = "SELECT p.idproducto 
+            $sql_match_productos_agotados = "SELECT p.idproducto, a.cantidad 
                                              FROM producto p
                                              INNER JOIN almacen a ON p.idproducto = a.producto_idproducto
                                              WHERE p.nombre = ? AND p.precio = ? AND p.descuento = ? AND p.talla = ? 
@@ -93,12 +93,17 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             if ($resultado_match_agotados->num_rows > 0) {
                 $idsAActualizar = [];
 
+                // Cambiar el estado de los productos 'agotado' a 'vendido' solo si su cantidad es 0
                 while ($fila = $resultado_match_agotados->fetch_assoc()) {
-                    $idsAActualizar[] = $fila['idproducto'];
+                    if ($fila['cantidad'] == 0) {
+                        $idsAActualizar[] = $fila['idproducto'];
+                    } else {
+                        throw new Exception("Error: No se puede cambiar el estado de un producto 'agotado' si su cantidad no es 0.");
+                    }
                 }
 
                 foreach ($idsAActualizar as $id) {
-                    actualizarEstadoProducto($id, 'vendido', $producto['categoria_idcategoria'], $nombreCategoria, $conn);
+                    actualizarEstadoProducto($id, 'vendido', $conn, $nombreCategoria);
                 }
             } else {
                 throw new Exception("No se encontraron productos disponibles o agotados para eliminar o actualizar.");
@@ -109,6 +114,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
         $conn->commit();
         echo "success";
     } catch (Exception $e) {
+        // Revertir la transacción en caso de error
         $conn->rollback();
         echo "Error al eliminar o actualizar el producto: " . $e->getMessage();
     }
@@ -121,56 +127,61 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
 
 // Función para eliminar el producto
 function eliminarProducto($idproducto, $categoria_idcategoria, $nombreCategoria, $conn) {
+    // Eliminar el producto de la tabla `almacen`
     $sql_delete_almacen = "DELETE FROM almacen WHERE producto_idproducto = ? AND categoria_idcategoria = ?";
     $stmt_delete_almacen = $conn->prepare($sql_delete_almacen);
     $stmt_delete_almacen->bind_param("ii", $idproducto, $categoria_idcategoria);
     $stmt_delete_almacen->execute();
-
+    
+    // Eliminar el producto de la tabla `producto`
     $sql_delete_producto = "DELETE FROM producto WHERE idproducto = ?";
     $stmt_delete_producto = $conn->prepare($sql_delete_producto);
     $stmt_delete_producto->bind_param("i", $idproducto);
     $stmt_delete_producto->execute();
 }
 
-// Función para actualizar el estado del producto y eliminar la imagen si pasa de 'agotado' a 'vendido'
-function actualizarEstadoProducto($idproducto, $nuevoEstado, $categoria_idcategoria, $nombreCategoria, $conn) {
+// Función para actualizar el estado del producto y eliminar imagen solo si es 'agotado' -> 'vendido'
+function actualizarEstadoProducto($idproducto, $nuevoEstado, $conn, $nombreCategoria) {
     // Verificar si el estado actual es 'agotado'
-    $sql_verificar_estado = "SELECT estado FROM almacen WHERE producto_idproducto = ? AND estado = 'agotado'";
+    $sql_verificar_estado = "SELECT estado FROM almacen WHERE producto_idproducto = ?";
     $stmt_verificar_estado = $conn->prepare($sql_verificar_estado);
     $stmt_verificar_estado->bind_param("i", $idproducto);
     $stmt_verificar_estado->execute();
-    $resultado_verificar_estado = $stmt_verificar_estado->get_result();
+    $resultado_estado = $stmt_verificar_estado->get_result();
 
-    if ($resultado_verificar_estado->num_rows > 0) {
-        // Actualizar el estado del producto a 'vendido'
-        $sql_update_estado = "UPDATE almacen SET estado = ? WHERE producto_idproducto = ?";
-        $stmt_update_estado = $conn->prepare($sql_update_estado);
-        $stmt_update_estado->bind_param("si", $nuevoEstado, $idproducto);
-        $stmt_update_estado->execute();
+    if ($resultado_estado->num_rows > 0) {
+        $estado_actual = $resultado_estado->fetch_assoc()['estado'];
 
-        // Eliminar imágenes asociadas solo cuando el estado cambia de 'agotado' a 'vendido'
-        $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
-        $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
-        $stmt_select_imagenes->bind_param("i", $idproducto);
-        $stmt_select_imagenes->execute();
-        $resultado_imagenes = $stmt_select_imagenes->get_result();
+        // Si el estado actual es 'agotado' y el nuevo estado es 'vendido', eliminar la imagen
+        if ($estado_actual === 'agotado' && $nuevoEstado === 'vendido') {
+            // Eliminar imágenes asociadas al producto
+            $sql_select_imagenes = "SELECT img1, img2, img3 FROM producto WHERE idproducto = ?";
+            $stmt_select_imagenes = $conn->prepare($sql_select_imagenes);
+            $stmt_select_imagenes->bind_param("i", $idproducto);
+            $stmt_select_imagenes->execute();
+            $resultado_imagenes = $stmt_select_imagenes->get_result();
 
-        if ($resultado_imagenes->num_rows > 0) {
-            $imagenes = $resultado_imagenes->fetch_assoc();
-            $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
+            if ($resultado_imagenes->num_rows > 0) {
+                $imagenes = $resultado_imagenes->fetch_assoc();
+                $directorioImagenes = "../../vista_Admin/img/categorias/" . $nombreCategoria . "/";
 
-            foreach ($imagenes as $img) {
-                if (!empty($img)) {
-                    $rutaCompleta = $directorioImagenes . $img;
-                    if (file_exists($rutaCompleta)) {
-                        unlink($rutaCompleta);
+                foreach ($imagenes as $img) {
+                    if (!empty($img)) {
+                        $rutaCompleta = $directorioImagenes . $img;
+                        if (file_exists($rutaCompleta)) {
+                            unlink($rutaCompleta);
+                        }
                     }
                 }
             }
         }
-    } else {
-        throw new Exception("El producto no está en estado 'agotado'.");
     }
+
+    // Actualizar el estado del producto en la tabla `almacen`
+    $sql_update_estado = "UPDATE almacen SET estado = ? WHERE producto_idproducto = ?";
+    $stmt_update_estado = $conn->prepare($sql_update_estado);
+    $stmt_update_estado->bind_param("si", $nuevoEstado, $idproducto);
+    $stmt_update_estado->execute();
 }
 
 ?>

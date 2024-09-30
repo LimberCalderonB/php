@@ -14,11 +14,35 @@ $query_producto = "
     WHERE p.idproducto = $idproducto
 ";
 
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+
 $result_producto = mysqli_query($conn, $query_producto);
 if (!$result_producto) {
     die('Error en la consulta del producto: ' . mysqli_error($conn));
 }
 $producto = mysqli_fetch_assoc($result_producto);
+
+// Consulta para obtener productos similares
+$query_similares = "
+    SELECT p.idproducto
+    FROM producto p
+    LEFT JOIN almacen a ON p.idproducto = a.producto_idproducto
+    WHERE p.nombre = '" . mysqli_real_escape_string($conn, $producto['nombre']) . "' 
+      AND p.precio = '" . mysqli_real_escape_string($conn, $producto['precio']) . "' 
+      AND p.talla = '" . mysqli_real_escape_string($conn, $producto['talla']) . "' 
+      AND p.descuento = '" . mysqli_real_escape_string($conn, $producto['descuento']) . "' 
+      AND a.categoria_idcategoria = '" . mysqli_real_escape_string($conn, $producto['categoria_idcategoria']) . "'
+";
+
+$result_similares = mysqli_query($conn, $query_similares);
+if (!$result_similares) {
+    die('Error en la consulta de productos similares: ' . mysqli_error($conn));
+}
+
+$productos_similares = [];
+while ($producto_similar = mysqli_fetch_assoc($result_similares)) {
+    $productos_similares[] = $producto_similar['idproducto'];
+}
 
 // Consulta para obtener las categorías
 $query_categorias = "SELECT idcategoria, nombre FROM categoria";
@@ -27,7 +51,6 @@ if (!$result_categorias) {
     die('Error en la consulta de categorías: ' . mysqli_error($conn));
 }
 
-// Verifica si 'categoria_idcategoria' está definido en el array $producto
 $categoria_idcategoria = isset($producto['categoria_idcategoria']) ? $producto['categoria_idcategoria'] : '';
 $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
 $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
@@ -41,8 +64,13 @@ $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
                     Editar Producto
                 </div>
                 <div class="full-width panel-content">
-                    <form action="../controlador_admin/ct_producto.php" method="POST" id="guardado" enctype="multipart/form-data">
-                        <input type="hidden" name="idproducto" value="<?php echo htmlspecialchars($producto['idproducto']); ?>">
+                    <form action="../controlador_admin/ct_editar_producto.php" method="POST" id="guardado" enctype="multipart/form-data">
+                        <input type="hidden" name="idproducto" value="<?php echo $idproducto; ?>">
+                        
+                        <!-- Campo oculto para los IDs de productos similares -->
+                        <?php foreach ($productos_similares as $id_similar): ?>
+                            <input type="hidden" name="productos_similares[]" value="<?php echo htmlspecialchars($id_similar); ?>">
+                        <?php endforeach; ?>
                         <div class="mdl-grid">
 
                             <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">

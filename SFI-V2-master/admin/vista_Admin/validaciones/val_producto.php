@@ -55,7 +55,21 @@ function mostrarTodosProductos() {
 }
 
 </style>
+<!--ESTILO DE CAMBIO DE COLOR DE BOTON DE AÑADIR CUANDO ESTA AGOTADO-->
+<style>
+    .btn.success {
+    background-color: #4CAF50; /* Verde para disponible */
+    color: white;
+    cursor: pointer;
+}
 
+.btn.agotado {
+    background-color: #FF5252; /* Rojo para agotado */
+    color: white;
+    cursor: not-allowed;
+}
+
+</style>
 <!--ALERTA DE AÑADIR-->
 <script>
 function mostrarAlerta(idProducto) {

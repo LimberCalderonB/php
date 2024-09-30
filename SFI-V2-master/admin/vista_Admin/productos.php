@@ -277,7 +277,7 @@ LEFT JOIN
 WHERE
     almacen.estado IN ('disponible', 'agotado')
 GROUP BY 
-
+producto.idproducto,
     producto.nombre, 
     producto.precio, 
     producto.talla, 
@@ -413,20 +413,20 @@ $conn->close();
                             <?php endif; ?>
                         </div>
                         <div class="btn-container">
-                        <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
-    <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-    <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
-    <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
-        <?php echo htmlspecialchars($producto['cantidad']); ?>
-    </span>
-    <button type="button" 
-        class="btn <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'success' : 'agotado'; ?>" 
-        onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')" 
-        <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? '' : 'disabled'; ?>>
-        <i class="fi fi-sr-shopping-cart"></i>
-        <span><?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'Enviar' : 'Agotado'; ?></span>
-    </button>
-</form>
+                            <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
+                                <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
+                                    <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                </span>
+                                <button type="button" 
+                                    class="btn <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'success' : 'agotado'; ?>" 
+                                    onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')" 
+                                    <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? '' : 'disabled'; ?>>
+                                    <i class="fi fi-sr-shopping-cart"></i>
+                                    <span><?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'Enviar' : 'Agotado'; ?></span>
+                                </button>
+                            </form>
 
                             <div class="btn-right">
                                 <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
@@ -453,17 +453,4 @@ $conn->close();
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php";
 ?>
-<style>
-    .btn.success {
-    background-color: #4CAF50; /* Verde para disponible */
-    color: white;
-    cursor: pointer;
-}
 
-.btn.agotado {
-    background-color: #FF5252; /* Rojo para agotado */
-    color: white;
-    cursor: not-allowed;
-}
-
-</style>

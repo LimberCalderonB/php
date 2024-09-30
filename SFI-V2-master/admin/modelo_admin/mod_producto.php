@@ -10,7 +10,7 @@ class ModeloProducto extends conexionBase {
     public function __destruct() {
         $this->CloseConnection();
     }
-
+//AGREGAR PRODUCTOS
     public function agregarProducto($nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1, $img2, $img3, $cantidad) {
         $idproductos = [];
     
@@ -88,7 +88,7 @@ class ModeloProducto extends conexionBase {
             return ['success' => false, 'error' => 'Error al eliminar producto: ' . $stmtProducto->error];
         }
     }
-
+//OBTENER PRODUCTOS POR ID
     public function obtenerProductoPorId($idproducto) {
         $query = "SELECT p.*, a.categoria_idcategoria FROM producto p
                   LEFT JOIN almacen a ON p.idproducto = a.producto_idproducto
@@ -111,7 +111,7 @@ class ModeloProducto extends conexionBase {
             return ['success' => false, 'error' => 'Producto no encontrado'];
         }
     }
-
+//MODIFICAR PRODUCTOS
     public function actualizarProducto($idproducto, $nombre, $precio, $descuento, $precioConDescuento, $descripcion, $talla, $categoria_idcategoria, $img1 = null, $img2 = null, $img3 = null) {
         // Iniciar transacción
         $this->GetConnection()->begin_transaction();
