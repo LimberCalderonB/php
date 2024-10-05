@@ -83,7 +83,7 @@
                                         function redirectIfNewCategory(selectElement) {
                                             // Redirige a la página de categorías con el parámetro 'tab=new-category'
                                             if (selectElement.value === 'new-category') {
-                                                window.location.href = 'categoria.php?tab=new-category';
+                                                window.location.href = 'categoria.php';
                                             }
                                         }
                                     </script>
@@ -136,82 +136,12 @@
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--12-col text-center">
-    <div id="progressContainer" style="display:none; width: 100%; background-color: #e0e0e0; border-radius: 5px; margin-top: 20px;">
-        <div id="progressBar" style="width: 0%; height: 20px; background-color: #4caf50; border-radius: 5px;"></div>
-    </div>
-    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="btn-addProduct">
-        <i class="zmdi zmdi-plus"></i>
-    </button>
-    <div class="mdl-tooltip" for="btn-addProduct">Agregar Producto</div>
-</div>
-<style>
-    #progressContainer {
-    width: 100%; /* Asegura que ocupe todo el ancho disponible */
-    background-color: #e0e0e0; /* Fondo gris claro para el contenedor */
-    border-radius: 5px; /* Bordes redondeados */
-    margin-top: 20px; /* Espacio entre el botón y la barra de progreso */
-    display: none; /* Inicialmente oculto */
-}
+                                    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="btn-addProduct">
+                                        <i class="zmdi zmdi-plus"></i>
+                                    </button>
+                                    <div class="mdl-tooltip" for="btn-addProduct">Agregar Producto</div>
+                                </div>
 
-#progressBar {
-    height: 20px; /* Altura de la barra de progreso */
-    background-color: #4caf50; /* Color verde para la barra */
-    border-radius: 5px; /* Bordes redondeados */
-    width: 0%; /* Comienza en 0% */
-    transition: width 0.1s; /* Transición suave al cambiar el ancho */
-}
-
-</style>
-
-<script>
-    document.getElementById('guardado').addEventListener('submit', function (e) {
-        e.preventDefault(); // Evitar el envío del formulario
-
-        // Validar los campos del formulario
-        if (this.checkValidity()) {
-            const cantidad = parseInt(document.getElementById('cantidad').value);
-            const btnAddProduct = document.getElementById('btn-addProduct');
-            btnAddProduct.disabled = true; // Desactivar el botón
-
-            // Mostrar la barra de progreso
-            const progressContainer = document.getElementById('progressContainer');
-            const progressBar = document.getElementById('progressBar');
-            progressContainer.style.display = 'block';
-
-            // Simulación del proceso de carga
-            let progress = 0;
-            const interval = setInterval(() => {
-                if (progress >= 100) {
-                    clearInterval(interval);
-                    // Aquí puedes enviar el formulario una vez que la barra de progreso esté completa
-                    this.submit(); // Enviar el formulario
-                } else {
-                    progress += (100 / cantidad); // Incrementar según la cantidad
-                    progressBar.style.width = progress + '%';
-                }
-            }, 100); // Actualiza cada 100 ms
-        } else {
-            // Si la validación falla, muestra un mensaje o haz otra cosa
-            alert("Por favor, complete todos los campos requeridos correctamente.");
-        }
-    });
-
-    // Validar la cantidad de productos
-    function validateQuantity(input) {
-        const value = parseInt(input.value);
-        if (value < 1 || value > 36) {
-            document.getElementById('cantidadFeedback').textContent = 'Cantidad debe estar entre 1 y 36.';
-        } else {
-            document.getElementById('cantidadFeedback').textContent = '';
-        }
-    }
-
-    function resetDefaultValue(input) {
-        if (input.value === '') {
-            input.value = 1;
-        }
-    }
-</script>
                             </form>
                         </div>
                     </div>
@@ -277,7 +207,7 @@ LEFT JOIN
 WHERE
     almacen.estado IN ('disponible', 'agotado')
 GROUP BY 
-producto.idproducto,
+
     producto.nombre, 
     producto.precio, 
     producto.talla, 

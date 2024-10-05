@@ -14,66 +14,45 @@ class ModeloCliente {
     }
 
     // Función para agregar cliente
-    public function agregarCliente($nombre, $apellido1, $apellido2, $celular) {
-        // Escapando las variables para evitar inyecciones SQL
-        $nombre = $this->conexion->GetConnection()->real_escape_string($nombre);
-        $apellido1 = $this->conexion->GetConnection()->real_escape_string($apellido1);
-        $apellido2 = $this->conexion->GetConnection()->real_escape_string($apellido2);
-        $celular = $this->conexion->GetConnection()->real_escape_string($celular);
-
-        // Query SQL para insertar un nuevo cliente
-        $sql = "INSERT INTO cliente (nombre_cliente, apellido_cliente, apellido2_cliente, celular_cliente)
-                VALUES ('$nombre', '$apellido1', '$apellido2', '$celular')";
-
-        // Ejecutando el query
+    public function agregarCliente($nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente) {
+        $nombre = $this->conexion->GetConnection()->real_escape_string($nombre_cliente);
+        $apellido1 = $this->conexion->GetConnection()->real_escape_string($apellido_cliente);
+        $apellido2 = $this->conexion->GetConnection()->real_escape_string($apellido2_cliente);
+        $celular = $this->conexion->GetConnection()->real_escape_string($celular_cliente);
+        $ci = $this->conexion->GetConnection()->real_escape_string($ci_cliente);
+        $departamento = $this->conexion->GetConnection()->real_escape_string($departamento_cliente);
+    
+        $sql = "INSERT INTO cliente (nombre_cliente, apellido_cliente, apellido2_cliente, celular_cliente, ci_cliente, departamento_cliente)
+                VALUES ('$nombre', '$apellido1', '$apellido2', '$celular', '$ci', '$departamento')";
+        
         $this->conexion->ExecuteQuery($sql);
-
-        // Verificando si el cliente fue agregado correctamente
+    
         if ($this->conexion->GetCountAffectedRows() > 0) {
-            return $this->conexion->GetConnection()->insert_id; // Devuelve el ID del cliente insertado
+            return $this->conexion->GetConnection()->insert_id;
         } else {
-            return false; // Error al agregar cliente
+            return false;
         }
     }
+    
+    
 
-    // Función para agregar usuario cliente
-    public function agregarUsuarioCliente($usuario, $pass, $idCliente) {
-        // Escapando las variables
-        $usuario = $this->conexion->GetConnection()->real_escape_string($usuario);
-        $pass = $this->conexion->GetConnection()->real_escape_string($pass);
-
-        // Encriptar la contraseña
-        $pass = password_hash($pass, PASSWORD_BCRYPT);
-
-        // Query SQL para insertar un nuevo usuario cliente
-        $sql = "INSERT INTO usuario_cliente (usuario_cliente, pass_cliente, cliente_idcliente)
-                VALUES ('$usuario', '$pass', '$idCliente')";
-
-        // Ejecutando el query
-        $this->conexion->ExecuteQuery($sql);
-
-        // Verificando si el usuario cliente fue agregado correctamente
-        return $this->conexion->GetCountAffectedRows() > 0;
-    }
-
-    // Función para verificar si el usuario ya existe
-    public function existeUsuario($usuario) {
-        $usuario = $this->conexion->GetConnection()->real_escape_string($usuario);
-        $sql = "SELECT COUNT(*) as count FROM usuario_cliente WHERE usuario_cliente = '$usuario'";
+    // Función para verificar si el celular ya existe
+    public function existeCelular($celular_cliente) {
+        $celular_cliente = $this->conexion->GetConnection()->real_escape_string($celular_cliente);
+        $sql = "SELECT COUNT(*) as count FROM cliente WHERE celular_cliente = '$celular_cliente'";
         $resultado = $this->conexion->ExecuteQuery($sql);
         $row = $resultado->fetch_assoc();
         return $row['count'] > 0;
     }
-    // Función para verificar si el celular ya existe
-public function existeCelular($celular) {
-    $celular = $this->conexion->GetConnection()->real_escape_string($celular);
-    $sql = "SELECT COUNT(*) as count FROM cliente WHERE celular_cliente = '$celular'";
-    $resultado = $this->conexion->ExecuteQuery($sql);
-    $row = $resultado->fetch_assoc();
-    return $row['count'] > 0;
-}
 
-    
+    public function existeci($ci_cliente) {
+        $ci_cliente = $this->conexion->GetConnection()->real_escape_string($ci_cliente);
+        $sql = "SELECT COUNT(*) as count FROM cliente WHERE ci_cliente = '$ci_cliente'";
+        $resultado = $this->conexion->ExecuteQuery($sql);
+        $row = $resultado->fetch_assoc();
+        return $row['count'] > 0;
+    }
+
     // Función para obtener los datos de un cliente por su ID
     public function obtenerClientePorId($idCliente) {
         $idCliente = $this->conexion->GetConnection()->real_escape_string($idCliente);
@@ -81,22 +60,5 @@ public function existeCelular($celular) {
         $resultado = $this->conexion->ExecuteQuery($sql);
         return $resultado->fetch_assoc();
     }
-
-    // Función para obtener los datos de usuario cliente por su ID
-    public function obtenerUsuarioClientePorId($idusuario_cliente) {
-        $query = "SELECT * FROM usuario_cliente WHERE idusuario_cliente = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $idusuario_cliente);
-        $stmt->execute();
-        $result = $stmt->get_result();
-    
-        if ($result->num_rows > 0) {
-            return $result->fetch_assoc();
-        } else {
-            return false; // Si no se encuentra, retornar false
-        }
-    }
-    
-    
 }
 ?>

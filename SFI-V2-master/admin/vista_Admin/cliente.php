@@ -48,13 +48,13 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
             <div class="mdl-cell mdl-cell--12-col">
                 <div class="full-width panel mdl-shadow--2dp">
                     <div class="full-width panel-tittle bg-primary text-center tittles">
-                        Nuevo Cliente
+                        N U E V O - C L I E N T E
                     </div>
                     <div class="full-width panel-content">
                         <form action="../controlador_admin/ct_cliente.php" method="post" class="row g-3 needs-validation" novalidate>
                             <div class="mdl-grid">
                                 <div class="mdl-cell mdl-cell--12-col">
-                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACION</legend><br>
+                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; INFORMACIÓN</legend><br>
                                 </div>
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['nombre_cliente']) ? 'is-invalid' : ''; ?>">
@@ -86,7 +86,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                                     </div>
                                 </div>
 
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
+                                <div class="mdl-cell mdl-cell--5-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['celular_cliente']) ? 'is-invalid' : ''; ?>">
                                         <input class="mdl-textfield__input" type="number" id="celular_cliente" name="celular_cliente" value="<?php echo htmlspecialchars($datos['celular_cliente'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="celular_cliente">Celular</label>
@@ -96,26 +96,32 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                                     </div>
                                 </div>
 
-
-                                <div class="mdl-cell mdl-cell--12-col">
-                                    <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; DETALLES DE CUENTA</legend><br>
-                                </div>
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['usuario_cliente']) ? 'is-invalid' : ''; ?>">
-                                        <input class="mdl-textfield__input" type="text" id="usuario_cliente" name="usuario_cliente" value="<?php echo htmlspecialchars($datos['usuario_cliente'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="usuario_cliente">Nombre de Usuario</label>
-                                        <?php if (isset($errores['usuario_cliente'])): ?>
-                                            <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['usuario_cliente']); ?></span>
+                                <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['ci_cliente']) ? 'is-invalid' : ''; ?>">
+                                        <input class="mdl-textfield__input" type="text" id="ci_cliente" name="ci_cliente" value="<?php echo htmlspecialchars($datos['ci_cliente'] ?? ''); ?>">
+                                        <label class="mdl-textfield__label" for="ci_cliente">CI</label>
+                                        <?php if (isset($errores['ci_cliente'])): ?>
+                                            <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['ci_cliente']); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
-
-                                <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['pass_cliente']) ? 'is-invalid' : ''; ?>">
-                                        <input class="mdl-textfield__input" type="password" id="pass_cliente" name="pass_cliente" value="<?php echo htmlspecialchars($datos['pass_cliente'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="pass_cliente">Contraseña</label>
-                                        <?php if (isset($errores['pass_cliente'])): ?>
-                                            <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['pass_cliente']); ?></span>
+                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
+                                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['departamento_cliente']) ? 'is-invalid' : ''; ?>">
+                                        <select class="mdl-textfield__input" id="departamento_cliente" name="departamento_cliente">
+                                            <option value="" disabled selected></option>
+                                            <option value="Chuquisaca">Chuquisaca</option>
+                                            <option value="La Paz">La Paz</option>
+                                            <option value="Cochabamba">Cochabamba</option>
+                                            <option value="Oruro">Oruro</option>
+                                            <option value="Potosí">Potosí</option>
+                                            <option value="Tarija">Tarija</option>
+                                            <option value="Santa Cruz">Santa Cruz</option>
+                                            <option value="Beni">Beni</option>
+                                            <option value="Pando">Pando</option>
+                                        </select>
+                                        <label class="mdl-textfield__label" for="departamento_cliente">Seleccione el departamento</label>
+                                        <?php if (isset($errores['departamento_cliente'])): ?>
+                                            <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['departamento_cliente']); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
@@ -140,65 +146,60 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
             <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--8-col-desktop mdl-cell--2-offset-desktop">
                 <div class="full-width panel mdl-shadow--2dp">
                 <div class="full-width panel-tittle bg-success text-center tittles">
-    LISTA DE CLIENTES
-</div>
-<div class="full-width panel-content">
-    <form action="#">
-        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
-            <label class="mdl-button mdl-js-button mdl-button--icon" for="searchAdmin">
-                <i class="zmdi zmdi-search"></i>
-            </label>
-            <div class="mdl-textfield__expandable-holder">
-                <input class="mdl-textfield__input" type="text" id="searchAdmin" name="searchAdmin" placeholder="Buscar...">
-                <label class="mdl-textfield__label"></label>
-            </div>
-        </div>
-    </form>
-    
-    <?php
-        // Consultar la lista de clientes
-        $query_clientes = "SELECT c.*, u.idusuario_cliente 
-                           FROM cliente AS c 
-                           INNER JOIN usuario_cliente AS u ON c.idcliente = u.cliente_idcliente";
-        $result_clientes = mysqli_query($conn, $query_clientes);
-        
-        if (!$result_clientes) {
-            echo "Error en la consulta: " . mysqli_error($conn);
-        } elseif (mysqli_num_rows($result_clientes) > 0) {
-            while ($row = mysqli_fetch_assoc($result_clientes)) {
-    ?>
+                L I S T A - DE - C L I E N T E S
+                </div>
+                <div class="full-width panel-content">
+                    <form action="#">
+                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+                            <label class="mdl-button mdl-js-button mdl-button--icon" for="searchAdmin">
+                                <i class="zmdi zmdi-search"></i>
+                            </label>
+                            <div class="mdl-textfield__expandable-holder">
+                                <input class="mdl-textfield__input" type="text" id="searchAdmin" name="searchAdmin" placeholder="Buscar...">
+                                <label class="mdl-textfield__label"></label>
+                            </div>
+                        </div>
+                    </form>
+                    <?php
+                        // Consultar la lista de clientes desde la tabla cliente
+                        $query_clientes = "SELECT * FROM cliente";
+                        $result_clientes = mysqli_query($conn, $query_clientes);
+                        
+                        if (!$result_clientes) {
+                            echo "Error en la consulta: " . mysqli_error($conn);
+                        } elseif (mysqli_num_rows($result_clientes) > 0) {
+                            while ($row = mysqli_fetch_assoc($result_clientes)) {
+                    ?>
                 <div class="mdl-list__item mdl-list__item--two-line">
                     <span class="mdl-list__item-primary-content">
+
                         <span><?php echo htmlspecialchars($row['nombre_cliente']) . ' ' . htmlspecialchars($row['apellido_cliente']) . ' ' . htmlspecialchars($row['apellido2_cliente']); ?></span>
-                        <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['celular_cliente']); ?></span>
+                        <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['celular_cliente']) . '| CI : ' . htmlspecialchars($row['ci_cliente']) . ' ' . htmlspecialchars($row['departamento_cliente']); ?></span>
                     </span>
                     <div class="btn-right">
                         <button class='mdl-button mdl-js-button mdl-button--icon' 
-                                onclick='window.location.href="editar_cliente.php?idusuario_cliente=<?php echo $row["idusuario_cliente"]; ?>"'>
+                                onclick='window.location.href="editar_cliente.php?idcliente=<?php echo $row["idcliente"]; ?>"'>
                             <i class="zmdi zmdi-edit"></i>
                         </button>
                         <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" 
-                                onclick='confirmDeletion(<?php echo $row["idusuario_cliente"]; ?>)'>
+                                onclick='confirmDeletion(<?php echo $row["idcliente"]; ?>)'>
                             <i class="zmdi zmdi-delete"></i>
                         </button>
-
-
                     </div>
                 </div>
-                <hr class="mdl-list__item-divider"> <!-- Línea separadora -->
-    <?php
+            <hr class="mdl-list__item-divider">
+        <?php
             }
-        } else {
-            echo "<p>No se encontraron resultados</p>";
-        }
-    ?>
-</div>
-
-	<?php
+            } else {
+                echo "<p>No se encontraron resultados</p>";
+            }
+        ?>
+    </div>
+<?php
 include_once "pie.php";
 ?>
 <script>
-function confirmDeletion(idusuario_cliente) {
+function confirmDeletion(idcliente) {
     Swal.fire({
         title: "¿Estás seguro?",
         text: "¡No podrás revertir esto!",
@@ -214,7 +215,7 @@ function confirmDeletion(idusuario_cliente) {
                 url: '../crud/cliente/eliminar_cliente.php',
                 type: 'POST',
                 data: {
-                    idusuario_cliente: idusuario_cliente
+                    idcliente: idcliente // Usamos idcliente en lugar de idusuario_cliente
                 },
                 success: function(response) {
                     let data = JSON.parse(response);
@@ -246,3 +247,4 @@ function confirmDeletion(idusuario_cliente) {
     });
 }
 </script>
+

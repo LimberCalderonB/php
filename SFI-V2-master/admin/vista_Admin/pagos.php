@@ -102,14 +102,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             }
 
             $usuario_idusuario = $_SESSION['user_id'];
-            $pedido_idpedido = null;
+            $pedido_venta_idpedido_venta = null;
 
             // Verificar si hay un cliente seleccionado
-            if (!empty($_POST['usuario_cliente_id'])) {
-                $usuario_cliente_id = intval($_POST['usuario_cliente_id']);
+            if (!empty($_POST['idcliente'])) {
+                $usuario_cliente_id = intval($_POST['idcliente']);
                 
                 // Verifica que el cliente existe
-                $sql = "SELECT * FROM usuario_cliente WHERE idusuario_cliente = ?";
+                $sql = "SELECT * FROM cliente WHERE idcliente = ?";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $usuario_cliente_id);
                 $stmt->execute();
@@ -117,11 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             
                 if ($result->num_rows > 0) {
                     // El cliente existe, proceder a crear el pedido
-                    $sql = "INSERT INTO pedido (usuario_cliente_idusuario_cliente) VALUES (?)";
+                    $sql = "INSERT INTO solicitud (cliente_idcliente) VALUES (?)";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param("i", $usuario_cliente_id);
                     $stmt->execute();
-                    $pedido_idpedido = $stmt->insert_id; // Obtener el ID del nuevo pedido
+                    $pedido_venta_idpedido_venta = $stmt->insert_id; // Obtener el ID del nuevo pedido
                 } else {
                     throw new Exception("El cliente no existe.");
                 }
@@ -131,9 +131,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             $fecha_venta = date("Y-m-d H:i:s");
 
             // Insertar la venta
-            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_idpedido) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_venta_idpedido_venta) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("idsi", $usuario_idusuario, $total, $fecha_venta, $pedido_idpedido);
+            $stmt->bind_param("idsi", $usuario_idusuario, $total, $fecha_venta, $pedido_venta_idpedido_venta);
             $stmt->execute();
             $venta_id = $stmt->insert_id;
 

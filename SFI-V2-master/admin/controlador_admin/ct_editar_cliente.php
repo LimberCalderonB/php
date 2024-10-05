@@ -8,15 +8,18 @@ $datos = $_POST;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validar datos
-    $idusuario_cliente = $_POST['idusuario_cliente'] ?? '';
+    $idcliente = $_POST['idcliente'] ?? ''; // Asegúrate de que el ID del cliente se envíe desde el formulario
     $nombre_cliente = $_POST['nombre_cliente'] ?? '';
     $apellido_cliente = $_POST['apellido_cliente'] ?? '';
     $apellido2_cliente = $_POST['apellido2_cliente'] ?? '';
     $celular_cliente = $_POST['celular_cliente'] ?? '';
-    $usuario_cliente = $_POST['usuario_cliente'] ?? '';
-    $pass_cliente = $_POST['pass_cliente'] ?? '';
+    $ci_cliente = $_POST['ci_cliente'] ?? ''; // Campo nuevo
+    $departamento_cliente = $_POST['departamento_cliente'] ?? ''; // Campo nuevo
 
     // Validaciones básicas
+    if (empty($idcliente)) {
+        $errores['idcliente'] = "El ID del cliente es requerido.";
+    }
     if (empty($nombre_cliente)) {
         $errores['nombre_cliente'] = "El nombre es requerido.";
     }
@@ -26,32 +29,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($celular_cliente)) {
         $errores['celular_cliente'] = "El celular es requerido.";
     }
-    if (empty($usuario_cliente)) {
-        $errores['usuario_cliente'] = "El nombre de usuario es requerido.";
+    if (empty($ci_cliente)) {
+        $errores['ci_cliente'] = "El CI es requerido."; // Validación para el nuevo campo
     }
-    if (empty($pass_cliente)) {
-        $errores['pass_cliente'] = "La contraseña es requerida.";
-    }
-
-    // Verificar si el nombre de usuario ya existe
-    $modelo = new ModeloCliente();
-    $usuario_existente = $modelo->verificarUsuarioExistente($usuario_cliente, $idusuario_cliente);
-    
-    if ($usuario_existente) {
-        $errores['usuario_cliente'] = "El nombre de usuario ya existe. Elige otro.";
+    if (empty($departamento_cliente)) {
+        $errores['departamento_cliente'] = "El departamento es requerido."; // Validación para el nuevo campo
     }
 
-    // Validar otros campos según sea necesario
-
+    // Si no hay errores, verificar existencia del celular y CI
     if (empty($errores)) {
-        $resultado = $modelo->actualizarCliente($idusuario_cliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $usuario_cliente, $pass_cliente);
+        $modelo = new ModeloCliente();
 
-        if ($resultado) {
-            $_SESSION['mensaje'] = "Cliente actualizado exitosamente.";
-            header("Location: ../vista_admin/cliente.php");
-            exit();
-        } else {
-            $errores['general'] = "Error al actualizar el cliente.";
+        // Verificar existencia de celular
+        if ($modelo->verificarCelularExistente($celular_cliente, $idcliente)) {
+            $errores['celular_cliente'] = "El celular ya está registrado.";
+        }
+
+        // Verificar existencia de CI
+        if ($modelo->verificarCIExistente($ci_cliente, $idcliente)) {
+            $errores['ci_cliente'] = "El CI ya está registrado.";
+        }
+
+        // Si aún no hay errores, proceder a actualizar
+        if (empty($errores)) {
+            $resultado = $modelo->actualizarCliente($idcliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente);
+
+            if ($resultado) {
+                $_SESSION['mensaje'] = "Cliente actualizado exitosamente.";
+                header("Location: ../vista_admin/cliente.php");
+                exit();
+            } else {
+                $errores['general'] = "Error al actualizar el cliente.";
+            }
         }
     }
 
@@ -60,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['datos_cliente'] = $datos;
 
     // Redirigir a la vista de edición
-    header("Location: ../vista_admin/editar_cliente.php?idusuario_cliente=$idusuario_cliente");
+    header("Location: ../vista_admin/editar_cliente.php?idcliente=$idcliente");
     exit();
 }
 ?>

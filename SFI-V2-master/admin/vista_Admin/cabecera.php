@@ -67,6 +67,8 @@ $conn->close();
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/validate.js/0.13.1/validate.min.js"></script>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOM+R7fRZP5o1Bq6BOm29P4ViYp3oK0I4s3lgH9" crossorigin="anonymous">
+
 
 <!--ESTILOS DE LETRA -->
 	<style>
@@ -187,7 +189,7 @@ $conn->close();
 					<li class="full-width">
 						<a href="productos.php" class="full-width">
 							<div class="navLateral-body-cl">
-								<i class="zmdi zmdi-washing-machine"></i>
+							<i class="fi fi-ss-shirt-long-sleeve"></i>
 							</div>
 							<div class="navLateral-body-cr">
 								PRODUCTOS
@@ -198,7 +200,7 @@ $conn->close();
 					<li class="full-width">
 						<a href="pagos.php" class="full-width">
 							<div class="navLateral-body-cl">
-								<i class="zmdi zmdi-washing-machine"></i>
+							<i class="fi fi-sr-coins"></i>
 							</div>
 							<div class="navLateral-body-cr">
 								PREALIZAR VENTA
@@ -218,6 +220,17 @@ $conn->close();
 					</li>
 					<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
+						<a href="reportes.php" class="full-width">
+							<div class="navLateral-body-cl">
+							<i class="fi fi-sr-journal-alt"></i>
+							</div>
+							<div class="navLateral-body-cr">
+								REPORTES
+							</div>
+						</a>
+					</li>
+					<li class="full-width divider-menu-h"></li>
+					<li class="full-width">
 						<a href="pedidos.php" class="full-width">
 							<div class="navLateral-body-cl">
 								<i class="zmdi zmdi-shopping-cart"></i>
@@ -227,7 +240,7 @@ $conn->close();
 							</div>
 						</a>
 					</li>
-					<li class="full-width divider-menu-h"></li>
+					<!--<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
 						<a href="inventario.php" class="full-width">
 							<div class="navLateral-body-cl">
@@ -237,7 +250,7 @@ $conn->close();
 								INVENTARIO
 							</div>
 						</a>
-					</li>
+					</li>-->
 					
 				</ul>
 			</nav>

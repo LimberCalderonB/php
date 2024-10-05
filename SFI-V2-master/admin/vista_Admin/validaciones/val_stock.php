@@ -1,4 +1,52 @@
 <style>
+    .btn-container {
+        padding: 5px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-descargar {
+        background-color: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-accion {
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        text-decoration: none;
+        margin-right: 5px;
+        font-size: 0.75rem; /* 14px */
+        display: inline-block;
+        transition: background-color 0.3s; /* Transición suave */
+    }
+
+    .btn-editar {
+        background-color: #ffc107; /* Amarillo */
+    }
+
+    .btn-eliminar {
+        background-color: #dc3545; /* Rojo */
+    }
+
+    .btn-detalles {
+        background-color: #17a2b8; /* Cian */
+    }
+
+    .btn-accion:hover {
+        opacity: 0.8;
+    }
+</style>
+
+<style>
 .centered-table th,
 .centered-table td {
     text-align: center;
@@ -15,7 +63,7 @@
 
 .mdl-data-table th,
 .mdl-data-table td {
-    padding: 15px 30px;
+    padding: 10px 14px;
 }
 
 .mdl-data-table th {
