@@ -1,0 +1,9 @@
+Array
+(
+    [nombre] => Nombre del producto
+    [precio] => 100
+    [categoria] => Nombre de la categoría
+    [talla] => 1
+    [descuento] => 10
+    [cantidad] => 2
+)

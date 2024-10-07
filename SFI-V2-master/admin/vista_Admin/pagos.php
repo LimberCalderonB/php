@@ -77,9 +77,6 @@ if (isset($_GET['cancelar_id']) && isset($_GET['cantidad'])) {
     }
 }
 
-
-
-// Calcular el total
 $total = 0;
 if (!empty($_SESSION['productos_seleccionados'])) {
     foreach ($_SESSION['productos_seleccionados'] as $producto) {
