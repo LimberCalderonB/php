@@ -1,26 +1,19 @@
 <?php
-
 session_start();
 
-
-// Conectar a la base de datos
 $conn = new mysqli("localhost", "root", "", "proyecto");
 
-// Verificar la conexión
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Verificar si el usuario está logueado
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php"); // Redirige si el usuario no está logueado
     exit();
 }
 
-// Obtener datos del usuario
 $user_id = $_SESSION['user_id'];
 
-// Preparar y ejecutar la consulta
 	$query = "SELECT p.nombre, p.apellido1, p.apellido2, p.foto, r.nombre as rol_nombre
 			FROM usuario u
 			JOIN persona p ON u.persona_idpersona = p.idpersona

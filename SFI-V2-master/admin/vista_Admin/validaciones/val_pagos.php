@@ -9,7 +9,10 @@ document.getElementById('buscar').addEventListener('input', function() {
                 let resultadosDiv = document.getElementById('resultados');
                 resultadosDiv.innerHTML = ''; // Limpiar resultados previos
                 data.forEach(cliente => {
-                    resultadosDiv.innerHTML += `<div class="resultado" data-id="${cliente.idusuario_cliente}" data-nombre="${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})"><p>${cliente.idusuario_cliente} ${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente})</p></div>`;
+                    resultadosDiv.innerHTML += `
+                        <div class="resultado" data-id="${cliente.idcliente}" data-nombre="${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.ci_cliente})">
+                            <p>${cliente.idcliente} = ${cliente.nombre_cliente} ${cliente.apellido_cliente} ${cliente.apellido2_cliente} (${cliente.celular_cliente}) (ci: ${cliente.ci_cliente}) (ciudad: ${cliente.departamento_cliente})</p>
+                        </div>`;
                 });
                 resultadosDiv.style.display = data.length > 0 ? 'block' : 'none'; // Mostrar u ocultar los resultados
             });
@@ -25,13 +28,12 @@ document.addEventListener('click', function(event) {
         const selectedResult = event.target.closest('.resultado');
         const clienteId = selectedResult.getAttribute('data-id'); // Obtener el ID del cliente
         console.log('ID del cliente seleccionado:', clienteId); // Verificar ID
-        document.getElementById('buscar').value = selectedResult.getAttribute('data-nombre'); // Completar el campo de búsqueda
-        document.getElementById('usuario_cliente_id').value = clienteId; // Guardar el ID del cliente
+        document.getElementById('buscar').value = selectedResult.getAttribute('data-nombre'); // Completar el campo de búsqueda con el nombre del cliente
+        document.getElementById('idcliente').value = clienteId; // Guardar el ID del cliente en un campo oculto
         document.getElementById('resultados').innerHTML = ''; // Limpiar los resultados
         document.getElementById('resultados').style.display = 'none'; // Ocultar resultados
     }
 });
-
 </script>
 <!--ESTILOS DE CAMPO DE BUSQUEDA-->
 <style>

@@ -185,6 +185,101 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
     }
 }
 
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
+    if (!empty($_SESSION['productos_seleccionados'])) {
+        include_once "../../conexion.php";
+        $conn->begin_transaction();
+
+        try {
+            if (!isset($_SESSION['user_id'])) {
+                throw new Exception("ID de usuario no encontrado en la sesión.");
+            }
+
+            $usuario_idusuario = $_SESSION['user_id'];
+            $solicitud_id = null;
+
+            // Verificar si hay un cliente seleccionado
+            if (!empty($_POST['idcliente'])) {
+                $cliente_id = intval($_POST['idcliente']);
+                
+                // Verificar que el cliente existe
+                $sql = "SELECT * FROM cliente WHERE idcliente = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $cliente_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+            
+                if ($result->num_rows > 0) {
+                    // El cliente existe, proceder a crear la solicitud
+                    $sql = "INSERT INTO solicitud (cliente_idcliente, estado) VALUES (?, 'pendiente')";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $cliente_id);
+                    $stmt->execute();
+                    $solicitud_id = $stmt->insert_id; // Obtener el ID de la nueva solicitud
+                } else {
+                    throw new Exception("El cliente no existe.");
+                }
+            } else {
+                throw new Exception("Debe seleccionar un cliente.");
+            }
+
+            // Insertar los productos asociados a la solicitud
+            foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                // Insertar en producto_solicitud
+                $sql = "INSERT INTO producto_solicitud (producto_idproducto, solicitud_idsolicitud) VALUES (?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ii", $idproducto, $solicitud_id);
+                $stmt->execute();
+
+                // Actualizar el estado del producto a 'espera' en la tabla almacen
+                $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $idproducto);
+                $stmt->execute();
+            }             
+ // Crear un pedido en la tabla pedido vinculado a la solicitud
+            // Crear un pedido en la tabla pedido vinculado a la solicitud y al usuario responsable
+$sql = "INSERT INTO pedido (solicitud_idsolicitud, usuario_idusuario) VALUES (?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("ii", $solicitud_id, $usuario_idusuario); // $usuario_idusuario viene de la sesión
+$stmt->execute();
+$pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
+
+
+            // Insertar en pedido_venta el pedido creado
+            $sql = "INSERT INTO pedido_venta (pedido_idpedido) VALUES (?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $pedido_id);
+            $stmt->execute();
+// Vacía los productos seleccionados de la sesión
+            unset($_SESSION['productos_seleccionados']);
+            // Confirmar transacción
+            $conn->commit();
+            echo "<script>
+                    const Toast = Swal.mixin({
+                      toast: true,
+                      position: 'top-end',
+                      showConfirmButton: false,
+                      timer: 2000,
+                      timerProgressBar: true,
+                      didOpen: (toast) => {
+                        toast.onmouseenter = Swal.stopTimer;
+                        toast.onmouseleave = Swal.resumeTimer;
+                      }
+                    });
+                    Toast.fire({
+                      icon: 'success',
+                      title: 'Pedido guardado'
+                    });
+                  </script>";
+        } catch (Exception $e) {
+            // Revertir la transacción en caso de error
+            $conn->rollback();
+            echo "Error al guardar el pedido: " . $e->getMessage();
+        }
+        $conn->close();
+    }
+}
 
 ?>
 
@@ -192,19 +287,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
     PRODUCTOS SELECCIONADOS
 </div>
 <br>
-<div class="container text-center" style="position: relative;"> <!-- Añadido position: relative -->
+<div class="container text-center" style="position: relative;">
     <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control">
-    <div id="resultados" class="mt-2" style="display: none;"></div> <!-- Cambios aquí -->
+    <div id="resultados" class="mt-2" style="display: none;"></div> 
 </div>
 
 <div class="container">
     <form method="POST" action="pagos.php">
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-        <input type="hidden" id="usuario_cliente_id" name="usuario_cliente_id" value="">
 
         <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
             <i class="fi fi-rr-dollar"></i>
             REALIZAR VENTA
+        </button>
+        <input type="hidden" name="idcliente" id="idcliente">
+        <button id="guardar-pedido" name="guardar_pedido" class="btn btn-secondary btn-guardar-pedido">
+            <i class="fi fi-rr-save"></i>
+            GUARDAR PEDIDO
         </button>
     </form>
     <div class="total-cost">
