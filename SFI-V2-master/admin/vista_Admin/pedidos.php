@@ -57,7 +57,12 @@ include_once "../../conexion.php"; // Asegúrate de incluir tu conexión a la ba
                                     echo "<td>" . $row['precio_total'] . "</td>";
                                     echo "<td>" . $row['estado'] . "</td>";
                                     echo "<td>
-                                        <a href='#' class='btn-accion btn-editar'>Atender</a>
+                                    
+                                        <form method='POST' action='pedidos/atender_pedido.php'>
+        <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
+        <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
+    </form>
+                                    
                                         <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
                                             <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
                                             <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Cancelar</button>

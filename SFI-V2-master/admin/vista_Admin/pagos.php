@@ -1,9 +1,24 @@
-<?php include_once "cabecera.php"; ?>
+<?php 
+include_once "cabecera.php"; 
+include_once "../../conexion.php";
+?>
 
 <?php
 // Generar un token CSRF
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+if (isset($_SESSION['idcliente']) && isset($_SESSION['productos'])) {
+    $idcliente = $_SESSION['idcliente'];
+    $productos = $_SESSION['productos'];
+
+    // Obtener el nombre del cliente usando la función obtenerNombreCliente
+    $nombreCliente = obtenerNombreCliente($conn, $idcliente);
+} else {
+    $idcliente = null;
+    $productos = null;
+    $nombreCliente = '';
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['idproducto'])) {
@@ -72,8 +87,6 @@ if (isset($_GET['cancelar_id']) && isset($_GET['cantidad'])) {
             }
         }
         $conn->close(); // Cerrar la conexión después de procesar todos los productos
-
-
     }
 }
 
@@ -87,7 +100,16 @@ if (!empty($_SESSION['productos_seleccionados'])) {
         $total += $precio;
     }
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['cancelar_todo'])) {
+        // Limpiar los productos seleccionados
+        unset($_SESSION['productos_seleccionados']);
+        // También puedes limpiar otros datos si es necesario
+        unset($_SESSION['idcliente']);
 
+        @header("Location: pagos.php");
+
+    }
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
     if (!empty($_SESSION['productos_seleccionados'])) {
         include_once "../../conexion.php";
@@ -239,11 +261,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
             }             
  // Crear un pedido en la tabla pedido vinculado a la solicitud
             // Crear un pedido en la tabla pedido vinculado a la solicitud y al usuario responsable
-$sql = "INSERT INTO pedido (solicitud_idsolicitud, usuario_idusuario) VALUES (?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $solicitud_id, $usuario_idusuario); // $usuario_idusuario viene de la sesión
-$stmt->execute();
-$pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
+                $sql = "INSERT INTO pedido (solicitud_idsolicitud, usuario_idusuario) VALUES (?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ii", $solicitud_id, $usuario_idusuario); // $usuario_idusuario viene de la sesión
+                $stmt->execute();
+                $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
 
 
             // Insertar en pedido_venta el pedido creado
@@ -281,6 +303,9 @@ $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
     }
 }
 
+
+    // Aquí iría el resto de tu lógica para 'realizar_venta' y 'guardar_pedido'
+}
 ?>
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
@@ -288,9 +313,38 @@ $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
 </div>
 <br>
 <div class="container text-center" style="position: relative;">
-    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control">
+    <!-- Campo de búsqueda de clientes -->
+    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control"
+        value="<?php echo isset($_SESSION['idcliente']) ? obtenerNombreCliente($conn, $_SESSION['idcliente']) : ''; ?>">
+
     <div id="resultados" class="mt-2" style="display: none;"></div> 
 </div>
+
+<?php
+function obtenerNombreCliente($conn, $idcliente) {
+    if (!$conn) {
+        return 'Error en la conexión a la base de datos.';
+    }
+
+    $sql = "SELECT nombre_cliente, apellido_cliente, apellido2_cliente 
+            FROM cliente WHERE idcliente = ?";
+    $stmt = $conn->prepare($sql);
+    if (!$stmt) {
+        return 'Error en la preparación de la consulta.';
+    }
+
+    $stmt->bind_param("i", $idcliente);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($row = $result->fetch_assoc()) {
+        return $row['nombre_cliente'] . ' ' . $row['apellido_cliente'] . ' ' . $row['apellido2_cliente'];
+    } else {
+        return 'Cliente no encontrado.';
+    }
+}
+
+?>
 
 <div class="container">
     <form method="POST" action="pagos.php">
@@ -305,7 +359,14 @@ $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
             <i class="fi fi-rr-save"></i>
             GUARDAR PEDIDO
         </button>
+        
+        <!-- Botón para cancelar todo -->
+        <button type="submit" name="cancelar_todo" class="btn btn-danger">
+            <i class="fi fi-rr-trash"></i>
+            CANCELAR TODO
+        </button>
     </form>
+    
     <div class="total-cost">
         <h5>Total: <?php echo number_format($total, 2); ?> Bs</h5>
     </div>
@@ -374,9 +435,10 @@ $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
             </div>
         <?php else: ?>
             <p>No hay productos seleccionados.</p>
-        <?php endif; ?>
+        <?php endif; ?> 
     </div>
 </div>
+
 
 <?php 
 include_once "pie.php"; 
