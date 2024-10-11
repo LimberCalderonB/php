@@ -19,6 +19,7 @@ include_once "../../conexion.php"; // Asegúrate de incluir tu conexión a la ba
                     <thead>
                         <tr>
                             <th>Fecha de Pedido</th>
+                            <th>Fecha de Venta</th>
                             <th>Responsable</th>
                             <th>Cliente</th>
                             <th>Productos</th>
@@ -51,6 +52,7 @@ include_once "../../conexion.php"; // Asegúrate de incluir tu conexión a la ba
                                 // Muestra cada pedido en una fila de la tabla
                                 echo "<tr>";
                                     echo "<td>" . $row['fecha'] . "</td>";
+                                    echo "<td>" . $row['fecha'] . "</td>";
                                     echo "<td>" . $row['responsable'] . "</td>"; // Mostrando el responsable
                                     echo "<td>" . $row['cliente'] . "</td>";
                                     echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>"; // Función para obtener productos
@@ -59,14 +61,15 @@ include_once "../../conexion.php"; // Asegúrate de incluir tu conexión a la ba
                                     echo "<td>
                                     
                                         <form method='POST' action='pedidos/atender_pedido.php'>
-        <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-        <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
-    </form>
+                                            <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
+                                            <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
+                                        </form>
                                     
                                         <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
                                             <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
                                             <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Cancelar</button>
                                         </form>
+                                    
                                         <a href='#' class='btn-accion btn-detalles'>Detalles</a>
                                     </td>";
                                 echo "</tr>";

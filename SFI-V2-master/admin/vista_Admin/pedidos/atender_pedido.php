@@ -5,14 +5,14 @@ session_start();
 
 // Verificamos si existe la sesión de productos seleccionados, si no, la creamos
 if (!isset($_SESSION['productos_seleccionados'])) {
-    $_SESSION['productos_seleccionados'] = [];
+    $_SESSION['productos_seleccionados'] = []; // Inicializa como un arreglo vacío si no existe
 }
 
 if (isset($_POST['atender_pedido'])) {
     $idpedido = $_POST['idpedido'];
 
     // Consulta para obtener los productos y el cliente asociados al pedido
-    $sql = "SELECT c.idcliente, c.nombre_cliente, c.apellido_cliente, c.apellido2_cliente, 
+    $sql = "SELECT p.idpedido, s.idsolicitud, c.idcliente, c.nombre_cliente, c.apellido_cliente, c.apellido2_cliente, 
                    pr.idproducto, pr.nombre, pr.precio, pr.talla, pr.descuento, ct.nombre AS categoria_nombre
             FROM pedido p
             JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
@@ -36,6 +36,9 @@ if (isset($_POST['atender_pedido'])) {
         if (!$cliente_asignado) {
             // Asignar los datos del cliente solo una vez
             $_SESSION['idcliente'] = $producto['idcliente'];
+            $_SESSION['nombre_cliente'] = $producto['nombre_cliente'] . ' ' . $producto['apellido_cliente'] . ' ' . $producto['apellido2_cliente'];
+            $_SESSION['idpedido'] = $producto['idpedido'];
+            $_SESSION['idsolicitud'] = $producto['idsolicitud'];
             $cliente_asignado = true;
         }
 

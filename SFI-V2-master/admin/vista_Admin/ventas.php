@@ -22,17 +22,60 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
 <div class="full-width panel-tittle bg-primary text-center tittles">
     P R O D U C T O S - V E N D I D O S
 </div>
+<br>
 
-<div class="btn-container">
-    <form method="post" action="../generarPDF/todo_venta_pdf.php" target="_blank">
-        <input type="hidden" name="ventasDirectas" value="<?php echo htmlspecialchars(json_encode($ventasDirectas)); ?>">
-        <input type="hidden" name="ventasPedidos" value="<?php echo htmlspecialchars(json_encode($ventasPedidos)); ?>">
-        <button type="submit" class="btn-descargar">
-            DESCARGAR DATOS   
-            <i class="fi fi-rs-down-to-line"></i>
-        </button>
-    </form>
+<!-- Menú de cartas con iconos -->
+<div class="menu-container">
+    <div class="card" onclick="location.href='mas_vendidos.php'">
+        <i class="fa fa-chart-line"></i>
+        <h3>Más Vendidos</h3>
+    </div>
+    <div class="card" onclick="location.href='menos_vendidos.php'">
+        <i class="fa fa-chart-bar"></i>
+        <h3>Menos Vendidos</h3>
+    </div>
+    <div class="card" onclick="location.href='responsables.php'">
+        <i class="fa fa-user-tie"></i>
+        <h3>Responsables</h3>
+    </div>
 </div>
+
+<!-- Botón para descargar las ventas en PDF -->
+
+
+<!-- Formulario para filtrar ventas por fecha con animación mejorada -->
+
+<div class="container row">
+    <!-- Filtro de Fechas -->
+    <div class="filter-container col-12">
+        <form method="get" action="ventas.php" class="filter-form">
+            <div class="date-row">
+                <div class="date-group">
+                    <label for="fecha_inicio" class="animated-label">Fecha Inicio:</label>
+                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="input-fecha">
+                </div>
+                <div class="date-group">
+                    <label for="fecha_fin" class="animated-label">Fecha Fin:</label>
+                    <input type="date" name="fecha_fin" id="fecha_fin" class="input-fecha">
+                </div>
+                <button type="submit" class="btn-filtrar">Filtrar</button>
+            </div>
+            
+        </form>
+    </div>
+
+    <!-- Botón de Exportar -->
+    <div class="btn-container col-12">
+        <form method="post" action="../generarPDF/todo_venta_pdf.php" target="_blank">
+            <input type="hidden" name="ventasDirectas" value="<?php echo htmlspecialchars(json_encode($ventasDirectas)); ?>">
+            <input type="hidden" name="ventasPedidos" value="<?php echo htmlspecialchars(json_encode($ventasPedidos)); ?>">
+            <button type="submit" class="btn-exportar">Exportar Datos</button>
+        </form>
+    </div>
+</div>
+
+
+
 <!-- Tabla de Ventas Directas -->
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
     <div class="mdl-tabs__panel is-active" id="tabNewAdmin">
@@ -48,7 +91,7 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
                                 <th>PRODUCTO(S)</th>
                                 <th>CLIENTE</th>
                                 <th>PRECIO TOTAL</th>
-                                <th>FACTURA</th>
+                                <th>ACCIONES</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -69,21 +112,33 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
                                     <td><?php echo htmlspecialchars($venta['precio_total']); ?></td>
                                     <td>
                                         <div class="btn-container">
-                                            <?php if (isset($venta['idventa'])): ?>
-                                                <a href="../generarPDF/venta_pdf.php?id=<?php echo urlencode($venta['idventa']); ?>" target="_blank">
-                                                    <button class="btn-descargar">
-                                                        <i class="fi fi-rs-down-to-line"></i>
-                                                    </button>
-                                                </a>
-                                            <?php else: ?>
-                                                <span>Sin ID</span>
-                                            <?php endif; ?>
+                                            <!-- Ver Detalles -->
+                                            <a href="detalle_venta.php?id=<?php echo urlencode($venta['idventa']); ?>" target="_blank">
+                                                <button class="btn-ver btn-accion">Ver Detalles</button>
+                                            </a>
+                                            
+                                            <!-- Editar Venta -->
+                                            <a href="editar_venta.php?id=<?php echo urlencode($venta['idventa']); ?>">
+                                                <button class="btn-editar btn-accion">Editar</button>
+                                            </a>
+                                            
+                                            <!-- Eliminar Venta -->
+                                            <form action="eliminar_venta.php" method="post" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta venta?');">
+                                                <input type="hidden" name="idventa" value="<?php echo urlencode($venta['idventa']); ?>">
+                                                <button class="btn-eliminar btn-accion">Eliminar</button>
+                                            </form>
+                                            
+                                            <!-- Reimprimir Recibo -->
+                                            <a href="../generarPDF/venta.php?id=<?php echo urlencode($venta['idventa']); ?>" target="_blank">
+                                                <button class="btn-reimprimir btn-accion">PDF</button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+
                     <!-- Controles de Paginación para Ventas Directas -->
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
@@ -98,7 +153,274 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
             </div>
         </div>
     </div>
+</div>
+
 <?php
 include_once "pie.php";
-include_once 'validaciones/val_ventas.php';
 ?>
+
+<!-- Estilos separados -->
+
+<!-- Estilos del menú superior -->
+<style>
+/* Contenedor del menú */
+.menu-container {
+    display: flex;
+    justify-content: left;
+    gap: 20px; /* Espacio entre cartas */
+    margin-bottom: 20px;
+    margin-left: 20px;
+}
+
+/* Estilo de las cartas */
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 150px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Icono dentro de la carta */
+.card i {
+    font-size: 40px;
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+/* Título dentro de la carta */
+.card h3 {
+    font-size: 16px;
+    color: #333;
+    margin-top: 10px;
+}
+
+/* Efecto hover: Crecimiento y sombra */
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilos adicionales para los íconos */
+.fa-chart-line, .fa-chart-bar, .fa-user-tie {
+    color: #007bff; /* Color del ícono */
+}
+
+/* Transiciones suaves al hacer hover */
+.card:hover i {
+    color: #0056b3;
+}
+</style>
+
+<!--Estilos de los botones de accion-->
+<style>
+.btn-container {
+    display: flex; /* Alinea los botones en una sola fila */
+    gap: 10px; /* Espacio entre los botones */
+}
+
+.btn-accion {
+    padding: 5px 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    color: white; 
+}
+
+/* Diferentes colores para cada botón */
+.btn-ver {
+    background-color: #17a2b8;
+}
+
+.btn-ver:hover {
+    background-color: #138496;
+}
+
+.btn-editar {
+    background-color: #ffc107;
+}
+
+.btn-editar:hover {
+    background-color: #e0a800;
+}
+
+.btn-eliminar {
+    background-color: #dc3545;
+}
+
+.btn-eliminar:hover {
+    background-color: #c82333;
+}
+
+.btn-reimprimir {
+    background-color: #6c757d;
+}
+
+.btn-reimprimir:hover {
+    background-color: #5a6268;
+}
+</style>
+
+<style>
+/* Contenedor de la paginación */
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin: 20px 0;
+    list-style: none;
+    gap: 10px; /* Espacio entre botones */
+}
+
+/* Estilo general de los botones de paginación */
+.page-item {
+    display: inline-block;
+}
+
+.page-link {
+    color: #007bff; /* Color del texto del botón */
+    background-color: white; /* Fondo del botón */
+    border: 1px solid #007bff; /* Borde del botón */
+    padding: 8px 16px; /* Espaciado dentro del botón */
+    border-radius: 5px; /* Bordes redondeados */
+    text-decoration: none; /* Quitar subrayado */
+    transition: background-color 0.3s, color 0.3s, transform 0.3s; /* Efectos de transición */
+}
+
+/* Efecto hover para los botones */
+.page-link:hover {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.05); /* Efecto de agrandamiento */
+}
+
+/* Estilos para el botón activo */
+.page-item.active .page-link {
+    background-color: #0056b3; /* Fondo del botón activo */
+    color: white; /* Color del texto del botón activo */
+    border-color: #0056b3; /* Borde del botón activo */
+    font-weight: bold; /* Negrita en el botón activo */
+    transform: scale(1.1); /* Efecto de crecimiento en el botón activo */
+}
+
+/* Quitar el focus outline al hacer clic */
+.page-link:focus {
+    outline: none;
+}
+</style>
+<style>
+    /* Estilo para centrar el contenido de las celdas de la tabla */
+.mdl-data-table th, .mdl-data-table td {
+    text-align: center; /* Centra el texto en los encabezados y celdas */
+}
+
+/* Opcional: ajustar la altura de las filas para mejor apariencia */
+.mdl-data-table tr {
+    height: 50px; /* Altura de la fila */
+}
+
+</style>
+
+<style>
+/* Estilos generales */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+.filter-container, .btn-container {
+    margin: 7px 0;
+}
+
+.filter-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 7px;
+    align-items: center;
+}
+
+.date-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.animated-label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.input-fecha {
+    padding: 5px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+    width: 80%;
+}
+
+.input-fecha:hover, .input-fecha:focus {
+    border-color: #007bff;
+}
+
+/* Botones */
+.btn-filtrar, .btn-exportar {
+    padding: 5px 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.btn-filtrar {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-filtrar:hover {
+    background-color: #218838;
+}
+
+.btn-exportar {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-exportar:hover {
+    background-color: #138496;
+}
+
+/* Estilo responsive */
+@media (max-width: 768px) {
+    .date-row {
+        flex-direction: column;
+    }
+
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .filter-container, .btn-container {
+        width: 100%;
+    }
+}
+
+
+</style>
