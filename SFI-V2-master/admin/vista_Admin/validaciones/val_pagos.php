@@ -1,3 +1,48 @@
+<script>// Escuchar cambios en el checkbox
+document.getElementById('habilitar-venta').addEventListener('change', function() {
+    var botonRealizarVenta = document.getElementById('realizar-venta');
+
+    if (this.checked) {
+        // Si el checkbox está marcado, habilitar el botón y cambiar el color
+        botonRealizarVenta.disabled = false;
+        botonRealizarVenta.classList.add('habilitado');
+    } else {
+        // Si el checkbox está desmarcado, deshabilitar el botón y volver al color opaco
+        botonRealizarVenta.disabled = true;
+        botonRealizarVenta.classList.remove('habilitado');
+    }
+});
+</script>
+
+<script>document.addEventListener('DOMContentLoaded', function () {
+    // Checkbox para habilitar el botón de Guardar Pedido y el buscador
+    const checkboxPedido = document.getElementById('habilitar-pedido');
+    const btnGuardarPedido = document.getElementById('guardar-pedido');
+    const campoBuscar = document.getElementById('buscar');
+    
+    checkboxPedido.addEventListener('change', function () {
+        if (this.checked) {
+            // Habilitar el botón de Guardar Pedido y el campo de búsqueda
+            btnGuardarPedido.disabled = false;
+            btnGuardarPedido.style.backgroundColor = '#6c757d'; // Color gris
+            btnGuardarPedido.style.opacity = '1'; // Activado
+
+            campoBuscar.disabled = false;
+            campoBuscar.style.backgroundColor = ''; // Restablecer fondo del campo de búsqueda
+        } else {
+            // Deshabilitar el botón de Guardar Pedido y el campo de búsqueda
+            btnGuardarPedido.disabled = true;
+            btnGuardarPedido.style.backgroundColor = ''; // Color por defecto
+            btnGuardarPedido.style.opacity = '0.5'; // Opaco
+
+            campoBuscar.disabled = true;
+            campoBuscar.style.backgroundColor = '#e9ecef'; // Fondo gris claro para indicar que está deshabilitado
+        }
+    });
+});
+
+</script>
+
 <!--SCRIPT DEL BUSCADOR -->
 <script>
 document.getElementById('buscar').addEventListener('input', function() {
@@ -116,27 +161,6 @@ function cancelarProducto(idproducto, cantidadMaxima) {
 </script>
 
 <style>
-/* Botón para realizar la venta */
-.btn-realizar-venta {
-    background-color: #176098; /* Color de fondo del botón */
-    color: white; /* Color del texto del botón */
-    padding: 10px 20px; /* Espaciado interno del botón */
-    border: none; /* Sin borde */
-    border-radius: 5px; /* Bordes redondeados */
-    font-size: 1rem; /* Tamaño de fuente del texto */
-    display: flex; /* Flexbox para alinear el contenido */
-    align-items: center; /* Alinea verticalmente el contenido */
-    transition: transform 0.2s ease-in-out; /* Transición suave al hacer hover */
-}
-
-.btn-realizar-venta i {
-    margin-right: 5px; /* Espacio entre el icono y el texto */
-}
-
-/* Efecto hover en el botón de venta */
-.btn-realizar-venta:hover {
-    transform: translateY(-5px); /* Mueve el botón hacia arriba al pasar el mouse */
-}
 
 /* Coste total, alineado a la derecha */
 .total-cost {

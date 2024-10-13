@@ -23,43 +23,43 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
     P R O D U C T O S - V E N D I D O S
 </div>
 <br>
+<!-- Botones como cartas -->
+                <div class="menu-container">
+                    <div class="card card-completados" onclick="location.href='pendientes.php'">
+                        <h3>Productos Mas Vendidos</h3>
+                        <i class="fi fi-sr-shopping-cart-add"></i>
+                    </div>
+                    <div class="card card-pendientes" onclick="location.href='mas_vendidos.php'">
+                        <h3>Productos Menos Vendidos</h3>
+                        <i class="fi fi-ss-cart-minus"></i>
+                    </div>
+                    <div class="card card-menos-vendidos" onclick="location.href='menos_vendidos.php'">
+                        <h3>Menos Vendidos</h3>
+                        <i class="fa fa-chart-bar"></i>
+                    </div>
+                </div>
 
-<!-- Menú de cartas con iconos -->
-<div class="menu-container">
-    <div class="card" onclick="location.href='mas_vendidos.php'">
-        <i class="fa fa-chart-line"></i>
-        <h3>Más Vendidos</h3>
-    </div>
-    <div class="card" onclick="location.href='menos_vendidos.php'">
-        <i class="fa fa-chart-bar"></i>
-        <h3>Menos Vendidos</h3>
-    </div>
-    <div class="card" onclick="location.href='responsables.php'">
-        <i class="fa fa-user-tie"></i>
-        <h3>Responsables</h3>
-    </div>
-</div>
-
-<!-- Botón para descargar las ventas en PDF -->
-
-
+                <div class="search-container text-center">
+                    <form method="GET" action="">
+                        <input type="text" name="busqueda" class="search-input" placeholder="Buscardor..." />
+                    </form>
+                </div>
 <!-- Formulario para filtrar ventas por fecha con animación mejorada -->
 
 <div class="container row">
     <!-- Filtro de Fechas -->
     <div class="filter-container col-12">
         <form method="get" action="ventas.php" class="filter-form">
-            <div class="date-row">
-                <div class="date-group">
-                    <label for="fecha_inicio" class="animated-label">Fecha Inicio:</label>
-                    <input type="date" name="fecha_inicio" id="fecha_inicio" class="input-fecha">
+
+            <div class="date-filter-container text-left">
+                    <form method="GET" action="">
+                        <label for="fecha_inicio">Desde:</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" />
+                        <label for="fecha_fin">Hasta:</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" />
+                        <button type="submit" class="btn-filter">Filtrar</button>
+                    </form>
                 </div>
-                <div class="date-group">
-                    <label for="fecha_fin" class="animated-label">Fecha Fin:</label>
-                    <input type="date" name="fecha_fin" id="fecha_fin" class="input-fecha">
-                </div>
-                <button type="submit" class="btn-filtrar">Filtrar</button>
-            </div>
             
         </form>
     </div>
@@ -69,7 +69,7 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
         <form method="post" action="../generarPDF/todo_venta_pdf.php" target="_blank">
             <input type="hidden" name="ventasDirectas" value="<?php echo htmlspecialchars(json_encode($ventasDirectas)); ?>">
             <input type="hidden" name="ventasPedidos" value="<?php echo htmlspecialchars(json_encode($ventasPedidos)); ?>">
-            <button type="submit" class="btn-exportar">Exportar Datos</button>
+            <button type="submit" class="btn-exportar">Detalles PDF</button>
         </form>
     </div>
 </div>
@@ -159,61 +159,64 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
 include_once "pie.php";
 ?>
 
-<!-- Estilos separados -->
-
-<!-- Estilos del menú superior -->
 <style>
-/* Contenedor del menú */
+/* Estilos para el contenedor de tarjetas */
 .menu-container {
     display: flex;
-    justify-content: left;
-    gap: 20px; /* Espacio entre cartas */
-    margin-bottom: 20px;
-    margin-left: 20px;
+    justify-content: 10px; /* Espacio entre las cartas */
+    margin: 10px 0; /* Espaciado vertical */
+    flex-wrap: wrap; /* Permitir que las cartas se envuelvan en varias líneas */
 }
 
-/* Estilo de las cartas */
+/* Estilos generales para cada carta */
 .card {
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    width: 150px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 15px 20px;
+    width: 210px; /* Ajusta el ancho */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    transition: transform 0.2s; /* Transición suave */
+    margin: 7px; /* Espaciado entre cartas */
 }
 
-/* Icono dentro de la carta */
-.card i {
-    font-size: 40px;
-    color: #007bff;
-    margin-bottom: 10px;
-}
-
-/* Título dentro de la carta */
+/* Estilo para el texto */
 .card h3 {
-    font-size: 16px;
-    color: #333;
-    margin-top: 10px;
+    margin: 0;
+    font-size: 16px; /* Reducir el tamaño de la letra */
+    text-align: left;
 }
 
-/* Efecto hover: Crecimiento y sombra */
+/* Estilo para los iconos */
+.card i {
+    font-size: 45px; /* Tamaño del ícono */
+    margin-left: 5px; /* Espacio entre el texto y el ícono */
+}
+
+/* Efecto hover */
 .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    transform: scale(1.05); /* Aumenta ligeramente el tamaño al pasar el mouse */
 }
 
-/* Estilos adicionales para los íconos */
-.fa-chart-line, .fa-chart-bar, .fa-user-tie {
-    color: #007bff; /* Color del ícono */
+/* Colores individuales */
+.card-completados {
+    background-color: #4CAF50; /* Color verde para completados */
+    color: white;
 }
 
-/* Transiciones suaves al hacer hover */
-.card:hover i {
-    color: #0056b3;
+.card-pendientes {
+    background-color: #FF9800; /* Color naranja para pendientes */
+    color: white;
+}
+
+.card-menos-vendidos {
+    background-color: #F44336; /* Color rojo para menos vendidos */
+    color: white;
 }
 </style>
+
 
 <!--Estilos de los botones de accion-->
 <style>
@@ -313,6 +316,7 @@ include_once "pie.php";
     outline: none;
 }
 </style>
+
 <style>
     /* Estilo para centrar el contenido de las celdas de la tabla */
 .mdl-data-table th, .mdl-data-table td {
@@ -379,8 +383,8 @@ include_once "pie.php";
 
 /* Botones */
 .btn-filtrar, .btn-exportar {
-    padding: 5px 10px;
-    font-size: 16px;
+    padding: 12px 15px;
+    font-size: 20px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -407,7 +411,7 @@ include_once "pie.php";
 }
 
 /* Estilo responsive */
-@media (max-width: 768px) {
+@media (max-width: 668px) {
     .date-row {
         flex-direction: column;
     }
@@ -421,6 +425,59 @@ include_once "pie.php";
         width: 100%;
     }
 }
+</style>
 
+<style>
+    /* Estilos para el buscador */
+.search-container {
+    margin: 20px 0;
+}
+
+.search-input {
+    width: 250px;
+    padding: 10px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-buscar {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-buscar:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para el filtro de fecha */
+.date-filter-container {
+    margin: 20px 0;
+    text-align: left; /* Alinear el contenido a la derecha */
+}
+
+.date-input {
+    padding: 10px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-filter {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-filter:hover {
+    background-color: #218838;
+}
 
 </style>

@@ -82,13 +82,14 @@ if (!empty($_SESSION['productos_seleccionados'])) {
 
 // Cancelar todos los productos
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_todo'])) {
-    // Consultar productos con estado 'agotado' y cantidad 1
+    
+    // Paso 1: Consultar productos con estado 'agotado' y cantidad 1
     $sql = "SELECT producto_idproducto FROM almacen WHERE estado = 'agotado' AND cantidad = 1";
     $stmt = $conn->prepare($sql);
     $stmt->execute();
     $resultado = $stmt->get_result();
 
-    // Actualizar el estado a 'disponible' para los productos encontrados
+    // Actualizar el estado a 'disponible' para los productos agotados encontrados
     while ($producto = $resultado->fetch_assoc()) {
         $idProducto = $producto['producto_idproducto'];
         $sql_update = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto = ?";
@@ -97,16 +98,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_todo'])) {
         $stmt_update->execute();
     }
 
-    // Limpiar los productos seleccionados de la sesión
+    // Paso 2: Restaurar el estado de los productos vinculados a un pedido
+    if (isset($_SESSION['idpedido'], $_SESSION['idsolicitud'])) {
+        $idSolicitud = $_SESSION['idsolicitud'];
+        
+        // Consultar productos que pertenecen a la solicitud/pedido actual
+        $sql_pedido_productos = "SELECT producto_solicitud.producto_idproducto, almacen.estado 
+                                 FROM producto_solicitud
+                                 INNER JOIN almacen ON producto_solicitud.producto_idproducto = almacen.producto_idproducto
+                                 WHERE producto_solicitud.solicitud_idsolicitud = ?";
+        $stmt_pedido_productos = $conn->prepare($sql_pedido_productos);
+        $stmt_pedido_productos->bind_param("i", $idSolicitud);
+        $stmt_pedido_productos->execute();
+        $resultado_pedido = $stmt_pedido_productos->get_result();
+        
+        // Restaurar el estado de los productos a 'espera' si cambiaron
+        while ($producto_pedido = $resultado_pedido->fetch_assoc()) {
+            $idProductoPedido = $producto_pedido['producto_idproducto'];
+            $estadoActual = $producto_pedido['estado'];
+
+            // Si el producto está en un estado diferente a 'espera', restaurarlo
+            if ($estadoActual !== 'espera') {
+                $sql_restore = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                $stmt_restore = $conn->prepare($sql_restore);
+                $stmt_restore->bind_param("i", $idProductoPedido);
+                $stmt_restore->execute();
+            }
+        }
+    }
+
+    // Paso 3: Limpiar los productos seleccionados de la sesión
     unset($_SESSION['productos_seleccionados']);
     unset($_SESSION['idcliente']);
-    unset($total); 
+    unset($_SESSION['idpedido']);
+    unset($_SESSION['idsolicitud']);
+    unset($total);
 
     // Redireccionar a pagos.php
     @header("Location: pagos.php");
-    exit(); // Asegurarse de que no se ejecute más código después de la redirección
-}
 
+}
 
 if (isset($_SESSION['idpedido'], $_SESSION['idsolicitud'], $_SESSION['idcliente'], $_SESSION['productos_seleccionados'])) {
     /*echo "<h3>Pedido ID: " . $_SESSION['idpedido'] . "</h3>";
@@ -120,6 +151,7 @@ if (isset($_SESSION['idpedido'], $_SESSION['idsolicitud'], $_SESSION['idcliente'
     }
     echo "</ul>";
 }
+
 // Procesar la venta
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
     if (!empty($_SESSION['productos_seleccionados'])) {
@@ -248,88 +280,181 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
             $usuario_idusuario = $_SESSION['user_id'];
             $solicitud_id = null;
 
-            // Verificar si hay un cliente seleccionado
-            if (!empty($_POST['idcliente'])) {
-                $cliente_id = intval($_POST['idcliente']);
+            // Verificar si estamos creando un nuevo pedido o actualizando uno existente
+            if (isset($_SESSION['idpedido'])) {
+                // Actualización de pedido existente
+                $pedido_id = $_SESSION['idpedido']; // ID del pedido existente
                 
-                // Verificar que el cliente existe
-                $sql = "SELECT * FROM cliente WHERE idcliente = ?";
+                // Obtener los productos ya vinculados a este pedido
+                $sql = "SELECT producto_idproducto FROM producto_solicitud WHERE solicitud_idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $cliente_id);
+                $stmt->bind_param("i", $pedido_id);
                 $stmt->execute();
                 $result = $stmt->get_result();
-            
-                if ($result->num_rows > 0) {
-                    // El cliente existe, proceder a crear la solicitud
-                    $sql = "INSERT INTO solicitud (cliente_idcliente, estado) VALUES (?, 'pendiente')";
+                $productos_en_pedido = [];
+                while ($row = $result->fetch_assoc()) {
+                    $productos_en_pedido[] = $row['producto_idproducto'];
+                }
+
+                // Procesar los productos seleccionados actualmente en la sesión
+                foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                    if (in_array($idproducto, $productos_en_pedido)) {
+                        // Si el producto ya está en el pedido, actualizar su estado
+                        $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("i", $idproducto);
+                        $stmt->execute();
+                    } else {
+                        // Si es un nuevo producto, agregarlo al pedido
+                        $sql = "INSERT INTO producto_solicitud (producto_idproducto, solicitud_idsolicitud) VALUES (?, (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?))";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("ii", $idproducto, $pedido_id);
+                        $stmt->execute();
+
+                        // Actualizar el estado del producto en la tabla almacen
+                        $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("i", $idproducto);
+                        $stmt->execute();
+                    }
+                }
+
+                // Eliminar los productos que se han quitado del pedido
+                $productos_seleccionados_ids = array_keys($_SESSION['productos_seleccionados']);
+                $productos_a_eliminar = array_diff($productos_en_pedido, $productos_seleccionados_ids);
+
+                foreach ($productos_a_eliminar as $idproducto_eliminar) {
+                    // Eliminar la relación entre el producto y el pedido
+                    $sql = "DELETE FROM producto_solicitud WHERE producto_idproducto = ? AND solicitud_idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ii", $idproducto_eliminar, $pedido_id);
+                    $stmt->execute();
+
+                    // Cambiar el estado del producto a 'disponible'
+                    $sql = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $idproducto_eliminar);
+                    $stmt->execute();
+                }
+
+                // Editar el cliente asociado al pedido si fue modificado
+                if (!empty($_POST['idcliente'])) {
+                    $cliente_id = intval($_POST['idcliente']);
+
+                    // Verificar que el cliente existe
+                    $sql = "SELECT * FROM cliente WHERE idcliente = ?";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param("i", $cliente_id);
                     $stmt->execute();
-                    $solicitud_id = $stmt->insert_id; // Obtener el ID de la nueva solicitud
-                } else {
-                    throw new Exception("El cliente no existe.");
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows > 0) {
+                        // Actualizar la solicitud con el nuevo cliente
+                        $sql = "UPDATE solicitud SET cliente_idcliente = ? WHERE idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("ii", $cliente_id, $pedido_id);
+                        $stmt->execute();
+                    } else {
+                        throw new Exception("El cliente no existe.");
+                    }
                 }
+                
+
+                // Confirmar la transacción para la actualización
+                $conn->commit();
+                echo "<script>
+                        Swal.fire({
+                          icon: 'success',
+                          title: 'Pedido actualizado correctamente',
+                          showConfirmButton: false,
+                          timer: 2000
+                        });
+                      </script>";
+                echo "<script>window.location.reload();</script>";
+                unset($_SESSION['productos_seleccionados']);
+                unset($_SESSION['idcliente']);
+                unset($_SESSION['idpedido']);
+                unset($total);
+
             } else {
-                throw new Exception("Debe seleccionar un cliente.");
+                // Creación de nuevo pedido (mismo código que ya teníamos)
+                if (!empty($_POST['idcliente'])) {
+                    $cliente_id = intval($_POST['idcliente']);
+
+                    // Verificar que el cliente existe
+                    $sql = "SELECT * FROM cliente WHERE idcliente = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $cliente_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($result->num_rows > 0) {
+                        // El cliente existe, proceder a crear la solicitud
+                        $sql = "INSERT INTO solicitud (cliente_idcliente, estado) VALUES (?, 'pendiente')";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("i", $cliente_id);
+                        $stmt->execute();
+                        $solicitud_id = $stmt->insert_id;
+
+                        // Insertar los productos asociados a la solicitud
+                        foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                            $sql = "INSERT INTO producto_solicitud (producto_idproducto, solicitud_idsolicitud) VALUES (?, ?)";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("ii", $idproducto, $solicitud_id);
+                            $stmt->execute();
+
+                            // Actualizar el estado del producto a 'espera' en la tabla almacen
+                            $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                            $stmt = $conn->prepare($sql);
+                            $stmt->bind_param("i", $idproducto);
+                            $stmt->execute();
+                        }
+
+                        // Crear el nuevo pedido vinculado a la solicitud y al usuario
+                        $sql = "INSERT INTO pedido (solicitud_idsolicitud, usuario_idusuario) VALUES (?, ?)";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->bind_param("ii", $solicitud_id, $usuario_idusuario);
+                        $stmt->execute();
+                        $pedido_id = $stmt->insert_id;
+
+                        // Guardar el ID del pedido en la sesión para futuras actualizaciones
+                        $_SESSION['idpedido'] = $pedido_id;
+
+                        // Confirmar transacción
+                        $conn->commit();
+
+                        // Vaciar la sesión de productos seleccionados
+                        unset($_SESSION['productos_seleccionados']);
+                        unset($_SESSION['idcliente']);
+                        unset($_SESSION['idpedido']);
+                        unset($total);
+
+                        echo "<script>
+                                Swal.fire({
+                                  icon: 'success',
+                                  title: 'Pedido guardado correctamente',
+                                  showConfirmButton: false,
+                                  timer: 2000
+                                });
+                              </script>";
+                        echo "<script>window.location.reload();</script>";
+                    } else {
+                        throw new Exception("El cliente no existe.");
+                    }
+                } else {
+                    throw new Exception("Debe seleccionar un cliente.");
+                }
             }
-
-            // Insertar los productos asociados a la solicitud
-            foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
-                // Insertar en producto_solicitud
-                $sql = "INSERT INTO producto_solicitud (producto_idproducto, solicitud_idsolicitud) VALUES (?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ii", $idproducto, $solicitud_id);
-                $stmt->execute();
-
-                // Actualizar el estado del producto a 'espera' en la tabla almacen
-                $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("i", $idproducto);
-                $stmt->execute();
-            }             
-
-            // Crear un pedido en la tabla pedido vinculado a la solicitud y al usuario responsable
-                $sql = "INSERT INTO pedido (solicitud_idsolicitud, usuario_idusuario) VALUES (?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("ii", $solicitud_id, $usuario_idusuario); // $usuario_idusuario viene de la sesión
-                $stmt->execute();
-                $pedido_id = $stmt->insert_id; // Obtener el ID del nuevo pedido
-
-            // Vacía los productos seleccionados de la sesión
-            unset($_SESSION['idcliente']);
-            unset($_SESSION['nombre_cliente']);
-            unset($_SESSION['productos_seleccionados']);
-
-            unset($total);
-            // Confirmar transacción
-            $conn->commit();
-            echo "<script>
-                    const Toast = Swal.mixin({
-                      toast: true,
-                      position: 'top-end',
-                      showConfirmButton: false,
-                      timer: 2000,
-                      timerProgressBar: true,
-                      didOpen: (toast) => {
-                        toast.onmouseenter = Swal.stopTimer;
-                        toast.onmouseleave = Swal.resumeTimer;
-                      }
-                    });
-                    Toast.fire({
-                      icon: 'success',
-                      title: 'Pedido guardado'
-                    });
-                  </script>";
-                  echo "<script>window.location.reload();</script>";
-
         } catch (Exception $e) {
             // Revertir la transacción en caso de error
             $conn->rollback();
-            echo "Error al guardar el pedido: " . $e->getMessage();
+            echo "Error: " . $e->getMessage();
         }
         $conn->close();
     }
 }
+
+
 //print_r($_SESSION);
 
 ?>
@@ -338,12 +463,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
     PRODUCTOS SELECCIONADOS
 </div>
 <br>
+
+<div class="conteiner";>
+<form method="POST" action="pagos.php" class="d-flex align-items-center flex-wrap mb-3">
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
+    <!-- Checkbox para habilitar el botón de venta -->
+    <div class="form-check me-3">
+        <input type="checkbox" class="form-check-input" id="habilitar-venta">
+        <label class="form-check-label" for="habilitar-venta">Habilitar Botón de Venta</label>
+    </div>
+    
+    <!-- Botón deshabilitado por defecto -->
+    <button id="realizar-venta" name="realizar_venta" class="btn btn-realizar-venta me-3" disabled>
+        <i class="fi fi-rr-dollar"></i>
+        REALIZAR VENTA
+    </button>
+
+    <!-- Checkbox para habilitar el botón de guardar pedido -->
+    <div class="form-check me-3">
+        <input type="checkbox" class="form-check-input" id="habilitar-pedido">
+        <label class="form-check-label" for="habilitar-pedido">Habilitar Botón de Guardar Pedido</label>
+    </div>
+
+    <input type="hidden" name="idcliente" id="idcliente">
+    
+    <!-- Botón para guardar pedido deshabilitado por defecto -->
+    <button id="guardar-pedido" name="guardar_pedido" class="btn btn-guardar-pedido me-3" disabled>
+        <i class="fi fi-rr-save"></i>
+        GUARDAR PEDIDO
+    </button>
+    
+    <!-- Botón para cancelar todo -->
+    <button type="submit" name="cancelar_todo" class="btn btn-danger me-3">
+        <i class="fi fi-rr-trash"></i>
+        CANCELAR TODO
+    </button>
+    
+    <!-- Botón "Ver Pedidos" -->
+    <button type="button" id="ver-pedidos" class="btn" onclick="location.href='pedidos.php'">
+        VER PEDIDOS
+    </button>
+</form>
+
+</div>
+
 <div class="container text-center" style="position: relative;">
     <!-- Campo de búsqueda de clientes -->
-    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control"
-        value="<?php echo isset($_SESSION['idcliente']) ? obtenerNombreCliente($conn, $_SESSION['idcliente']) : ''; unset($_SESSION['idcliente']);
-unset($_SESSION['nombre_cliente']);
-?>">
+    <!-- Campo de búsqueda de clientes deshabilitado por defecto -->
+    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control" disabled 
+        value="<?php echo isset($_SESSION['idcliente']) ? obtenerNombreCliente($conn, $_SESSION['idcliente']) : ''; ?>">
+
 
     <div id="resultados" class="mt-2" style="display: none;"></div> 
 </div>
@@ -375,25 +545,7 @@ function obtenerNombreCliente($conn, $idcliente) {
 ?>
 
 <div class="container">
-    <form method="POST" action="pagos.php">
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-
-        <button id="realizar-venta" name="realizar_venta" class="btn btn-primary btn-realizar-venta">
-            <i class="fi fi-rr-dollar"></i>
-            REALIZAR VENTA
-        </button>
-        <input type="hidden" name="idcliente" id="idcliente">
-        <button id="guardar-pedido" name="guardar_pedido" class="btn btn-secondary btn-guardar-pedido">
-            <i class="fi fi-rr-save"></i>
-            GUARDAR PEDIDO
-        </button>
-        
-        <!-- Botón para cancelar todo -->
-        <button type="submit" name="cancelar_todo" class="btn btn-danger">
-            <i class="fi fi-rr-trash"></i>
-            CANCELAR TODO
-        </button>
-    </form>
+   
     
     <div class="total-cost">
         <h5>Total: <?php echo number_format(@$total, 2); ?> Bs</h5>
@@ -467,8 +619,85 @@ function obtenerNombreCliente($conn, $idcliente) {
     </div>
 </div>
 
-
 <?php 
 include_once "pie.php"; 
 include_once "validaciones/val_pagos.php";
 ?>
+
+<style>
+/* Botón para realizar la venta */ 
+.btn-realizar-venta {
+    background-color: #cfcfcf; /* Color gris para indicar que está deshabilitado */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease-in-out;
+    cursor: not-allowed; /* Cursor no permitido cuando está deshabilitado */
+}
+
+.btn-realizar-venta i {
+    margin-right: 5px;
+}
+
+.btn-realizar-venta.habilitado {
+    background-color: #176098; /* Azul oscuro cuando se habilita */
+    cursor: pointer; /* Cambia a cursor pointer cuando está habilitado */
+}
+
+/* Efecto hover cuando el botón está habilitado */
+.btn-realizar-venta.habilitado:hover {
+    transform: translateY(-5px);
+}
+
+/* Botón para guardar el pedido */
+.btn-guardar-pedido {
+    background-color: #6c757d; /* Color de fondo gris */
+    color: white; /* Color del texto */
+    padding: 10px 20px; /* Espaciado interno */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes redondeados */
+    font-size: 1rem; /* Tamaño de fuente */
+    display: flex; /* Flexbox para alinear el contenido */
+    align-items: center; /* Alinea verticalmente el contenido */
+    transition: transform 0.2s ease-in-out; /* Transición suave en hover */
+}
+
+/* Efecto hover para el botón de guardar pedido */
+.btn-guardar-pedido:hover {
+    transform: translateY(-5px); /* Mueve el botón hacia arriba */
+}
+
+/* Botón de realizar venta deshabilitado */
+#realizar-venta:disabled {
+    opacity: 0.5; /* Hace el botón más opaco */
+}
+
+/* Botón de guardar pedido deshabilitado */
+#guardar-pedido:disabled {
+    opacity: 0.5; /* Hace el botón más opaco */
+}
+
+/* Estilos para el botón "Ver Pedidos" */
+#ver-pedidos {
+    background-color: #17a2b8; /* Color azul claro */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-left: 10px; /* Espacio a la izquierda */
+    text-decoration: none; /* Sin subrayado */
+    display: inline-flex; /* Alinear icono y texto */
+    align-items: center; /* Centrar verticalmente */
+}
+
+#ver-pedidos:hover {
+    background-color: #138496; /* Color más oscuro al pasar el ratón */
+}
+
+</style>
