@@ -173,6 +173,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             if ($es_venta_pedido) {
                 $idpedido = $_SESSION['idpedido'];
 
+                // Actualizar el cliente seleccionado
+                if (!empty($_POST['idcliente'])) {
+                    $cliente_id = intval($_POST['idcliente']);
+                    $sql = "UPDATE solicitud SET cliente_idcliente = ? WHERE idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ii", $cliente_id, $idpedido);
+                    $stmt->execute();
+                }
+
+                // Eliminar productos que fueron quitados del pedido
+                $sql = "DELETE FROM producto_solicitud WHERE solicitud_idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?) AND producto_idproducto NOT IN (".implode(',', array_keys($_SESSION['productos_seleccionados'])).")";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $idpedido);
+                $stmt->execute();
+
+                // Insertar productos nuevos en el pedido
+                foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
+                    $sql = "INSERT INTO producto_solicitud (producto_idproducto, solicitud_idsolicitud) SELECT ?, solicitud_idsolicitud FROM pedido WHERE idpedido = ? ON DUPLICATE KEY UPDATE producto_idproducto = producto_idproducto";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("ii", $idproducto, $idpedido);
+                    $stmt->execute();
+                }
+
                 // Insertar en la tabla pedido_venta
                 $sql = "INSERT INTO pedido_venta (pedido_idpedido) VALUES (?)";
                 $stmt = $conn->prepare($sql);
@@ -193,7 +216,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 
             $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_venta_idpedido_venta) VALUES (?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            // Si no es una venta de pedido, $pedido_venta_idpedido_venta será NULL
             if (!$es_venta_pedido) {
                 $pedido_venta_idpedido_venta = NULL;
             }
@@ -212,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
 
                 // Reducir la cantidad en el almacén
                 $sql = "UPDATE almacen SET cantidad = cantidad - 1 WHERE producto_idproducto = ? AND cantidad > 0";
-                $stmt = $conn->prepare($sql);
+                $stmt->prepare($sql);
                 $stmt->bind_param("i", $idproducto);
                 $stmt->execute();
 
@@ -222,17 +244,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                 $stmt->execute();
             }
 
+            // Confirmar la transacción
             $conn->commit();
 
-            // Limpiar la sesión de productos seleccionados y cliente
+            // Limpiar la sesión de productos seleccionados, cliente y pedido
             $_SESSION['productos_seleccionados'] = [];
             unset($_SESSION['idcliente']);
             unset($_SESSION['nombre_cliente']);
             unset($_SESSION['idpedido']);
-            unset($_SESSION['productos_seleccionados']);
-
-
-            $total = 0;
 
             // Mensaje de éxito
             echo "<script>
@@ -255,16 +274,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                         window.location.reload();
                     }, 2000);
                   </script>";
-                  echo "<script>window.location.reload();</script>";
 
         } catch (Exception $e) {
+            // Revertir la transacción en caso de error
             $conn->rollback();
             echo "Error al realizar la venta: " . $e->getMessage();
         }
         $conn->close();
     }
-    unset($_SESSION['idpedido']);
 }
+
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
@@ -464,49 +483,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
 </div>
 <br>
 
-<div class="conteiner";>
-<form method="POST" action="pagos.php" class="d-flex align-items-center flex-wrap mb-3">
-    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+<div class="container">
+    <form method="POST" action="pagos.php" class="form-container">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
 
-    <!-- Checkbox para habilitar el botón de venta -->
-    <div class="form-check me-3">
-        <input type="checkbox" class="form-check-input" id="habilitar-venta">
-        <label class="form-check-label" for="habilitar-venta">Habilitar Botón de Venta</label>
-    </div>
-    
-    <!-- Botón deshabilitado por defecto -->
-    <button id="realizar-venta" name="realizar_venta" class="btn btn-realizar-venta me-3" disabled>
-        <i class="fi fi-rr-dollar"></i>
-        REALIZAR VENTA
-    </button>
+        <!-- Checkbox para habilitar el botón de venta -->
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="habilitar-venta">
+            <label class="form-check-label" for="habilitar-venta">Habilitar</label>
+        </div>
 
-    <!-- Checkbox para habilitar el botón de guardar pedido -->
-    <div class="form-check me-3">
-        <input type="checkbox" class="form-check-input" id="habilitar-pedido">
-        <label class="form-check-label" for="habilitar-pedido">Habilitar Botón de Guardar Pedido</label>
-    </div>
+        <!-- Botón deshabilitado por defecto -->
+        <button id="realizar-venta" name="realizar_venta" class="btn btn-realizar-venta" disabled>
+            <i class="fi fi-rr-dollar"></i>
+            REALIZAR VENTA
+        </button>
 
-    <input type="hidden" name="idcliente" id="idcliente">
-    
-    <!-- Botón para guardar pedido deshabilitado por defecto -->
-    <button id="guardar-pedido" name="guardar_pedido" class="btn btn-guardar-pedido me-3" disabled>
-        <i class="fi fi-rr-save"></i>
-        GUARDAR PEDIDO
-    </button>
-    
-    <!-- Botón para cancelar todo -->
-    <button type="submit" name="cancelar_todo" class="btn btn-danger me-3">
-        <i class="fi fi-rr-trash"></i>
-        CANCELAR TODO
-    </button>
-    
-    <!-- Botón "Ver Pedidos" -->
-    <button type="button" id="ver-pedidos" class="btn" onclick="location.href='pedidos.php'">
-        VER PEDIDOS
-    </button>
-</form>
+        <!-- Checkbox para habilitar el botón de guardar pedido -->
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="habilitar-pedido">
+            <label class="form-check-label" for="habilitar-pedido">Habilitar</label>
+        </div>
 
+        <input type="hidden" name="idcliente" id="idcliente">
+
+        <!-- Botón para guardar pedido deshabilitado por defecto -->
+        <button id="guardar-pedido" name="guardar_pedido" class="btn btn-guardar-pedido" disabled>
+            <i class="fi fi-rr-save"></i>
+            GUARDAR PEDIDO
+        </button>
+
+        <!-- Botón para cancelar todo -->
+        <button type="submit" name="cancelar_todo" class="btn btn-danger">
+            <i class="fi fi-rr-trash"></i>
+            CANCELAR TODO
+        </button>
+
+        <!-- Botón "Ver Pedidos" -->
+        <button type="button" id="ver-pedidos" class="btn btn-ver-pedidos" onclick="location.href='pedidos.php'">
+            <i class="fi fi-rr-eye"></i>
+            VER PEDIDOS
+        </button>
+    </form>
 </div>
+
 
 <div class="container text-center" style="position: relative;">
     <!-- Campo de búsqueda de clientes -->
@@ -625,79 +645,86 @@ include_once "validaciones/val_pagos.php";
 ?>
 
 <style>
-/* Botón para realizar la venta */ 
-.btn-realizar-venta {
-    background-color: #cfcfcf; /* Color gris para indicar que está deshabilitado */
-    color: white;
+/* Estilo general para los botones */
+.btn {
     padding: 10px 20px;
-    border: none;
+    font-size: 16px;
     border-radius: 5px;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    transition: transform 0.2s ease-in-out;
-    cursor: not-allowed; /* Cursor no permitido cuando está deshabilitado */
-}
-
-.btn-realizar-venta i {
-    margin-right: 5px;
-}
-
-.btn-realizar-venta.habilitado {
-    background-color: #176098; /* Azul oscuro cuando se habilita */
-    cursor: pointer; /* Cambia a cursor pointer cuando está habilitado */
-}
-
-/* Efecto hover cuando el botón está habilitado */
-.btn-realizar-venta.habilitado:hover {
-    transform: translateY(-5px);
-}
-
-/* Botón para guardar el pedido */
-.btn-guardar-pedido {
-    background-color: #6c757d; /* Color de fondo gris */
-    color: white; /* Color del texto */
-    padding: 10px 20px; /* Espaciado interno */
-    border: none; /* Sin borde */
-    border-radius: 5px; /* Bordes redondeados */
-    font-size: 1rem; /* Tamaño de fuente */
-    display: flex; /* Flexbox para alinear el contenido */
-    align-items: center; /* Alinea verticalmente el contenido */
-    transition: transform 0.2s ease-in-out; /* Transición suave en hover */
-}
-
-/* Efecto hover para el botón de guardar pedido */
-.btn-guardar-pedido:hover {
-    transform: translateY(-5px); /* Mueve el botón hacia arriba */
-}
-
-/* Botón de realizar venta deshabilitado */
-#realizar-venta:disabled {
-    opacity: 0.5; /* Hace el botón más opaco */
-}
-
-/* Botón de guardar pedido deshabilitado */
-#guardar-pedido:disabled {
-    opacity: 0.5; /* Hace el botón más opaco */
-}
-
-/* Estilos para el botón "Ver Pedidos" */
-#ver-pedidos {
-    background-color: #17a2b8; /* Color azul claro */
-    color: white;
     border: none;
-    padding: 10px 20px;
-    font-size: 14px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    margin-left: 10px; /* Espacio a la izquierda */
-    text-decoration: none; /* Sin subrayado */
-    display: inline-flex; /* Alinear icono y texto */
-    align-items: center; /* Centrar verticalmente */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#ver-pedidos:hover {
-    background-color: #138496; /* Color más oscuro al pasar el ratón */
+.btn i {
+    margin-right: 8px;
+}
+
+/* Botón deshabilitado */
+.btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Botón de realizar venta */
+.btn-realizar-venta {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-realizar-venta:hover {
+    background-color: #218838;
+}
+
+/* Botón de guardar pedido */
+.btn-guardar-pedido {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-guardar-pedido:hover {
+    background-color: #138496;
+}
+
+/* Botón de cancelar todo */
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+/* Botón de ver pedidos */
+.btn-ver-pedidos {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-ver-pedidos:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para los checkboxes */
+.form-check-input {
+    transform: scale(1.5);
+    margin-right: 10px;
+}
+
+.form-check-label {
+    font-size: 16px;
+}
+
+/* Contenedor para organizar los botones */
+.form-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
 }
 
 </style>

@@ -24,23 +24,36 @@ $totalPedidos = $resultTotal->fetch_assoc()['total_pedidos'];
 $totalPaginas = ceil($totalPedidos / $filasPorPagina);
 
 // Consulta para obtener los pedidos con límite y desplazamiento
-$sql = "SELECT p.idpedido, s.fecha, CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente, 
-        GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
-        SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total, 
+// Obtener el estado de los pedidos de la URL (por defecto, mostrar todos)
+$estado = isset($_GET['estado']) ? $_GET['estado'] : null;
+
+// Modificar la consulta SQL para agregar el filtro de estado
+$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta,
+        CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
+        GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
+        SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
         s.estado,
         CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
- FROM pedido p
- JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
- JOIN cliente c ON s.cliente_idcliente = c.idcliente
- JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
- JOIN producto pr ON ps.producto_idproducto = pr.idproducto
- JOIN usuario u ON p.usuario_idusuario = u.idusuario
- JOIN persona pe ON u.persona_idpersona = pe.idpersona
- GROUP BY p.idpedido, s.fecha, cliente, s.estado, responsable
- ORDER BY s.fecha DESC
- LIMIT $filasPorPagina OFFSET $offset"; // Limitamos los resultados a 7 y aplicamos el desplazamiento
+        FROM pedido p
+        JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
+        JOIN cliente c ON s.cliente_idcliente = c.idcliente
+        JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
+        JOIN producto pr ON ps.producto_idproducto = pr.idproducto
+        JOIN usuario u ON p.usuario_idusuario = u.idusuario
+        LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1)
+        JOIN persona pe ON u.persona_idpersona = pe.idpersona";
+
+// Si se ha recibido un estado, agregarlo a la consulta
+if ($estado) {
+    $sql .= " WHERE s.estado = '" . $conn->real_escape_string($estado) . "'";
+}
+
+$sql .= " GROUP BY p.idpedido, s.fecha, v.fecha_venta, cliente, s.estado, responsable
+          ORDER BY s.fecha DESC
+          LIMIT $filasPorPagina OFFSET $offset";
 
 $result = $conn->query($sql);
+
 ?>
 
 
@@ -55,39 +68,48 @@ $result = $conn->query($sql);
 
                 <!-- Botones como cartas -->
                 <div class="menu-container">
-                    <div class="card card-completados" onclick="location.href='pendientes.php'">
+                    <div class="card card-menos-vendidos" onclick="location.href='pedidos.php'">
+                        <h3>Todos los Pedidos</h3>
+                        <i class="fi fi-sr-globe"></i>
+                    </div>
+                    <div class="card card-completados <?php echo ($estado == 'completado') ? 'active' : ''; ?>" onclick="location.href='pedidos.php?estado=completado'">
                         <h3>Pedidos Completados</h3>
                         <i class="fi fi-ss-shopping-cart-check"></i>
                     </div>
-                    <div class="card card-pendientes" onclick="location.href='mas_vendidos.php'">
+                    <div class="card card-pendientes <?php echo ($estado == 'pendiente') ? 'active' : ''; ?>" onclick="location.href='pedidos.php?estado=pendiente'">
                         <h3>Pedidos Pendientes</h3>
                         <i class="fi fi-ss-order-history"></i>
-                    </div>
-                    <div class="card card-menos-vendidos" onclick="location.href='menos_vendidos.php'">
-                        <h3>Menos Vendidos</h3>
-                        <i class="fa fa-chart-bar"></i>
                     </div>
                 </div>
 
                 <!-- Buscador -->
                 <div class="search-container text-center">
                     <form method="GET" action="">
-                        <input type="text" name="busqueda" class="search-input" placeholder="Buscardor..." />
+                        <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." value="<?php echo isset($_GET['busqueda']) ? $_GET['busqueda'] : ''; ?>" />
                     </form>
                 </div>
 
-                <!-- Filtro de fecha -->
-                <div class="date-filter-container text-left">
-                    <form method="GET" action="">
-                        <label for="fecha_inicio">Desde:</label>
-                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" />
-                        <label for="fecha_fin">Hasta:</label>
-                        <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" />
-                        <button type="submit" class="btn-filter">Filtrar</button>
-                    </form>
-                </div>
-               
 
+                <div class="container row">
+                    <div class="filter-container col-12">
+                        <form method="get" action="ventas.php" class="filter-form">
+                            <div class="date-filter-container text-left">
+                                    <form method="GET" action="">
+                                        <label for="fecha_inicio">Desde:</label>
+                                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" />
+                                        <label for="fecha_fin">Hasta:</label>
+                                        <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" />
+                                        <button type="submit" class="btn-filter">Filtrar</button>
+                                    </form>
+                                </div>
+                        </form>
+                    </div>
+                    <div class="btn-container col-12">
+                        <form method="post" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
+                            <button type="submit" class="btn-exportar">Descargar Datos PDF</button>
+                        </form>
+                    </div>
+                </div>
                 <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp centered-table">
                     <thead>
                         <tr>
@@ -106,8 +128,8 @@ $result = $conn->query($sql);
                         if ($result->num_rows > 0) {
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>";
-                                echo "<td>" . $row['fecha'] . "</td>";
-                                echo "<td>" . $row['fecha'] . "</td>";
+                                echo "<td>" . $row['fecha_pedido'] . "</td>";
+                                echo "<td>" . ($row['fecha_venta']) ."</td>";
                                 echo "<td>" . $row['responsable'] . "</td>";
                                 echo "<td>" . $row['cliente'] . "</td>";
                                 echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>";
@@ -123,7 +145,7 @@ $result = $conn->query($sql);
                                                 <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
                                                 <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Cancelar</button>
                                             </form>
-                                            <a href='#' class='btn-accion btn-detalles'>Detalles</a>
+                                            <a href='../generarPDF/pedidos_pdf.php?idpedido=" . $row['idpedido'] . "' class='btn-accion btn-detalles'>Detalles</a>
                                         </div>
                                     </td>";
                                 echo "</tr>";
@@ -163,27 +185,50 @@ $result = $conn->query($sql);
                 </table>
 
                 <!-- Paginación -->
+
                 <nav aria-label="Page navigation">
                     <ul class="pagination">
-                        <?php if ($paginaActual > 1): ?>
-                            <li class="page-item"><a class="page-link" href="?pagina=<?php echo $paginaActual - 1; ?>" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+                        <?php 
+                        // Obtener parámetros actuales
+                        $queryParams = $_GET;
+                        
+                        // Si hay un estado, mantenerlo en la paginación
+                        if ($paginaActual > 1): 
+                            $queryParams['pagina'] = $paginaActual - 1; 
+                        ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?<?php echo http_build_query($queryParams); ?>" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
                         <?php endif; ?>
-                        
-                        <?php for ($i = 1; $i <= $totalPaginas; $i++): ?>
-                            <li class="page-item <?php if ($i == $paginaActual) echo 'active'; ?>"><a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a></li>
+
+                        <?php for ($i = 1; $i <= $totalPaginas; $i++): 
+                            $queryParams['pagina'] = $i;
+                        ?>
+                            <li class="page-item <?php if ($i == $paginaActual) echo 'active'; ?>">
+                                <a class="page-link" href="?<?php echo http_build_query($queryParams); ?>">
+                                    <?php echo $i; ?>
+                                </a>
+                            </li>
                         <?php endfor; ?>
-                        
-                        <?php if ($paginaActual < $totalPaginas): ?>
-                            <li class="page-item"><a class="page-link" href="?pagina=<?php echo $paginaActual + 1; ?>" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+
+                        <?php if ($paginaActual < $totalPaginas): 
+                            $queryParams['pagina'] = $paginaActual + 1;
+                        ?>
+                            <li class="page-item">
+                                <a class="page-link" href="?<?php echo http_build_query($queryParams); ?>" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
                         <?php endif; ?>
                     </ul>
                 </nav>
-
             </div>
         </div>
     </div>
 </div>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 // Confirmación con SweetAlert antes de cancelar el pedido
 function confirmCancel(event, form) {
@@ -206,14 +251,36 @@ function confirmCancel(event, form) {
 </script>
 
 <?php
-include_once "pie.php"; // Incluir el pie de página
+include_once "pie.php";
+//include_once "validaciones/val_pedidos.php";
 ?>
 
+
+<script>
+$(document).ready(function() {
+    // Cuando el usuario escribe en el campo de búsqueda
+    $('.search-input').on('keyup', function() {
+        var busqueda = $(this).val(); // Obtener el valor del input
+
+        // Enviar la solicitud AJAX
+        $.ajax({
+            url: 'buscador/buscar_pedidos.php', // Archivo PHP que procesa la búsqueda
+            method: 'POST',
+            data: { busqueda: busqueda },
+            success: function(response) {
+                // Actualizar el contenido de la tabla con los resultados
+                $('tbody').html(response);
+            }
+        });
+    });
+});
+</script>
 
 
 
 <!-- Estilos CSS -->
 <style>
+    
     .btn-container {
         padding: 5px;
         display: flex;
@@ -410,7 +477,102 @@ include_once "pie.php"; // Incluir el pie de página
 }
 
 </style>
+<style>
+/* Estilos generales */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 20px;
+}
 
+.filter-container, .btn-container {
+    margin: 7px 0;
+}
+
+.filter-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.date-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 7px;
+    align-items: center;
+}
+
+.date-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    flex-grow: 1;
+}
+
+.animated-label {
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.input-fecha {
+    padding: 5px;
+    font-size: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+    width: 80%;
+}
+
+.input-fecha:hover, .input-fecha:focus {
+    border-color: #007bff;
+}
+
+/* Botones */
+.btn-filtrar, .btn-exportar {
+    padding: 12px 15px;
+    font-size: 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.btn-filtrar {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-filtrar:hover {
+    background-color: #218838;
+}
+
+.btn-exportar {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.btn-exportar:hover {
+    background-color: #138496;
+}
+
+/* Estilo responsive */
+@media (max-width: 668px) {
+    .date-row {
+        flex-direction: column;
+    }
+
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .filter-container, .btn-container {
+        width: 100%;
+    }
+}
+</style>
 <style>
 /* Estilos para el contenedor de tarjetas */
 .menu-container {
