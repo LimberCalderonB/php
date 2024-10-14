@@ -228,11 +228,18 @@ $result = $conn->query($sql);
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+<?php
+include_once "pie.php";
+//include_once "validaciones/val_pedidos.php";
+?>
+
 <script>
 // Confirmación con SweetAlert antes de cancelar el pedido
 function confirmCancel(event, form) {
-    event.preventDefault();
+    event.preventDefault(); // Evita el envío inmediato del formulario
     Swal.fire({
         title: '¿Estás seguro de que deseas cancelar el pedido?',
         text: "Esta acción no se puede deshacer.",
@@ -244,39 +251,11 @@ function confirmCancel(event, form) {
         cancelButtonText: 'No, mantener pedido'
     }).then((result) => {
         if (result.isConfirmed) {
-            form.submit();
+            form.submit(); // Si el usuario confirma, se envía el formulario
         }
     });
 }
 </script>
-
-<?php
-include_once "pie.php";
-//include_once "validaciones/val_pedidos.php";
-?>
-
-
-<script>
-$(document).ready(function() {
-    // Cuando el usuario escribe en el campo de búsqueda
-    $('.search-input').on('keyup', function() {
-        var busqueda = $(this).val(); // Obtener el valor del input
-
-        // Enviar la solicitud AJAX
-        $.ajax({
-            url: 'buscador/buscar_pedidos.php', // Archivo PHP que procesa la búsqueda
-            method: 'POST',
-            data: { busqueda: busqueda },
-            success: function(response) {
-                // Actualizar el contenido de la tabla con los resultados
-                $('tbody').html(response);
-            }
-        });
-    });
-});
-</script>
-
-
 
 <!-- Estilos CSS -->
 <style>

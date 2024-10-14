@@ -5,9 +5,7 @@ error_reporting(E_ALL);
 
 include_once "../../../conexion.php";
 
-// Imprimir los valores recibidos por POST
-var_dump($_POST);
-
+// Verificar si se recibió la solicitud de cancelar el pedido
 if (isset($_POST['cancelar_pedido'])) {
     $idpedido = $_POST['idpedido'];
 
@@ -31,32 +29,18 @@ if (isset($_POST['cancelar_pedido'])) {
 
         $idsolicitud = $row['solicitud_idsolicitud'];
 
-        // 2. Eliminar las inserciones en la tabla pedido_venta
-        $sql = "DELETE FROM pedido_venta WHERE pedido_idpedido = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $idpedido);
-        if (!$stmt->execute()) {
-            throw new Exception("Error al eliminar pedido_venta: " . $stmt->error);
-        }
-
-        // 3. Eliminar el pedido
-        $sql = "DELETE FROM pedido WHERE idpedido = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $idpedido);
-        if (!$stmt->execute()) {
-            throw new Exception("Error al eliminar pedido: " . $stmt->error);
-        }
-
-        // 4. Cambiar el estado de los productos a 'disponible'
-        $sql = "UPDATE almacen SET estado = 'disponible' WHERE producto_idproducto IN (
-            SELECT producto_idproducto FROM producto_solicitud WHERE solicitud_idsolicitud = ?)";
+        // 2. Cambiar el estado de los productos a 'disponible' en la tabla 'almacen'
+        $sql = "UPDATE almacen SET estado = 'disponible' 
+                WHERE producto_idproducto IN (
+                    SELECT producto_idproducto FROM producto_solicitud WHERE solicitud_idsolicitud = ?
+                )";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $idsolicitud);
         if (!$stmt->execute()) {
             throw new Exception("Error al actualizar estado de productos: " . $stmt->error);
         }
 
-        // 5. Eliminar los productos relacionados en producto_solicitud
+        // 3. Eliminar las inserciones en la tabla producto_solicitud
         $sql = "DELETE FROM producto_solicitud WHERE solicitud_idsolicitud = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $idsolicitud);
@@ -64,7 +48,15 @@ if (isset($_POST['cancelar_pedido'])) {
             throw new Exception("Error al eliminar producto_solicitud: " . $stmt->error);
         }
 
-        // 6. Eliminar la solicitud
+        // 4. Eliminar el pedido
+        $sql = "DELETE FROM pedido WHERE idpedido = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $idpedido);
+        if (!$stmt->execute()) {
+            throw new Exception("Error al eliminar pedido: " . $stmt->error);
+        }
+
+        // 5. Eliminar la solicitud
         $sql = "DELETE FROM solicitud WHERE idsolicitud = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $idsolicitud);
