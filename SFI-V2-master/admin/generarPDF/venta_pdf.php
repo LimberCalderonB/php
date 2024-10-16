@@ -1,183 +1,144 @@
 <?php
 require_once('../../../tcpdf/tcpdf/tcpdf.php');
-include_once '../modelo_admin/mod_ventas.php';
+include_once('../../conexion.php');
 
-$ventaId = $_GET['id'];
+// Obtener el id de la venta desde la URL
+$idventa = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-$modelo = new ModeloVentas();
-$venta = $modelo->obtenerVentaPorId($ventaId);
-
-if ($venta === null) {
-    die('No se encontró la venta.');
+if ($idventa <= 0) {
+    die('ID de venta no válido.');
 }
 
-$pdf = new TCPDF();
+// Consulta para obtener la información general de la venta
+$sqlVentaDirecta = "
+    SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1
+    FROM venta v
+    JOIN usuario u ON v.usuario_idusuario = u.idusuario
+    JOIN persona p ON u.persona_idpersona = p.idpersona
+    WHERE v.idventa = ?
+";
 
-// Configuración del documento
+$stmtVentaDirecta = $conn->prepare($sqlVentaDirecta);
+$stmtVentaDirecta->bind_param('i', $idventa);
+$stmtVentaDirecta->execute();
+$resultVentaDirecta = $stmtVentaDirecta->get_result();
+$ventaDirecta = $resultVentaDirecta->fetch_assoc();
+
+// Si no se encuentra la venta
+if (!$ventaDirecta) {
+    die('Venta no encontrada.');
+}
+
+// Consulta para obtener los productos de la venta, incluyendo precios y descuentos
+$sqlProductos = "
+    SELECT pr.nombre AS producto, pr.precio AS precio_producto, 
+           IFNULL(pr.descuento, 0) AS descuento,
+           CASE 
+               WHEN pr.descuento > 0 THEN pr.precio - (pr.precio * pr.descuento / 100) 
+               ELSE pr.precio 
+           END AS precio_con_descuento
+    FROM venta_producto vp
+    JOIN producto pr ON vp.producto_idproducto = pr.idproducto
+    WHERE vp.venta_idventa = ?
+";
+
+$stmtProductos = $conn->prepare($sqlProductos);
+$stmtProductos->bind_param('i', $idventa);
+$stmtProductos->execute();
+$resultProductos = $stmtProductos->get_result();
+
+// Si no se encuentran productos
+if ($resultProductos->num_rows === 0) {
+    die('No se encontraron productos para esta venta.');
+}
+
+// Inicializamos la suma total
+$sumaTotal = 0;
+
+// Crear el PDF con TCPDF
+$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+// Configurar el documento PDF
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor('Tu Nombre');
-$pdf->SetTitle('Factura de Venta');
-$pdf->SetSubject('Factura');
-$pdf->SetKeywords('TCPDF, PDF, factura, venta');
+$pdf->SetAuthor('Tu Empresa');
+$pdf->SetTitle('Detalles de la Venta');
+$pdf->SetSubject('Detalles de la Venta');
+$pdf->SetKeywords('Venta, PDF');
 
-// Configuración de los márgenes y encabezados
-$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, 'FACTURA DE VENTA', 'Generado por TCPDF');
-$pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-$pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
-$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+// Establecer los márgenes
+$pdf->SetMargins(15, 20, 15);
+$pdf->SetHeaderMargin(10);
+$pdf->SetFooterMargin(10);
 
+// Añadir una página
 $pdf->AddPage();
-$pdf->SetFont('helvetica', '', 9);
 
-$productosHTML = '';
-$totalGeneral = 0;
+// Agregar el logo en el lado derecho superior
+$image_file = dirname(__FILE__).'/logo/logo.jpg'; // Cambia la ruta de tu logo si es necesario
+$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
 
-foreach ($venta as $item) {
-    $nombreProducto = htmlspecialchars(trim($item['nombre_producto']));
-    $precio = number_format($item['precio_producto'], 2);
-    $descuento = number_format($item['descuento'], 2);
-    $precioDescuento = number_format($item['precio_descuento'], 2);
-    $total = number_format($item['total'], 2);
-    $totalGeneral += $item['total'];
+// Espacio para separar el logo del contenido
+$pdf->Ln(30);
 
-    $productosHTML .= "<tr>
-        <td>{$nombreProducto}</td>
-        <td>{$precio}</td>
-        <td>{$descuento}%</td>
-        <td>{$precioDescuento}</td>
-        <td>{$total}</td>
-    </tr>";
-}
+// Título del documento
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 12, 'Detalles de la Venta', 0, 10, 'C');
 
-$html = <<<EOD
-<style>
-    body {
-        font-family: helvetica, sans-serif;
-        font-size: 12px;
-        color: #333;
-    }
-    h1 {
-        text-align: center;
-        color: #000;
-        text-transform: uppercase;
-        font-size: 20px;
-        margin-bottom: 20px;
-    }
-    .factura {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 20px;
-    }
-    .factura th, .factura td {
-        border: 1px solid #ccc;
-        padding: 8px;
-    }
-    .factura th {
-        background-color: #007BFF;
-        color: #fff;
-        text-align: left;
-    }
-    .factura td {
-        text-align: left;
-    }
-    .info {
-        margin-top: 20px;
-    }
-    .info h3 {
-        background-color: #6d6d6d;
-        color: #fff;
-        padding: 10px;
-        font-size: 16px;
-        margin: 0;
-        text-align: center;
-        margin-bottom: 10px; /* Añadir espacio debajo del título */
-    }
-    .productos-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .productos-table th, .productos-table td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-    .productos-table th {
-        background-color: #f8f9fa;
-    }
-    .productos-table td {
-        border-bottom: 1px solid #ddd;
-    }
-    .productos-table tr:last-child td {
-        border-bottom: none;
-    }
-    .productos-table th:nth-child(1) {
-        width: 40%;  
-    }
-    .productos-table th:nth-child(2),
-    .productos-table th:nth-child(3),
-    .productos-table th:nth-child(4),
-    .productos-table th:nth-child(5) {
-        width: 15%; 
-    }
-    .total {
-        font-weight: bold;
-        margin-top: 20px;
-    }
-    .total h2 {
-        font-size: 16px;
-        margin: 0;
-    }
-    .total p {
-        margin: 0;
-    }
-</style>
+// Espacio
+$pdf->Ln(10);
 
-<h1>Factura de Venta</h1>
-<table class="factura" cellpadding="4">
+// Información general de la venta
+$html = "
+<h2>Información de la Venta</h2>
+<table border='1' cellpadding='4'>
     <tr>
-        <th>FECHA DE VENTA:</th>
-        <td>{$venta[0]['fecha_venta']}</td>
+        <td><strong>Fecha de Venta:</strong></td>
+        <td>{$ventaDirecta['fecha_venta']}</td>
     </tr>
     <tr>
-        <th>RESPONSABLE:</th>
-        <td>{$venta[0]['nombre']} {$venta[0]['apellido1']}</td>
+        <td><strong>Responsable:</strong></td>
+        <td>{$ventaDirecta['nombre']} {$ventaDirecta['apellido1']}</td>
     </tr>
-</table>
-
-<div class="info">
-    <h3>PRODUCTOS</h3>
-    <table class="productos-table">
-        <thead>
-            <tr>
-                <th>Nombre del Producto</th>
-                <th>Precio</th>
-                <th>Des (%)</th>
-                <th>Precio Descuento</th>
-                <th>Total</th>
-            </tr>
-        </thead>
-        <tbody>
-            {$productosHTML}
-        </tbody>
-    </table>
-</div>
-
-<div class="total">
-
-    <h2> 
-    <p>_______________________________________________________________________</p>
-    <p> Precio Total: {$totalGeneral} BOB</p></h2>
-</div>
-EOD;
+</table>";
 
 $pdf->writeHTML($html, true, false, true, false, '');
 
-$pdf->Output('factura_venta_' . $ventaId . '.pdf', 'I');
+// Espacio antes de la tabla de productos
+$pdf->Ln(10);
 
+// Añadir título para la sección de productos
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 10, 'Detalles de Productos', 0, 1, 'C');
+$pdf->Ln(5);
+
+// Configurar el estilo de la tabla de productos
+$pdf->SetFont('helvetica', '', 10);
+
+// Crear la tabla de productos con las funciones nativas de TCPDF
+$pdf->SetFillColor(240, 240, 240); // Color de fondo para el encabezado
+$pdf->Cell(40, 10, 'Producto', 1, 0, 'C', 1);
+$pdf->Cell(35, 10, 'Precio Unitario', 1, 0, 'C', 1);
+$pdf->Cell(35, 10, 'Descuento (%)', 1, 0, 'C', 1);
+$pdf->Cell(37, 10, 'Precio con Descuento', 1, 0, 'C', 1);
+$pdf->Cell(35, 10, 'Subtotal', 1, 1, 'C', 1);
+
+// Llenar la tabla con los productos
+while ($producto = $resultProductos->fetch_assoc()) {
+    $subtotal = $producto['precio_con_descuento'];
+    $sumaTotal += $subtotal;
+
+    $pdf->Cell(40, 10, $producto['producto'], 1);
+    $pdf->Cell(35, 10, number_format($producto['precio_producto'], 2) . ' BOB', 1);
+    $pdf->Cell(35, 10, number_format($producto['descuento'], 2) . '%', 1);
+    $pdf->Cell(37, 10, number_format($producto['precio_con_descuento'], 2) . ' BOB', 1);
+    $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
+}
+
+// Espacio antes del total
+$pdf->Ln(5);
+$pdf->SetFont('helvetica', 'B', 12);
+$pdf->Cell(0, 10, 'Total de la Venta: ' . number_format($sumaTotal, 2) . ' BOB', 0, 1, 'R');
+
+// Cerrar y emitir el PDF
+$pdf->Output('venta_' . $idventa . '.pdf', 'I');
 ?>
-

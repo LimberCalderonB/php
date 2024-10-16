@@ -10,20 +10,22 @@ class ModeloPersonaUsuario {
         $this->db->CreateConnection();
     }
 
-    public function agregarPersona($ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass, $foto) {
+    public function agregarPersona($ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass_hashed, $foto) {
         // Prepare and execute query to insert into 'persona'
         $query_persona = "INSERT INTO persona (ci, nombre, apellido1, apellido2, celular) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->db->GetConnection()->prepare($query_persona);
         $stmt->bind_param('sssss', $ci, $nombre, $apellido1, $apellido2, $celular);
         $stmt->execute();
-
+    
         $persona_id = $this->db->GetConnection()->insert_id;
-
+    
         // Prepare and execute query to insert into 'usuario'
         $query_usuario = "INSERT INTO usuario (persona_idpersona, nombreUsuario, pass) VALUES (?, ?, ?)";
         $stmt = $this->db->GetConnection()->prepare($query_usuario);
-        $stmt->bind_param('iss', $persona_id, $nombreUsuario, $pass);
+        $stmt->bind_param('iss', $persona_id, $nombreUsuario, $pass_hashed); // Asegúrate de que aquí estás usando la contraseña cifrada
         $stmt->execute();
+    
+    
 
         $usuario_id = $this->db->GetConnection()->insert_id;
 
@@ -47,7 +49,7 @@ class ModeloPersonaUsuario {
         }
     }
 
-    public function actualizarPersona($idusuario, $ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass, $foto) {
+    public function actualizarPersona($idusuario, $ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass_hashed, $foto) {
         // Obtener el idpersona asociado al idusuario
         $query_get_persona_id = "SELECT persona_idpersona FROM usuario WHERE idusuario = ?";
         $stmt = $this->db->GetConnection()->prepare($query_get_persona_id);
@@ -67,7 +69,7 @@ class ModeloPersonaUsuario {
             // Actualizar 'usuario'
             $query_usuario = "UPDATE usuario SET nombreUsuario = ?, pass = ? WHERE idusuario = ?";
             $stmt = $this->db->GetConnection()->prepare($query_usuario);
-            $stmt->bind_param('ssi', $nombreUsuario, $pass, $idusuario);
+            $stmt->bind_param('ssi', $nombreUsuario, $pass_hashed, $idusuario);
             $stmt->execute();
     
             // Actualizar 'privilegio'

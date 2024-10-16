@@ -74,6 +74,10 @@ if (empty($celular) || !preg_match('/^\d{8}$/', $celular)) {
 // Validar Nombre de Usuario
 if (empty($nombreUsuario)) {
     $errors['nombreUsuario'] = 'El nombre de usuario es obligatorio.';
+} else if (!filter_var($nombreUsuario, FILTER_VALIDATE_EMAIL)) {
+    $errors['nombreUsuario'] = 'El nombre de usuario debe ser un correo electrónico válido.';
+} else if (!preg_match('/@gmail\.com$/', $nombreUsuario)) {
+    $errors['nombreUsuario'] = 'El nombre de usuario debe ser una dirección de Gmail (@gmail.com).';
 } else {
     // Verificar si el nombre de usuario ya existe
     $query = "SELECT COUNT(*) AS count FROM usuario WHERE nombreUsuario = ?";
@@ -87,12 +91,17 @@ if (empty($nombreUsuario)) {
     }
 }
 
+
 // Validar Contraseña
 if (empty($pass)) {
     $errors['pass'] = 'La contraseña es obligatoria.';
 } elseif (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/', $pass)) {
     $errors['pass'] = 'La contraseña debe tener al menos 8 caracteres, incluyendo letras, números y símbolos.';
+} else {
+    // Si la contraseña es válida, la ciframos
+    $pass_hashed = password_hash($pass, PASSWORD_DEFAULT);
 }
+
 
 // Si hay errores, guardarlos en la sesión y redirigir de vuelta al formulario
 if (!empty($errors)) {
@@ -106,7 +115,7 @@ if (!empty($errors)) {
 $modelo = new ModeloPersonaUsuario();
 
 try {
-    $modelo->agregarPersona($ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass, $foto);
+    $modelo->agregarPersona($ci, $nombre, $apellido1, $apellido2, $celular, $idRol, $nombreUsuario, $pass_hashed, $foto);
 
     // Redirigir o mostrar mensaje de éxito
     $_SESSION['registro'] = 'Datos Registrados';

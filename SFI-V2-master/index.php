@@ -1,98 +1,140 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login</title>
-    <link rel="stylesheet" href="css/normalize.css">
-    <link rel="stylesheet" href="css/sweetalert2.css">
-    <link rel="stylesheet" href="css/material.min.css">
-    <link rel="stylesheet" href="css/material-design-iconic-font.min.css">
-    <link rel="stylesheet" href="css/jquery.mCustomScrollbar.css">
-    <link rel="stylesheet" href="css/main.css">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    <script>window.jQuery || document.write('<script src="js/jquery-1.11.2.min.js"><\/script>')</script>
-    <script src="js/material.min.js"></script>
-    <script src="js/sweetalert2.min.js"></script>
-    <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
-    <script src="js/main.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11">
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js" integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio de Sesión</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/3.0.1/iconfont/material-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/validate.js/0.13.1/validate.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: #fff;
+            padding: 40px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-container h2 {
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #3f51b5;
+        }
+
+        .form-group .eye-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #3f51b5;
+        }
+
+        .forgot-password {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #3f51b5;
+            cursor: pointer;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .login-button {
+            background-color: #3f51b5;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .login-button:hover {
+            background-color: #303f9f;
+        }
+    </style>
 </head>
 <body>
-    <div class="login-wrap cover">
-        <div class="container-login">
-            <p class="text-center" style="font-size: 80px;">
-                <i class="zmdi zmdi-account-circle"></i>
-            </p>
-            <p class="text-center text-condensedLight">INICIO DE SESION</p>
-            <form id="loginForm" action="login_process.php" method="post">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="text" id="userName" name="username">
-                    <label class="mdl-textfield__label" for="userName">Usuario</label>
-                </div>
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
-                    <input class="mdl-textfield__input" type="password" id="pass" name="password">
-                    <label class="mdl-textfield__label" for="pass">Contraseña</label>
-                    <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none;">
-                        <i id="passwordIcon" class="zmdi zmdi-eye"></i>
-                    </button>
-                </div>
-                <button class="mdl-button mdl-js-button" type="button" onclick="validateForm()" style="color: #3F51B5; margin: 0 auto; display: block;">
-                    INICIAR SESIÓN
-                </button>
-            </form>
+
+<div class="login-container">
+    <h2>Inicio de Sesión</h2>
+    <form id="loginForm" action="login_process.php" method="POST">
+        <!-- Campo de Usuario -->
+        <div class="form-group">
+            <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
         </div>
-    </div>    
+
+        <!-- Campo de Contraseña -->
+        <div class="form-group">
+            <input type="password" id="password" name="password" placeholder="Contraseña" required>
+            <i class="material-icons eye-icon" onclick="togglePasswordVisibility()">visibility</i>
+        </div>
+
+        <!-- Botón ¿Se te olvidó la contraseña? -->
+        <div class="forgot-password" onclick="forgotPassword()">
+            ¿Se te olvidó la contraseña?
+        </div>
+
+        <!-- Botón de Iniciar Sesión -->
+        <button type="submit" class="login-button">Iniciar Sesión</button>
+    </form>
+</div>
 
 <script>
-    function validateForm() {
-        var username = document.getElementById('userName').value;
-        var password = document.getElementById('pass').value;
+    // Función para alternar la visibilidad de la contraseña
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const eyeIcon = document.querySelector('.eye-icon');
 
-        if (!username.trim() && !password.trim()) {
-            showError('Por favor, complete todos los campos');
-            return false; 
-        } else if (!username.trim()) {
-            showError('Por favor, ingrese su nombre de usuario');
-            return false; 
-        } else if (!password.trim()) {
-            showError('Por favor, ingrese su contraseña');
-            return false; 
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            eyeIcon.textContent = 'visibility_off';
         } else {
-            document.getElementById('loginForm').submit();
+            passwordInput.type = 'password';
+            eyeIcon.textContent = 'visibility';
         }
     }
 
-    function showError(message) {
+    // Función para la opción de "¿Se te olvidó la contraseña?"
+    function forgotPassword() {
         Swal.fire({
-            icon: 'error',
-            title: 'Oops...',
-            text: message,
+            icon: 'info',
+            title: 'Recuperación de contraseña',
+            text: 'Por favor, contacta al soporte técnico para recuperar tu contraseña.'
         });
     }
-
-    function togglePasswordVisibility() {
-        var passwordInput = document.getElementById("pass");
-        var passwordIcon = document.getElementById("passwordIcon");
-
-        if (passwordInput.type === "password") {
-            passwordInput.type = "text";
-            passwordIcon.classList.remove("zmdi-eye");
-            passwordIcon.classList.add("zmdi-eye-off");
-        } else {
-            passwordInput.type = "password";
-            passwordIcon.classList.remove("zmdi-eye-off");
-            passwordIcon.classList.add("zmdi-eye");
-        }
-    }
-
-    // Evitar la navegación hacia atrás
-    
 </script>
+
 </body>
 </html>

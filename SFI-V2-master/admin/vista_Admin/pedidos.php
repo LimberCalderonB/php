@@ -54,6 +54,62 @@ $sql .= " GROUP BY p.idpedido, s.fecha, v.fecha_venta, cliente, s.estado, respon
 
 $result = $conn->query($sql);
 
+// Consulta para obtener los pedidos con límite y desplazamiento
+if (isset($_GET['fecha_inicio']) && isset($_GET['fecha_fin'])) {
+    $fecha_inicio = $conn->real_escape_string($_GET['fecha_inicio']);
+    $fecha_fin = $conn->real_escape_string($_GET['fecha_fin']);
+} else {
+    $fecha_inicio = null;
+    $fecha_fin = null;
+}
+
+$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta,
+        CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
+        GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
+        SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
+        s.estado,
+        CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
+        FROM pedido p
+        JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
+        JOIN cliente c ON s.cliente_idcliente = c.idcliente
+        JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
+        JOIN producto pr ON ps.producto_idproducto = pr.idproducto
+        JOIN usuario u ON p.usuario_idusuario = u.idusuario
+        LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1)
+        JOIN persona pe ON u.persona_idpersona = pe.idpersona";
+
+// Aplicar filtros de estado, fecha de inicio y fecha fin
+$conditions = [];
+
+// Filtro por estado si está presente
+if ($estado) {
+    $conditions[] = "s.estado = '" . $conn->real_escape_string($estado) . "'";
+}
+
+// Filtro por fecha de inicio si está presente
+if (!empty($fecha_inicio)) {
+    $conditions[] = "s.fecha >= '" . $conn->real_escape_string($fecha_inicio) . "'";
+}
+
+// Filtro por fecha de fin si está presente
+if (!empty($fecha_fin)) {
+    // Sumar un día a la fecha de fin para incluir todo el día completo
+    $fecha_fin = date('Y-m-d', strtotime($fecha_fin . ' +1 day'));
+    $conditions[] = "s.fecha < '" . $conn->real_escape_string($fecha_fin) . "'";
+}
+
+// Si hay condiciones, se añaden a la consulta
+if (count($conditions) > 0) {
+    $sql .= " WHERE " . implode(' AND ', $conditions);
+}
+
+$sql .= " GROUP BY p.idpedido, s.fecha, v.fecha_venta, cliente, s.estado, responsable
+          ORDER BY s.fecha DESC
+          LIMIT $filasPorPagina OFFSET $offset";
+
+$result = $conn->query($sql);
+
+
 ?>
 
 
@@ -91,19 +147,18 @@ $result = $conn->query($sql);
 
 
                 <div class="container row">
-                    <div class="filter-container col-12">
-                        <form method="get" action="ventas.php" class="filter-form">
-                            <div class="date-filter-container text-left">
-                                    <form method="GET" action="">
-                                        <label for="fecha_inicio">Desde:</label>
-                                        <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" />
-                                        <label for="fecha_fin">Hasta:</label>
-                                        <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" />
-                                        <button type="submit" class="btn-filter">Filtrar</button>
-                                    </form>
-                                </div>
-                        </form>
-                    </div>
+                <div class="filter-container col-12">
+    <form method="GET" action="pedidos.php" class="filter-form">
+        <div class="date-filter-container text-left">
+            <label for="fecha_inicio">Desde:</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" value="<?php echo isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : ''; ?>" />
+            <label for="fecha_fin">Hasta:</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>" />
+            <button type="submit" class="btn-filter">Filtrar</button>
+        </div>
+    </form>
+</div>
+
                     <div class="btn-container col-12">
                         <form method="post" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
                             <button type="submit" class="btn-exportar">Descargar Datos PDF</button>
@@ -229,6 +284,25 @@ $result = $conn->query($sql);
     </div>
 </div>
 
+<script>
+$(document).ready(function() {
+    // Cuando el usuario escribe en el campo de búsqueda
+    $('.search-input').on('keyup', function() {
+        var busqueda = $(this).val(); // Obtener el valor del input
+
+        // Enviar la solicitud AJAX
+        $.ajax({
+            url: 'buscador/buscar_pedidos.php', // Archivo PHP que procesa la búsqueda
+            method: 'POST',
+            data: { busqueda: busqueda },
+            success: function(response) {
+                // Actualizar el contenido de la tabla con los resultados
+                $('tbody').html(response);
+            }
+        });
+    });
+});
+</script>
 
 
 <?php
@@ -251,10 +325,13 @@ function confirmCancel(event, form) {
         cancelButtonText: 'No, mantener pedido'
     }).then((result) => {
         if (result.isConfirmed) {
-            form.submit(); // Si el usuario confirma, se envía el formulario
-        }
+    console.log('Formulario enviado');
+    form.submit();
+}
+
     });
 }
+
 </script>
 
 <!-- Estilos CSS -->

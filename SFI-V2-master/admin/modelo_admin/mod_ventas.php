@@ -156,6 +156,7 @@ class ModeloVentas extends conexionBase {
         $venta = $result->fetch_all(MYSQLI_ASSOC);
         return $venta;
     }
+    
 
 }
 ?>

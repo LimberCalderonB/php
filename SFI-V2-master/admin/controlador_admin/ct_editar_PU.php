@@ -78,11 +78,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validar Nombre de Usuario
     if (empty($nombreUsuario)) {
         $errors['nombreUsuario'] = 'El nombre de usuario es obligatorio.';
+    } else if (!filter_var($nombreUsuario, FILTER_VALIDATE_EMAIL)) {
+        $errors['nombreUsuario'] = 'El nombre de usuario debe ser un correo electrónico válido.';
+    } else if (!preg_match('/@gmail\.com$/', $nombreUsuario)) {
+        $errors['nombreUsuario'] = 'El nombre de usuario debe ser una dirección de Gmail (@gmail.com).';
     } else {
-        // Verificar si el nombre de usuario ya existe para otro usuario
-        $query = "SELECT COUNT(*) AS count FROM usuario WHERE nombreUsuario = ? AND idusuario != ?";
+        // Verificar si el nombre de usuario ya existe
+        $query = "SELECT COUNT(*) AS count FROM usuario WHERE nombreUsuario = ?";
         $stmt = $conn->prepare($query);
-        $stmt->bind_param('si', $nombreUsuario, $idusuario);
+        $stmt->bind_param('s', $nombreUsuario);
         $stmt->execute();
         $result = $stmt->get_result();
         $row = $result->fetch_assoc();
@@ -90,6 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errors['nombreUsuario'] = 'El nombre de usuario ya está registrado.';
         }
     }
+    
 
     // Validar Contraseña
     if (empty($pass)) {
@@ -128,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $celular,
                 $idRol,
                 $nombreUsuario,
-                $pass,
+                $pass_hashed,
                 $foto
             );
 

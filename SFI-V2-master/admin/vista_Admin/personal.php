@@ -104,7 +104,9 @@ unset($_SESSION['form_data']);
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['nombreUsuario']) ? ' is-invalid' : ''; ?>" id="nombreUsuario-field">
                                         <input class="mdl-textfield__input" type="text" id="nombreUsuario" name="nombreUsuario" value="<?php echo htmlspecialchars($form_data['nombreUsuario'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="nombreUsuario">Nombre de Usuario</label>
-                                        <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['nombreUsuario'] ?? ''); ?></span>
+                                        <span class="mdl-textfield__error">
+                                            <?php echo htmlspecialchars($errors['nombreUsuario'] ?? ''); ?>
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--6-col">

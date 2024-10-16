@@ -20,7 +20,7 @@ $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido,
             SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1
         )
         GROUP BY p.idpedido, s.fecha, cliente, s.estado, responsable, v.fecha_venta
-        ORDER BY pe.nombre, s.estado, p.idpedido"; // Ordenar por responsable y estado
+        ORDER BY s.estado, pe.nombre, p.idpedido";
 
 $result = $conn->query($sql);
 if ($result->num_rows == 0) {
@@ -45,6 +45,13 @@ $pdf->SetFooterMargin(10);
 // Añadir una página
 $pdf->AddPage();
 
+// Agregar el logo en el lado derecho superior
+$image_file = dirname(__FILE__).'/logo/logo.jpg'; // Ruta relativa de tu logo
+$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
+
+// Espacio para separar el logo del contenido
+$pdf->Ln(30); // Aumenta el espacio si es necesario
+
 // Título del documento
 $pdf->SetFont('helvetica', 'B', 15);
 $pdf->Cell(0, 15, 'Listado de Todos los Pedidos', 0, 1, 'C');
@@ -52,64 +59,85 @@ $pdf->Cell(0, 15, 'Listado de Todos los Pedidos', 0, 1, 'C');
 // Espacio
 $pdf->Ln(10);
 
-// Establecer la fuente para el contenido
-$pdf->SetFont('helvetica', '', 8);
-
-// Inicializar la variable $html
-$html = '';
-
-// Variables para controlar el grupo de pedidos
-$current_responsable = '';
+// Inicializar variables
 $current_estado = '';
-
-// Recorrer todos los pedidos y agruparlos por responsable y estado
 while ($row = $result->fetch_assoc()) {
-    // Si el responsable cambia, añadir un nuevo encabezado
-    if ($current_responsable !== $row['responsable']) {
-        if ($current_responsable !== '') {
-            $html .= "</tbody></table><br>"; // Cierra la tabla anterior
-        }
-        $current_responsable = $row['responsable'];
-        $html .= "<h3>Responsable: {$current_responsable}</h3>";
-    }
+    // Estado del pedido en mayúsculas y con color
+    $estado = strtoupper($row['estado']);
+    $estado_color = ($estado == 'COMPLETADO') ? [124, 179, 66] : [183, 28, 28]; // Verde para completado, rojo para pendiente
+    $pdf->SetFont('helvetica', '', 10);
 
-    // Si el estado cambia, añadir un nuevo encabezado para el estado
-    if ($current_estado !== $row['estado']) {
-        if ($current_estado !== '') {
-            $html .= "</tbody></table><br>"; // Cierra la tabla anterior
-        }
-        $current_estado = $row['estado'];
-        $html .= "<h4>Estado: {$current_estado}</h4>";
-        $html .= "
-        <table border='1' cellpadding='4'>
-            <thead>
-                <tr>
-                    <th><strong>Fecha del Pedido</strong></th>
-                    <th><strong>Cliente</strong></th>
-                    <th><strong>Total a Pagar</strong></th>
-                    <th><strong>Fecha de Venta</strong></th>
-                </tr>
-            </thead>
-            <tbody>";
-    }
-
-    // Agregar los datos del pedido a la tabla
-    $html .= "
+    // Información general del pedido
+    $html = "
+    <h2>Información del Pedido</h2>
+    <table border='1' cellpadding='4'>
         <tr>
+            <td><strong>Fecha del Pedido:</strong></td>
             <td>{$row['fecha_pedido']}</td>
-            <td>{$row['cliente']}</td>
-            <td>{$row['precio_total']} Bs</td>
+        </tr>
+        <tr>
+            <td><strong>Fecha de Venta:</strong></td>
             <td>{$row['fecha_venta']}</td>
-        </tr>";
+        </tr>
+        <tr>
+            <td><strong>Cliente:</strong></td>
+            <td>{$row['cliente']}</td>
+        </tr>
+        <tr>
+            <td><strong>Responsable:</strong></td>
+            <td>{$row['responsable']}</td>
+        </tr>
+        <br>
+        <tr>
+            <td><strong>Estado:</strong></td>
+            <td style='color: rgb({$estado_color[0]}, {$estado_color[1]}, {$estado_color[2]});'><strong>$estado</strong></td>
+        </tr>
+    </table>";
+    
+    // Escribir la primera parte del contenido en el PDF
+    $pdf->writeHTML($html, true, false, true, false, '');
+
+    // Consultar los detalles de los productos asociados al pedido
+    $idpedido = $row['idpedido'];
+    $sql_productos = "SELECT pr.nombre, pr.precio, pr.descuento, 
+                             IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio) AS precio_con_descuento
+                      FROM producto_solicitud ps
+                      JOIN producto pr ON ps.producto_idproducto = pr.idproducto
+                      WHERE ps.solicitud_idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = $idpedido)";
+    $result_productos = $conn->query($sql_productos);
+    if ($result_productos->num_rows > 0) {
+        // Añadir espacio y título para la sección de productos
+        $pdf->Ln(10);
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->Cell(0, 10, 'Detalles de Productos', 0, 1, 'C');
+        $pdf->Ln(5);
+
+        // Configurar el estilo de la tabla de productos
+        $pdf->SetFont('helvetica', '', 10);
+        $pdf->SetFillColor(240, 240, 240); // Color de fondo para el encabezado
+        $pdf->Cell(40, 10, 'Producto', 1, 0, 'C', 1);
+        $pdf->Cell(35, 10, 'Precio Unitario', 1, 0, 'C', 1);
+        $pdf->Cell(35, 10, 'Descuento (%)', 1, 0, 'C', 1);
+        $pdf->Cell(35, 10, 'Precio con Descuento', 1, 0, 'C', 1);
+        $pdf->Cell(35, 10, 'Subtotal', 1, 1, 'C', 1);
+
+        // Llenar la tabla con los productos
+        while ($producto = $result_productos->fetch_assoc()) {
+            $subtotal = $producto['precio_con_descuento'] != '-' ? $producto['precio_con_descuento'] : $producto['precio'];
+            $pdf->Cell(40, 10, $producto['nombre'], 1);
+            $pdf->Cell(35, 10, number_format($producto['precio'], 2) . ' BOB', 1);
+            $pdf->Cell(35, 10, number_format($producto['descuento'], 2) . '%', 1);
+            $pdf->Cell(35, 10, $producto['precio_con_descuento'] . ' BOB', 1);
+            $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
+        }
+
+        // Total a pagar debajo de la tabla
+        $pdf->Ln(5);
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->Cell(0, 10, 'Total a Pagar: ' . number_format($row['precio_total'], 2) . ' BOB', 0, 1, 'R');
+    }
 }
-
-// Cerrar la última tabla
-$html .= "</tbody></table>";
-
-// Escribir la tabla en el PDF
-$pdf->writeHTML($html, true, false, true, false, '');
 
 // Cerrar y emitir el PDF
 $pdf->Output('todos_pedidos.pdf', 'I'); // 'I' muestra el PDF en el navegador
-
 ?>
