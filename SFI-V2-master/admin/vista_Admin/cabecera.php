@@ -1,33 +1,44 @@
 <?php
 session_start();
 
+// Prevenir que la página se almacene en caché
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
+
+// Conexión a la base de datos
 $conn = new mysqli("localhost", "root", "", "proyecto");
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../index.php"); // Redirige si el usuario no está logueado
+// Verificar si el usuario está logueado
+if (!isset($_SESSION['usuario_id'])) {
+    header("Location: ../../index.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
+// Obtener el ID de usuario de la sesión
+$usuario_id = $_SESSION['usuario_id'];
 
-	$query = "SELECT p.nombre, p.apellido1, p.apellido2, p.foto, r.nombre as rol_nombre
-			FROM usuario u
-			JOIN persona p ON u.persona_idpersona = p.idpersona
-			JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
-			JOIN rol r ON pr.rol_idrol = r.idrol
-			WHERE u.idusuario = ?";
+// Consulta SQL para obtener los datos del usuario
+$query = "SELECT p.nombre, p.apellido1, p.apellido2, p.foto, r.nombre as rol_nombre
+          FROM usuario u
+          JOIN persona p ON u.persona_idpersona = p.idpersona
+          JOIN privilegio pr ON u.idusuario = pr.usuario_idusuario
+          JOIN rol r ON pr.rol_idrol = r.idrol
+          WHERE u.idusuario = ?";
 
+// Preparar la consulta
 $stmt = $conn->prepare($query);
 if ($stmt === false) {
     die('Error al preparar la consulta: ' . htmlspecialchars($conn->error));
 }
 
 // Vincular parámetros y ejecutar la consulta
-$stmt->bind_param('i', $user_id);
+$stmt->bind_param('i', $usuario_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -38,6 +49,7 @@ $user_data = $result->fetch_assoc();
 $stmt->close();
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -257,45 +269,42 @@ $conn->close();
 				<div class="mdl-tooltip" for="btn-menu">Esconder / Mostrar Menu</div>
 				<nav class="navBar-options-list">
 					<ul class="list-unstyle">
-						
 						<li class="btn-exit" id="exit">
 							<i class="zmdi zmdi-power"></i>
 							<div class="mdl-tooltip" for="exit">Cerrar Sesión</div>
 						</li>
 						<li class="text-condensedLight noLink" ><small>-</small></li>
-						<li class="noLink">
-.
-						</li>
+						<li class="noLink">.</li>
 					</ul>
 				</nav>
+
 			</div>
 		</div>
 		<!-------------------------------------------------------------->
 		<!-- Alerta de cierre de sesion -->
 		<!-------------------------------------------------------------->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Selecciona el botón de cerrar sesión
-        var logoutButton = document.getElementById('exit');
+		<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var logoutButton = document.getElementById('exit');
 
-        // Agrega un event listener para el evento de clic en el botón
-        logoutButton.addEventListener('click', function () {
-            // Muestra un cuadro de SweetAlert2 para confirmar la acción
-            Swal.fire({
-                title: '¿Estás seguro de que deseas cerrar sesión?',
-                text: 'Se cerrará tu sesión actual.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, cerrar sesión',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                // Si el usuario confirma la acción, redirecciona a la página de inicio de sesión
-                if (result.isConfirmed) {
-                    window.location.href = '../../index.php'; // Reemplaza '../index.php' con la URL de tu script de cierre de sesión
-                }
-            });
-        });
+	logoutButton.addEventListener('click', function () {
+    Swal.fire({
+        title: '¿Estás seguro de que deseas cerrar sesión?',
+        text: 'Se cerrará tu sesión actual.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, cerrar sesión',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Asegúrate de que la ruta a logout.php es correcta
+            window.location.href = '../../logout.php';
+        }
     });
+});
+
+});
 </script>
+

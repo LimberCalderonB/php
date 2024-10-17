@@ -2,12 +2,27 @@
 include_once "cabecera.php";
 include_once "../../conexion.php";
 
+// Capturar fechas de inicio y fin
+$fechaInicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
+$fechaFin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
+
+// Si se establece una fecha de fin, le sumamos un día para incluir todo el día
+if ($fechaInicio && $fechaFin) {
+    $fechaFin = date('Y-m-d', strtotime($fechaFin . ' +1 day'));
+}
+
 // Configuración de paginación
 $limit = 7;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
-// Obtener ventas directas
+// Agregar condiciones de filtro de fecha en las consultas SQL
+$fechaCondicion = "";
+if ($fechaInicio && $fechaFin) {
+    $fechaCondicion = "WHERE v.fecha_venta BETWEEN ? AND ?";
+}
+
+// Obtener ventas directas con filtro de fecha
 $sqlDirectas = "
     SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, 
            GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
@@ -17,57 +32,40 @@ $sqlDirectas = "
     JOIN persona p ON u.persona_idpersona = p.idpersona
     JOIN venta_producto vp ON v.idventa = vp.venta_idventa
     JOIN producto pr ON vp.producto_idproducto = pr.idproducto
+    $fechaCondicion
     GROUP BY v.idventa
     ORDER BY v.fecha_venta DESC
     LIMIT ?, ?
 ";
 
 $stmtDirectas = $conn->prepare($sqlDirectas);
-$stmtDirectas->bind_param('ii', $offset, $limit);
+
+if ($fechaInicio && $fechaFin) {
+    $stmtDirectas->bind_param('ssii', $fechaInicio, $fechaFin, $offset, $limit);
+} else {
+    $stmtDirectas->bind_param('ii', $offset, $limit);
+}
+
 $stmtDirectas->execute();
 $resultDirectas = $stmtDirectas->get_result();
 $ventasDirectas = $resultDirectas->fetch_all(MYSQLI_ASSOC);
 
 // Obtener total de ventas directas
-$totalVentasDirectas = $conn->query("SELECT COUNT(*) as total FROM venta")->fetch_assoc()['total'];
+$sqlTotalDirectas = "SELECT COUNT(*) as total FROM venta v $fechaCondicion";
+$stmtTotalDirectas = $conn->prepare($sqlTotalDirectas);
+
+if ($fechaInicio && $fechaFin) {
+    $stmtTotalDirectas->bind_param('ss', $fechaInicio, $fechaFin);
+}
+$stmtTotalDirectas->execute();
+$totalVentasDirectas = $stmtTotalDirectas->get_result()->fetch_assoc()['total'];
 $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
 
-// Obtener ventas asociadas a pedidos
-$sqlPedidos = "
-    SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, c.nombre_cliente, 
-           GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
-           SUM(pr.precio) AS precio_total
-    FROM venta v
-    JOIN usuario u ON v.usuario_idusuario = u.idusuario
-    JOIN persona p ON u.persona_idpersona = p.idpersona
-    JOIN pedido_venta pv ON v.pedido_venta_idpedido_venta = pv.idpedido_venta
-    JOIN pedido ped ON pv.pedido_idpedido = ped.idpedido
-    JOIN solicitud s ON ped.solicitud_idsolicitud = s.idsolicitud
-    JOIN cliente c ON s.cliente_idcliente = c.idcliente
-    JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
-    JOIN producto pr ON ps.producto_idproducto = pr.idproducto
-    GROUP BY v.idventa
-    ORDER BY v.fecha_venta DESC
-    LIMIT ?, ?
-";
-
-$stmtPedidos = $conn->prepare($sqlPedidos);
-$stmtPedidos->bind_param('ii', $offset, $limit);
-$stmtPedidos->execute();
-$resultPedidos = $stmtPedidos->get_result();
-$ventasPedidos = $resultPedidos->fetch_all(MYSQLI_ASSOC);
-
-// Contar el total de ventas asociadas a pedidos
-$totalVentasPedidos = $conn->query("
-    SELECT COUNT(DISTINCT v.idventa) AS total
-    FROM venta v
-    JOIN pedido_venta pv ON v.pedido_venta_idpedido_venta = pv.idpedido_venta
-    JOIN pedido ped ON pv.pedido_idpedido = ped.idpedido
-    JOIN solicitud s ON ped.solicitud_idsolicitud = s.idsolicitud
-")->fetch_assoc()['total'];
-
-$totalPagesPedidos = ceil($totalVentasPedidos / $limit);
+// Paginación con fechas
 ?>
+
+<!-- La parte de la vista sigue igual -->
+
 
 <div class="full-width panel-tittle bg-primary text-center tittles">
     P R O D U C T O S - V E N D I D O S
@@ -101,9 +99,9 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
         <form method="get" action="ventas.php" class="filter-form">
             <div class="date-filter-container text-left">
                 <label for="fecha_inicio">Desde:</label>
-                <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" />
+                <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" value="<?php echo htmlspecialchars($fechaInicio); ?>" />
                 <label for="fecha_fin">Hasta:</label>
-                <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" />
+                <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>" />
                 <button type="submit" class="btn-filter">Filtrar</button>
             </div>
         </form>
@@ -174,17 +172,20 @@ $totalPagesPedidos = ceil($totalVentasPedidos / $limit);
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+<!-- Controles de Paginación para Ventas Directas -->
+<nav aria-label="Page navigation">
+    <ul class="pagination">
+        <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
+            <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                <a class="page-link" href="?page=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode(date('Y-m-d', strtotime($fechaFin . ' -1 day'))); ?>">
+                    <?php echo $i; ?>
+                </a>
+            </li>
+        <?php endfor; ?>
+    </ul>
+</nav>
 
-                    <!-- Controles de Paginación para Ventas Directas -->
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
-                                <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
-                                    <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                                </li>
-                            <?php endfor; ?>
-                        </ul>
-                    </nav>
+
                 </div>
             </div>
        

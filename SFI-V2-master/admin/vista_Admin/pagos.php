@@ -159,11 +159,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
         $conn->begin_transaction();
 
         try {
-            if (!isset($_SESSION['user_id'])) {
+            if (!isset($_SESSION['usuario_id'])) {
                 throw new Exception("ID de usuario no encontrado en la sesión.");
             }
 
-            $usuario_idusuario = $_SESSION['user_id'];
+            $usuario_idusuario = $_SESSION['usuario_id'];
             $total = 0;
 
             // Verificar si se está realizando una venta de un pedido
@@ -292,11 +292,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
         $conn->begin_transaction();
 
         try {
-            if (!isset($_SESSION['user_id'])) {
+            if (!isset($_SESSION['usuario_id'])) {
                 throw new Exception("ID de usuario no encontrado en la sesión.");
             }
 
-            $usuario_idusuario = $_SESSION['user_id'];
+            $usuario_idusuario = $_SESSION['usuario_id'];
             $solicitud_id = null;
 
             // Verificar si estamos creando un nuevo pedido o actualizando uno existente

@@ -92,14 +92,12 @@
     <form id="loginForm" action="login_process.php" method="POST">
         <!-- Campo de Usuario -->
         <div class="form-group">
-            <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
-        </div>
-
-        <!-- Campo de Contraseña -->
-        <div class="form-group">
-            <input type="password" id="password" name="password" placeholder="Contraseña" required>
-            <i class="material-icons eye-icon" onclick="togglePasswordVisibility()">visibility</i>
-        </div>
+        <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
+    </div>
+    <div class="form-group">
+        <input type="password" id="password" name="password" placeholder="Contraseña" required>
+        <i class="material-icons eye-icon" onclick="togglePasswordVisibility()">visibility</i>
+    </div>
 
         <!-- Botón ¿Se te olvidó la contraseña? -->
         <div class="forgot-password" onclick="forgotPassword()">

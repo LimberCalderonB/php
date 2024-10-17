@@ -188,7 +188,7 @@ if ($result->num_rows > 0) {
 
 
     <div class="btn-container">
-        <a href="../generarPDF/inventario_pdf.php" target="_blank">
+        <a href="../generarPDF/stock_pdf.php" target="_blank">
             <button class="btn-descargar">
                 DESCARGAR DATOS   
                 <i class="fi fi-rs-down-to-line"></i>
@@ -232,7 +232,7 @@ if ($result->num_rows > 0) {
                                 <td>
                                     <a href="#" class="btn-accion btn-editar">Editar</a>
                                     <a href="#" class="btn-accion btn-eliminar">Eliminar</a>
-                                    <a href="#" class="btn-accion btn-detalles">Detalles</a>
+                                    
                                 </td>
                             </tr>
                         <?php endforeach; ?>

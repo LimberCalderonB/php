@@ -147,17 +147,17 @@ $result = $conn->query($sql);
 
 
                 <div class="container row">
-                <div class="filter-container col-12">
-    <form method="GET" action="pedidos.php" class="filter-form">
-        <div class="date-filter-container text-left">
-            <label for="fecha_inicio">Desde:</label>
-            <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" value="<?php echo isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : ''; ?>" />
-            <label for="fecha_fin">Hasta:</label>
-            <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>" />
-            <button type="submit" class="btn-filter">Filtrar</button>
-        </div>
-    </form>
-</div>
+                    <div class="filter-container col-12">
+                        <form method="GET" action="pedidos.php" class="filter-form">
+                            <div class="date-filter-container text-left">
+                                <label for="fecha_inicio">Desde:</label>
+                                <input type="date" id="fecha_inicio" name="fecha_inicio" class="date-input" value="<?php echo isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : ''; ?>" />
+                                <label for="fecha_fin">Hasta:</label>
+                                <input type="date" id="fecha_fin" name="fecha_fin" class="date-input" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>" />
+                                <button type="submit" class="btn-filter">Filtrar</button>
+                            </div>
+                        </form>
+                    </div>
 
                     <div class="btn-container col-12">
                         <form method="post" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
