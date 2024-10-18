@@ -93,7 +93,7 @@ foreach ($productos_similares as $id_similar) {
         $nombre,
         $precio,
         $descuento,
-        $precioConDescuento,
+        @$precioConDescuento,
         $descripcion,
         $talla,
         $categoria_idcategoria,

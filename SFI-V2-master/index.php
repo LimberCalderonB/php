@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -33,7 +37,8 @@
 
         .form-group {
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
         }
 
         .form-group input {
@@ -45,14 +50,23 @@
             outline: none;
         }
 
-        .form-group input:focus {
-            border-color: #3f51b5;
+        .form-group input.error {
+            border-color: red;
+        }
+
+        .form-group .error-message {
+            color: red;
+            font-size: 14px;
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            display: none;
         }
 
         .form-group .eye-icon {
             position: absolute;
-            right: 10px;
-            top: 50%;
+            right: 1px;
+            top: 23px;
             transform: translateY(-50%);
             cursor: pointer;
             color: #3f51b5;
@@ -90,21 +104,18 @@
 <div class="login-container">
     <h2>Inicio de Sesión</h2>
     <form id="loginForm" action="login_process.php" method="POST">
-        <!-- Campo de Usuario -->
         <div class="form-group">
-        <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
-    </div>
-    <div class="form-group">
-        <input type="password" id="password" name="password" placeholder="Contraseña" required>
-        <i class="material-icons eye-icon" onclick="togglePasswordVisibility()">visibility</i>
-    </div>
+            <input type="text" id="username" name="username" placeholder="Nombre de usuario" required>
+        </div>
+        <div class="form-group">
+            <i class="material-icons eye-icon" onclick="togglePasswordVisibility()">visibility</i>
+            <input type="password" id="password" name="password" placeholder="Contraseña" required>
+        </div>
 
-        <!-- Botón ¿Se te olvidó la contraseña? -->
         <div class="forgot-password" onclick="forgotPassword()">
             ¿Se te olvidó la contraseña?
         </div>
 
-        <!-- Botón de Iniciar Sesión -->
         <button type="submit" class="login-button">Iniciar Sesión</button>
     </form>
 </div>
@@ -124,13 +135,68 @@
         }
     }
 
-    // Función para la opción de "¿Se te olvidó la contraseña?"
-    function forgotPassword() {
+    // Mostrar alerta de error si hay un mensaje de error en la sesión
+    <?php if (isset($_SESSION['error'])): ?>
         Swal.fire({
-            icon: 'info',
-            title: 'Recuperación de contraseña',
-            text: 'Por favor, contacta al soporte técnico para recuperar tu contraseña.'
+            icon: 'error',
+            title: 'Error',
+            text: '<?php echo $_SESSION['error']; ?>',
+            position: 'top-end',
+            toast: true,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
         });
+        <?php unset($_SESSION['error']); // Limpiar el error después de mostrarlo ?>
+    <?php endif; ?>
+</script>
+<script>
+    // Función para la opción de "¿Se te olvidó la contraseña?"
+    async function forgotPassword() {
+        const { value: email } = await Swal.fire({
+            title: 'Recuperación de contraseña',
+            input: 'email',
+            inputLabel: 'Introduce tu correo electrónico',
+            inputPlaceholder: 'Ingresa tu correo electrónico',
+            showCancelButton: true,
+            confirmButtonText: 'Enviar',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if (!value) {
+                    return '¡Necesitas ingresar un correo electrónico!';
+                }
+                if (!validateEmail(value)) {
+                    return 'Por favor, ingresa un correo válido';
+                }
+            }
+        });
+
+        if (email) {
+            // Lógica para enviar el correo al servidor
+            // Por ejemplo, puedes redirigir a una página o hacer una petición AJAX
+            const response = await fetch('recuperar_password.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `email=${email}`
+            });
+
+            const result = await response.text();
+
+            // Mostrar mensaje de éxito o error según la respuesta
+            if (response.ok) {
+                Swal.fire('Correo enviado', 'Revisa tu correo para continuar con la recuperación.', 'success');
+            } else {
+                Swal.fire('Error', 'No se pudo enviar el correo de recuperación. Inténtalo de nuevo.', 'error');
+            }
+        }
+    }
+
+    // Función para validar el formato de un correo electrónico
+    function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(String(email).toLowerCase());
     }
 </script>
 

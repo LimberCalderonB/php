@@ -1,3 +1,263 @@
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.btn-eliminar').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Botón eliminar clickeado'); // Para probar si el evento funciona
+            var idproducto = this.getAttribute('data-id');
+            promptDelete(idproducto);
+        });
+    });
+});
+
+
+function promptDelete(productId) {
+    Swal.fire({
+        title: '¿Cuántos productos quieres eliminar?',
+        input: 'number',
+        inputLabel: 'Cantidad',
+        inputPlaceholder: 'Ingresa la cantidad',
+        inputAttributes: {
+            min: 1
+        },
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Eliminar',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+            if (!value || value <= 0) {
+                return 'Por favor ingresa una cantidad válida.';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            var cantidad = result.value;
+            // Hacer la petición AJAX para eliminar la cantidad ingresada
+            $.ajax({
+                type: 'POST',
+                url: '../crud/productos/eliminar.php', // Cambia la URL si es necesario
+                data: {
+                    idproducto: productId,
+                    cantidad: cantidad
+                },
+                success: function(response) {
+                    if (response.trim() === "success") {
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: 'Los productos han sido eliminados.',
+                            icon: 'success'
+                        }).then(() => {
+                            location.reload(); // Recargar la página para reflejar los cambios
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response || 'Hubo un error al intentar eliminar los productos.',
+                            icon: 'error'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Se produjo un error al intentar eliminar los productos.',
+                        icon: 'error'
+                    });
+                }
+            });
+        }
+    });
+}
+</script>
+<script>
+function realTimeSearch(query) {
+    if (query.length === 0) {
+        return;
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'buscador/search.php?query=' + encodeURIComponent(query), true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const productos = JSON.parse(xhr.responseText);
+            const tbody = document.querySelector('tbody'); // Asegúrate de que este selector sea correcto
+
+            // Limpiar el contenido actual de la tabla
+            tbody.innerHTML = '';
+
+            // Añadir los resultados de la búsqueda a la tabla
+            productos.forEach(producto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${producto.fecha_actualizacion}</td>
+                    <td>${producto.nombre}</td>
+                    <td>${producto.categoria_nombre}</td>
+                    <td>${producto.talla}</td>
+                    <td>${producto.precio}</td>
+                    <td>${producto.descuento}</td>
+                    <td class="${producto.estado === 'disponible' ? 'estado-disponible' : 'estado-agotado'}">${producto.estado}</td>
+                    <td>${producto.cantidad_disponible}</td>
+                    <td>
+                        <a href="#" class="btn-accion btn-editar">Editar</a>
+                        <a href="#" class="btn-accion btn-eliminar">Eliminar</a>
+                        <a href="#" class="btn-accion btn-detalles">Detalles</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    };
+    xhr.send();
+}
+</script>
+
+
+
+
+<style>
+.estado-disponible {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+.estado-agotado {
+    color: red;
+    font-weight: bold;
+}
+
+
+/* Estilos para el contenedor de tarjetas */
+.menu-container {
+    display: flex;
+    justify-content: 10px; /* Espacio entre las cartas */
+    margin: 10px 0; /* Espaciado vertical */
+    flex-wrap: wrap; /* Permitir que las cartas se envuelvan en varias líneas */
+}
+
+/* Estilos generales para cada carta */
+.card {
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 15px 20px;
+    width: 210px; /* Ajusta el ancho */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    transition: transform 0.2s; /* Transición suave */
+    margin: 7px; /* Espaciado entre cartas */
+}
+
+/* Estilo para el texto */
+.card h3 {
+    margin: 0;
+    font-size: 16px; /* Reducir el tamaño de la letra */
+    text-align: left;
+}
+
+/* Estilo para los iconos */
+.card i {
+    font-size: 45px; /* Tamaño del ícono */
+    margin-left: 5px; /* Espacio entre el texto y el ícono */
+}
+
+/* Efecto hover */
+.card:hover {
+    transform: scale(1.05); /* Aumenta ligeramente el tamaño al pasar el mouse */
+}
+
+/* Colores individuales */
+.card-todo {
+    background-color: #a5baff; /* Color verde para completados */
+    color: white;
+}
+.card-completados {
+    background-color: #4CAF50; /* Color verde para completados */
+    color: white;
+}
+
+.card-pendientes {
+    background-color: #FF9800; /* Color naranja para pendientes */
+    color: white;
+}
+
+.card-menor-precio {
+    background-color: #F44336; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-mayor-precio {
+    background-color: #17539c; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-disponibles {
+    background-color: #7b5ca5; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-agotados {
+    background-color: #26294d; /* Color rojo para menos vendidos */
+    color: white;
+}
+
+</style>
+<style>
+    /* Estilos para el buscador */
+.search-container {
+    margin: 20px 0;
+}
+
+.search-input {
+    width: 250px;
+    padding: 10px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-buscar {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-buscar:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para el filtro de fecha */
+.date-filter-container {
+    margin: 20px 0;
+    text-align: left; /* Alinear el contenido a la derecha */
+}
+
+.date-input {
+    padding: 10px;
+    margin: 0 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.btn-filter {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-filter:hover {
+    background-color: #218838;
+}
+
+</style>
+
+
 <style>
     .btn-container {
         padding: 5px;
