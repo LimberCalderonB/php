@@ -166,15 +166,14 @@ session_start();
                     return '¡Necesitas ingresar un correo electrónico!';
                 }
                 if (!validateEmail(value)) {
-                    return 'Por favor, ingresa un correo válido';
+                    return 'Por favor, ingresa un correo @gmail.com válido';
                 }
             }
         });
 
         if (email) {
-            // Lógica para enviar el correo al servidor
-            // Por ejemplo, puedes redirigir a una página o hacer una petición AJAX
-            const response = await fetch('recuperar_password.php', {
+            // Verificar si el correo existe en la base de datos antes de enviar el correo de recuperación
+            const response = await fetch('verificar_correo.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded'
@@ -182,23 +181,41 @@ session_start();
                 body: `email=${email}`
             });
 
-            const result = await response.text();
+            const result = await response.json(); // Suponemos que el servidor devuelve un JSON con la verificación
 
-            // Mostrar mensaje de éxito o error según la respuesta
-            if (response.ok) {
-                Swal.fire('Correo enviado', 'Revisa tu correo para continuar con la recuperación.', 'success');
+            if (result.exists) {
+                // Si el correo existe, enviar el correo de recuperación
+                const sendEmailResponse = await fetch('recuperar_password.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `email=${email}`
+                });
+
+                const emailResult = await sendEmailResponse.text();
+
+                // Mostrar mensaje de éxito o error según la respuesta
+                if (sendEmailResponse.ok) {
+                    Swal.fire('Correo enviado', 'Revisa tu correo para continuar con la recuperación.', 'success');
+                } else {
+                    Swal.fire('Error', 'No se pudo enviar el correo de recuperación. Inténtalo de nuevo.', 'error');
+                }
             } else {
-                Swal.fire('Error', 'No se pudo enviar el correo de recuperación. Inténtalo de nuevo.', 'error');
+                // Si el correo no existe, mostrar error
+                Swal.fire('Error', 'El correo no está registrado en el sistema.', 'error');
             }
         }
     }
 
     // Función para validar el formato de un correo electrónico
     function validateEmail(email) {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Asegura que el correo termine en @gmail.com
+        const re = /^[^\s@]+@gmail\.com$/;
         return re.test(String(email).toLowerCase());
     }
 </script>
+
 
 </body>
 </html>

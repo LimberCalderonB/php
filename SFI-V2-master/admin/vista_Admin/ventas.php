@@ -26,7 +26,8 @@ if ($fechaInicio && $fechaFin) {
 $sqlDirectas = "
     SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, 
            GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
-           SUM(pr.precio) AS precio_total
+           SUM(pr.precio) AS precio_total,
+           COUNT(vp.venta_idventa) AS cantidad_total  -- Contar la cantidad de productos en la venta
     FROM venta v
     JOIN usuario u ON v.usuario_idusuario = u.idusuario
     JOIN persona p ON u.persona_idpersona = p.idpersona
@@ -37,6 +38,8 @@ $sqlDirectas = "
     ORDER BY v.fecha_venta DESC
     LIMIT ?, ?
 ";
+
+
 
 $stmtDirectas = $conn->prepare($sqlDirectas);
 
@@ -64,6 +67,37 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
 // Paginación con fechas
 ?>
 
+<?php
+$masVendidos = isset($_GET['mas_vendidos']) && $_GET['mas_vendidos'] == 'true';
+
+if ($masVendidos) {
+    // Consulta para obtener los productos más vendidos
+// Consulta para obtener los productos más vendidos agrupados por nombre, talla, precio y categoría
+$sqlMasVendidos = "
+    SELECT 
+        pr.nombre AS producto_nombre, 
+        pr.talla AS producto_talla, 
+        pr.precio AS producto_precio, 
+        c.nombre AS categoria_nombre, 
+        COUNT(vp.producto_idproducto) AS cantidad_vendida
+    FROM venta_producto vp
+    JOIN producto pr ON vp.producto_idproducto = pr.idproducto
+    JOIN almacen a ON a.producto_idproducto = pr.idproducto
+    JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
+    JOIN venta v ON vp.venta_idventa = v.idventa
+    GROUP BY pr.nombre, pr.talla, pr.precio, c.nombre
+    ORDER BY cantidad_vendida DESC
+";
+
+// Ejecutar la consulta
+$stmtMasVendidos = $conn->prepare($sqlMasVendidos);
+$stmtMasVendidos->execute();
+$productosMasVendidos = $stmtMasVendidos->get_result()->fetch_all(MYSQLI_ASSOC);
+
+}
+
+?>
+
 <!-- La parte de la vista sigue igual -->
 
 
@@ -77,10 +111,11 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
         <h3>Todos los Pedidos</h3>
         <i class="fi fi-sr-globe"></i>
     </div>
-    <div class="card card-completados" onclick="location.href='ventas.php'">
-        <h3>Productos Mas Vendidos</h3>
-        <i class="fi fi-sr-shopping-cart-add"></i>
-    </div>
+    <div class="card card-completados" onclick="location.href='ventas.php?mas_vendidos=true'">
+    <h3>Productos Mas Vendidos</h3>
+    <i class="fi fi-sr-shopping-cart-add"></i>
+</div>
+
     <div class="card card-pendientes" onclick="location.href='productos_menos_vendidos.php'">
         <h3>Productos Menos Vendidos</h3>
         <i class="fi fi-ss-cart-minus"></i>
@@ -116,6 +151,27 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
         </form>
     </div>
 </div>
+<?php
+
+if ($masVendidos) {
+    echo '<div class="full-width panel-tittle bg-primary text-center tittles">Productos Más Vendidos</div>';
+    echo '<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width table-responsive centered-table">';
+    echo '<thead><tr><th>Categoría</th><th>Producto</th><th>Talla</th><th>Precio</th><th>Cantidad</th></tr></thead>';
+    echo '<tbody>';
+    foreach ($productosMasVendidos as $producto) {
+        echo '<tr>';
+        echo '<td>' . htmlspecialchars($producto['categoria_nombre']) . '</td>';
+        echo '<td>' . htmlspecialchars($producto['producto_nombre']) . '</td>';
+        echo '<td>' . htmlspecialchars($producto['producto_talla']) . '</td>';
+        echo '<td>' . htmlspecialchars($producto['producto_precio']) . '</td>';
+        echo '<td>' . htmlspecialchars($producto['cantidad_vendida']) . '</td>';
+        
+        echo '</tr>';
+    }
+    echo '</tbody></table>';
+}
+
+?>
 
 <!-- Tabla de Ventas Directas -->
 <div class="mdl-tabs mdl-js-tabs mdl-js-ripple-effect">
@@ -130,6 +186,7 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
                                 <th>FECHA VENTA</th>
                                 <th>RESPONSABLE</th>
                                 <th>PRODUCTO(S)</th>
+                                <th>CANTIDAD</th>
                                 <th>PRECIO TOTAL</th>
                                 <th>ACCIONES</th>
                             </tr>
@@ -148,6 +205,7 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
                                             }
                                         ?>
                                     </td>
+                                    <td><?php echo htmlspecialchars($venta['cantidad_total']); ?></td> <!-- Mostrar la cantidad total -->
                                     <td><?php echo htmlspecialchars($venta['precio_total']); ?></td>
                                     <td>
                                         <div class="btn-container">
@@ -173,24 +231,19 @@ $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
                         </tbody>
                     </table>
 <!-- Controles de Paginación para Ventas Directas -->
-<nav aria-label="Page navigation">
-    <ul class="pagination">
-        <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
-            <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
-                <a class="page-link" href="?page=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode(date('Y-m-d', strtotime($fechaFin . ' -1 day'))); ?>">
-                    <?php echo $i; ?>
-                </a>
-            </li>
-        <?php endfor; ?>
-    </ul>
-</nav>
-
-
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
+                                <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode(date('Y-m-d', strtotime($fechaFin . ' -1 day'))); ?>">
+                                        <?php echo $i; ?>
+                                    </a>
+                                </li>
+                            <?php endfor; ?>
+                        </ul>
+                    </nav>
                 </div>
             </div>
-       
-
-
 <?php
 include_once "pie.php";
 include_once "validaciones/val_ventas.php";
