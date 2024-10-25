@@ -1,63 +1,62 @@
-<!--ORDEN DE PRODUCTOS POR LA BARRA DE NAVEGACION-->
-<script>
-function filtrarProductosPorCategoria(categoria) {
-    let productos = document.querySelectorAll('.product-card');
-    let contenedor = document.getElementById('product-results');
-    
-    productos.forEach(function(producto) {
-        let categoriaProducto = producto.getAttribute('data-categoria');
-        if (categoria === categoriaProducto || categoria === 'Todos') {
-            producto.style.display = 'flex';  // Mostrar productos coincidentes
-        } else {
-            producto.style.display = 'none';   // Ocultar productos no coincidentes
-        }
-    });
-
-    // Reordenar productos para eliminar espacios vacíos
-    let productosVisibles = Array.from(productos).filter(producto => producto.style.display === 'flex');
-    productosVisibles.forEach(function(producto) {
-        contenedor.appendChild(producto); // Re-append productos visibles al contenedor
-    });
-}
-
-function mostrarTodosProductos() {
-    // Redirige a productos.php
-    window.location.href = 'productos.php';
-}
-
-</script>
-
+<!--TAMAÑO DE LAS CARTAS DE LOS PRODUCTOS-->
 <style>
-    .category-menu {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0;
+.product-card {
+    flex: 1 1 30%; /* Cada producto ocupa 30% del ancho disponible */
+    min-width: 230px;
+    max-width: 170px;
+    margin-bottom: 15px; /* Reducido el espacio entre tarjetas */
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
 }
 
-.category-menu li {
-    margin-right: 10px;
+.product-images {
+    position: relative;
+    width: 180px; /* Reducido el ancho de las imágenes */
+    height: 160px; /* Reducido la altura de las imágenes */
+    overflow: hidden;
 }
 
-.category-btn {
-    padding: 10px 20px;
-    border: none;
-    background-color: #03a9f4;
+.product-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.product-image.active {
+    display: block;
+}
+
+.prev-button, .next-button {
+    position: absolute;
+    top: 30%;
+    transform: translateY(-70%);
+    background-color: rgba(0, 0, 0, 0.5);
     color: white;
+    border: none;
+    padding: 0;
     cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
+    z-index: 0;
 }
 
-.category-btn:hover {
-    background-color: #0288d1;
+.prev-button {
+    left: 10px;
 }
 
+.next-button {
+    right: 10px;
+}
+
+.prev-button i, .next-button i {
+    font-size: 18px; /* Reducido ligeramente el tamaño del icono */
+}
 </style>
+
 <!--ESTILO DE CAMBIO DE COLOR DE BOTON DE AÑADIR CUANDO ESTA AGOTADO-->
 <style>
-    .btn.success {
+.btn.success {
     background-color: #4CAF50; /* Verde para disponible */
     color: white;
     cursor: pointer;
@@ -68,7 +67,57 @@ function mostrarTodosProductos() {
     color: white;
     cursor: not-allowed;
 }
+.mdl-card__supporting-text {
+    color: rgba(5, 0, 0, .54);
+    font-size: 1rem;
+    line-height: 2px;
+    overflow: hidden;
+    padding: 8px;
+    width: 90%;
+}
+</style>
 
+<!--TAMAÑO DE LA LETRA DE CATEGORIA - TALLA - FECHA-->
+<style>
+.product-info {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem; /* Reducido el tamaño */
+}
+
+.product-info small {
+    margin-right: 3px; /* Espaciado más compacto */
+}
+
+.separator {
+    margin: 0 1px; /* Espaciado más compacto */
+}
+
+.product-date {
+    margin-top: 1px;
+    font-size: 0.65rem; /* Reducido el tamaño de la fuente */
+}
+</style>
+<style>
+    .product-infor small{
+        font-size: 0.8em; 
+    }
+</style>
+<style>
+    .product-info small,
+    .product-date small,
+    .product-price {
+        font-size: 0.75em; 
+    }
+
+    .product-price.discount {
+        color: black;
+    }
+
+    .original-price {
+        text-decoration: line-through;
+        margin-right: 5px;
+    }
 </style>
 <!--ALERTA DE AÑADIR-->
 <script>
@@ -238,21 +287,7 @@ function seleccionarProducto(idProducto) {
     });
 }
 </script>
-<script>
-        //BUSCADOR DE PRODUCTOS
-        function searchProduct() {
-        var searchTerm = document.getElementById("searchProduct").value;
-        console.log(searchTerm); //VERIFICAR LO QUE SE ENVIA
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "buscador/buscar_producto.php?search=" + encodeURIComponent(searchTerm), true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                document.getElementById("product-results").innerHTML = xhr.responseText;
-            }
-        };
-        xhr.send();
-    }
-    </script>
+
 <?php
 //ALERTA DE REGISTRO
 if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
@@ -355,7 +390,7 @@ function promptDelete(productId) {
     display: none; /* Inicialmente oculto */
     color: red;
     margin-top: 5px; /* Espacio entre el campo y el mensaje de error */
-    font-size: 0.875rem; /* Tamaño de fuente más pequeño para el mensaje de error */
+    font-size: 0.65rem; /* Tamaño de fuente más pequeño para el mensaje de error */
 }
 
 .is-invalid {
@@ -479,61 +514,7 @@ function resetDefaultValue(input) {
 
 </script>
 
-<!--TAMAÑO DE LAS CARTAS DE LOS PRODUCTOS-->
-<style>
-.product-card {
-    flex: 1 1 30%; /* Cada producto ocupa 30% del ancho disponible */
-    min-width: 250px; /* Mínimo tamaño de un producto */
-    max-width: 190px; /* Máximo tamaño de un producto más razonable */
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
 
-.product-images {
-    position: relative;
-    width: 200px;
-    height: 180px; /* Ajusta la altura según sea necesario */
-    overflow: hidden;
-}
-
-.product-image {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: none;
-}
-
-.product-image.active {
-    display: block;
-}
-
-.prev-button, .next-button {
-    position: absolute;
-    top: 30%;
-    transform: translateY(-70%);
-    background-color: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 0px;
-    cursor: pointer;
-    z-index: 0;
-}
-
-.prev-button {
-    left: 10px;
-}
-
-.next-button {
-    right: 10px;
-}
-
-.prev-button i, .next-button i {
-    font-size: 19px;
-}
-</style>
 <!--BOTON DE ANTES Y DESPUES-->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -571,27 +552,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 </script>
-<!--TAMAÑO DE LA LETRA DE CATEGORIA - TALLA - FECHA-->
-<style>
-.product-info {
-    display: flex;
-    align-items: center;
-    font-size: 0.8rem; /* Ajusta el tamaño */
-}
 
-.product-info small {
-    margin-right: 5px;
-}
-
-.separator {
-    margin: 0 5px;
-}
-
-.product-date {
-    margin-top: 5px;
-    font-size: 0.7rem; /* Ajusta el tamaño de la fuente si es necesario */
-}
-</style>
 <!--VALIDACIONES DE CAMPO-->
 <script>
 document.getElementById('btn-addProduct').addEventListener('click', function(event) {
@@ -791,22 +752,7 @@ document.getElementById('btn-addProduct').addEventListener('click', function(eve
 </style>
 <!--ESTILO DE DESCUENTO DE PRECIO-->
 
-<style>
-    .product-info small,
-    .product-date small,
-    .product-price {
-        font-size: 0.8em; 
-    }
 
-    .product-price.discount {
-        color: black;
-    }
-
-    .original-price {
-        text-decoration: line-through;
-        margin-right: 5px;
-    }
-</style>
 <!--Estilo responsivo de campos de imagenes-->
 <!--IMG1-->
 <style>

@@ -77,7 +77,7 @@ $pdf->SetFont('helvetica', '', 10);
 
 // Agregar el logo en la parte superior izquierda
 $image_file = dirname(__FILE__).'/logo/logo.jpg'; // Cambia la ruta de tu logo si es necesario
-$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
+$pdf->Image($image_file, 10, 10, 60, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
 $pdf->Ln(30);
 // Agregar contenido de ventas directas
 if (!empty($ventasDirectas)) {

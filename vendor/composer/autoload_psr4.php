@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'WebPConvert\\' => array($vendorDir . '/rosell-dk/webp-convert/src'),
+    'PHPMailer\\PHPMailer\\' => array($vendorDir . '/phpmailer/phpmailer/src'),
     'LocateBinaries\\' => array($vendorDir . '/rosell-dk/locate-binaries/src'),
     'ImageMimeTypeSniffer\\' => array($vendorDir . '/rosell-dk/image-mime-type-sniffer/src'),
     'ImageMimeTypeGuesser\\' => array($vendorDir . '/rosell-dk/image-mime-type-guesser/src'),

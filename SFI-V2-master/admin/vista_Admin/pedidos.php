@@ -2,36 +2,26 @@
 include_once "cabecera.php";
 include_once "../../conexion.php"; // Conexión a la base de datos
 
-// Número de filas por página
 $filasPorPagina = 7;
 
-// Obtener la página actual desde la URL, por defecto es 1 si no se ha especificado
-if (isset($_GET['pagina']) && is_numeric($_GET['pagina'])) {
-    $paginaActual = (int) $_GET['pagina'];
-} else {
-    $paginaActual = 1;
-}
+$paginaActual = isset($_GET['pagina']) && is_numeric($_GET['pagina']) ? (int) $_GET['pagina'] : 1;
 
-// Calcular el desplazamiento (offset) para la consulta SQL
 $offset = ($paginaActual - 1) * $filasPorPagina;
 
-// Consulta para obtener el total de pedidos (para la paginación)
-$sqlTotal = "SELECT COUNT(*) AS total_pedidos FROM pedido";
-$resultTotal = $conn->query($sqlTotal);
-$totalPedidos = $resultTotal->fetch_assoc()['total_pedidos'];
-
-// Calcular el número total de páginas
-$totalPaginas = ceil($totalPedidos / $filasPorPagina);
-
-// Consulta para obtener los pedidos con límite y desplazamiento
 // Obtener el estado de los pedidos de la URL (por defecto, mostrar todos)
 $estado = isset($_GET['estado']) ? $_GET['estado'] : null;
+$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
+$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
+$cantidad = isset($_GET['cantidad']) ? $_GET['cantidad'] : null;
+$filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
 
-// Modificar la consulta SQL para agregar el filtro de estado
+// Construir la consulta SQL base
+// Construir la consulta SQL base
 $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta,
         CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
         GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
         SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
+        COUNT(pr.idproducto) AS cantidad_productos, 
         s.estado,
         CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
         FROM pedido p
@@ -43,42 +33,7 @@ $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta
         LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1)
         JOIN persona pe ON u.persona_idpersona = pe.idpersona";
 
-// Si se ha recibido un estado, agregarlo a la consulta
-if ($estado) {
-    $sql .= " WHERE s.estado = '" . $conn->real_escape_string($estado) . "'";
-}
-
-$sql .= " GROUP BY p.idpedido, s.fecha, v.fecha_venta, cliente, s.estado, responsable
-          ORDER BY s.fecha DESC
-          LIMIT $filasPorPagina OFFSET $offset";
-
-$result = $conn->query($sql);
-
-// Consulta para obtener los pedidos con límite y desplazamiento
-if (isset($_GET['fecha_inicio']) && isset($_GET['fecha_fin'])) {
-    $fecha_inicio = $conn->real_escape_string($_GET['fecha_inicio']);
-    $fecha_fin = $conn->real_escape_string($_GET['fecha_fin']);
-} else {
-    $fecha_inicio = null;
-    $fecha_fin = null;
-}
-
-$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta,
-        CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
-        GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
-        SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
-        s.estado,
-        CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
-        FROM pedido p
-        JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
-        JOIN cliente c ON s.cliente_idcliente = c.idcliente
-        JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
-        JOIN producto pr ON ps.producto_idproducto = pr.idproducto
-        JOIN usuario u ON p.usuario_idusuario = u.idusuario
-        LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1)
-        JOIN persona pe ON u.persona_idpersona = pe.idpersona";
-
-// Aplicar filtros de estado, fecha de inicio y fecha fin
+// Inicializar un arreglo para las condiciones
 $conditions = [];
 
 // Filtro por estado si está presente
@@ -86,32 +41,54 @@ if ($estado) {
     $conditions[] = "s.estado = '" . $conn->real_escape_string($estado) . "'";
 }
 
-// Filtro por fecha de inicio si está presente
+// Filtro por fecha de inicio
 if (!empty($fecha_inicio)) {
     $conditions[] = "s.fecha >= '" . $conn->real_escape_string($fecha_inicio) . "'";
 }
 
-// Filtro por fecha de fin si está presente
+// Filtro por fecha de fin
 if (!empty($fecha_fin)) {
-    // Sumar un día a la fecha de fin para incluir todo el día completo
+    // Agregar un día a la fecha de fin para incluir el día completo
     $fecha_fin = date('Y-m-d', strtotime($fecha_fin . ' +1 day'));
     $conditions[] = "s.fecha < '" . $conn->real_escape_string($fecha_fin) . "'";
 }
 
-// Si hay condiciones, se añaden a la consulta
+// Aplicar las condiciones de filtros
 if (count($conditions) > 0) {
     $sql .= " WHERE " . implode(' AND ', $conditions);
 }
 
-$sql .= " GROUP BY p.idpedido, s.fecha, v.fecha_venta, cliente, s.estado, responsable
-          ORDER BY s.fecha DESC
-          LIMIT $filasPorPagina OFFSET $offset";
+// Agrupar por el ID del pedido
+$sql .= " GROUP BY p.idpedido";
+
+// Aplicar filtros adicionales
+if ($filtro === 'mayor_cantidad') {
+    $sql .= " ORDER BY cantidad_productos DESC";
+} elseif ($filtro === 'menor_cantidad') {
+    $sql .= " ORDER BY cantidad_productos ASC";
+} elseif ($filtro === 'mayor_precio') {
+    $sql .= " ORDER BY precio_total DESC";
+} elseif ($filtro === 'menor_precio') {
+    $sql .= " ORDER BY precio_total ASC";
+} else {
+    // Por defecto, ordenar por fecha
+    $sql .= " ORDER BY s.fecha DESC";
+}
+
+// Limitar los resultados por paginación
+$sql .= " LIMIT $offset, $filasPorPagina";
 
 $result = $conn->query($sql);
 
+// Obtener el total de pedidos para la paginación
+$sqlTotal = "SELECT COUNT(*) AS total_pedidos FROM pedido";
+$resultTotal = $conn->query($sqlTotal);
+$totalPedidos = $resultTotal->fetch_assoc()['total_pedidos'];
+
+// Calcular el número total de páginas
+$totalPaginas = ceil($totalPedidos / $filasPorPagina);
 
 ?>
-
 
 <div class="full-width panel mdl-shadow--2dp">
     <div class="full-width panel-tittle bg-primary text-center tittles">
@@ -136,6 +113,15 @@ $result = $conn->query($sql);
                         <h3>Pedidos Pendientes</h3>
                         <i class="fi fi-ss-order-history"></i>
                     </div>
+                    <div class="card" onclick="location.href='pedidos.php?filtro=mayor_cantidad'">
+                        <h3>Pedido Con Mayor Cantidad</h3>
+                    </div>
+                    <div class="card" onclick="location.href='pedidos.php?filtro=menor_cantidad'">
+                        <h3>Pedido Con Menor Cantidad</h3>
+                    </div>
+                    <div class="card" onclick="location.href='pedidos.php?filtro=mayor_precio'">
+                        <h3>Pedidos Con Mayor Precio</h3>
+                    </div>
                 </div>
 
                 <!-- Buscador -->
@@ -144,7 +130,6 @@ $result = $conn->query($sql);
                         <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." value="<?php echo isset($_GET['busqueda']) ? $_GET['busqueda'] : ''; ?>" />
                     </form>
                 </div>
-
 
                 <div class="container row">
                     <div class="filter-container col-12">
@@ -158,9 +143,13 @@ $result = $conn->query($sql);
                             </div>
                         </form>
                     </div>
-
                     <div class="btn-container col-12">
-                        <form method="post" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
+                        <form method="get" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
+                            <input type="hidden" name="estado" value="<?php echo isset($_GET['estado']) ? $_GET['estado'] : ''; ?>">
+                            <input type="hidden" name="fecha_inicio" value="<?php echo isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : ''; ?>">
+                            <input type="hidden" name="fecha_fin" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>">
+                            <input type="hidden" name="cantidad" value="<?php echo isset($_GET['cantidad']) ? $_GET['cantidad'] : ''; ?>">
+                            <input type="hidden" name="filtro" value="<?php echo isset($_GET['filtro']) ? $_GET['filtro'] : ''; ?>">
                             <button type="submit" class="btn-exportar">Descargar Datos PDF</button>
                         </form>
                     </div>
@@ -184,25 +173,42 @@ $result = $conn->query($sql);
                             while ($row = $result->fetch_assoc()) {
                                 echo "<tr>";
                                 echo "<td>" . $row['fecha_pedido'] . "</td>";
-                                echo "<td>" . ($row['fecha_venta']) ."</td>";
+                                echo "<td>" . $row['fecha_venta'] . "</td>";
                                 echo "<td>" . $row['responsable'] . "</td>";
                                 echo "<td>" . $row['cliente'] . "</td>";
                                 echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>";
                                 echo "<td>" . $row['precio_total'] . "</td>";
                                 echo "<td class='" . ($row['estado'] == 'pendiente' ? 'estado-pendiente' : 'estado-completado') . "'>" . $row['estado'] . "</td>";
                                 echo "<td>
-                                        <div style='display: flex; gap: 5px;'>
-                                            <form method='POST' action='pedidos/atender_pedido.php'>
-                                                <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-                                                <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
-                                            </form>
-                                            <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
-                                                <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-                                                <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Cancelar</button>
-                                            </form>
-                                            <a href='../generarPDF/pedidos_pdf.php?idpedido=" . $row['idpedido'] . "' class='btn-accion btn-detalles'>Detalles</a>
-                                        </div>
-                                    </td>";
+                                <div style='display: flex; gap: 5px;'>";
+
+                                // Aquí comienza el bloque PHP para la lógica condicional
+                                if ($row['estado'] != 'completado') {
+                                    echo '<form method="POST" action="pedidos/atender_pedido.php">
+                                            <input type="hidden" name="idpedido" value="' . $row['idpedido'] . '">
+                                            <button type="submit" name="atender_pedido" class="btn-accion btn-editar">Atender</button>
+                                        </form>';
+                                } else {
+                                    // Si está completado, se muestra un botón deshabilitado
+                                    echo '<button class="btn-accion btn-editar" disabled>Atender</button>';
+                                }
+
+                                // Lógica para el botón de anulación
+                                if ($row['estado'] != 'completado') {
+                                    echo '<form action="pedidos/cancelar_pedido.php" method="POST" style="display:inline;" onsubmit="return confirmCancel(event, this);">
+                                            <input type="hidden" name="idpedido" value="' . $row['idpedido'] . '">
+                                            <input type="hidden" name="cancelar_pedido" value="1">
+                                            <button type="submit" class="btn-accion btn-eliminar">Anular</button>
+                                        </form>';
+                                } else {
+                                    // Si está completado, se muestra un botón deshabilitado
+                                    echo '<button class="btn-accion btn-eliminar" disabled>Anular</button>';
+                                }
+
+                                echo '<a href="../generarPDF/pedidos_pdf.php?idpedido=' . $row['idpedido'] . '" class="btn-accion btn-detalles">Detalles</a>
+                                    </div>
+                                    </td>';
+
                                 echo "</tr>";
                             }
                         } else {
@@ -224,7 +230,6 @@ $result = $conn->query($sql);
                             while ($row = $result->fetch_assoc()) {
                                 $productos[] = $row['nombre'];
                             }
-                            
                             // Solo mostrar el primer producto y puntos suspensivos si hay más de uno
                             if (count($productos) > 1) {
                                 return $productos[0] . '...';
@@ -234,13 +239,9 @@ $result = $conn->query($sql);
                                 return 'Sin productos'; // En caso de que no haya productos
                             }
                         }
-                        
                         ?>
                     </tbody>
                 </table>
-
-                <!-- Paginación -->
-
                 <nav aria-label="Page navigation">
                     <ul class="pagination">
                         <?php 
@@ -283,7 +284,27 @@ $result = $conn->query($sql);
         </div>
     </div>
 </div>
+<script>
+    function confirmCancel(event, form) {
+    event.preventDefault(); // Evita el envío inmediato del formulario
 
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: "¡No podrás revertir esta acción!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            form.submit(); // Enviar el formulario si el usuario confirma
+        }
+    });
+}
+
+</script>
 <script>
 $(document).ready(function() {
     // Cuando el usuario escribe en el campo de búsqueda
@@ -310,29 +331,6 @@ include_once "pie.php";
 //include_once "validaciones/val_pedidos.php";
 ?>
 
-<script>
-// Confirmación con SweetAlert antes de cancelar el pedido
-function confirmCancel(event, form) {
-    event.preventDefault(); // Evita el envío inmediato del formulario
-    Swal.fire({
-        title: '¿Estás seguro de que deseas cancelar el pedido?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, cancelar pedido',
-        cancelButtonText: 'No, mantener pedido'
-    }).then((result) => {
-        if (result.isConfirmed) {
-    console.log('Formulario enviado');
-    form.submit();
-}
-
-    });
-}
-
-</script>
 
 <!-- Estilos CSS -->
 <style>

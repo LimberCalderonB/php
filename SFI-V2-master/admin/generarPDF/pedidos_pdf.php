@@ -53,7 +53,7 @@ $pdf->AddPage();
 
 // Agregar el logo en el lado derecho superior
 $image_file = dirname(__FILE__).'/logo/logo.jpg'; // Cambia esto a la ruta relativa de tu logo
-$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
+$pdf->Image($image_file, 10, 10, 60, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
 
 // Espacio para separar el logo del contenido
 $pdf->Ln(30); // Aumenta el espacio si es necesario

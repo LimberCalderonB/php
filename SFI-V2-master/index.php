@@ -17,12 +17,14 @@ session_start();
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f5f5f5;
             margin: 0;
+            background-image: url('fondos/fondo1.jpg');
+            background-size: cover;
+            background-position: center;
         }
 
         .login-container {
-            background-color: #fff;
+            background-color: rgba(255, 255, 255, 0.8); /* Fondo blanco con transparencia */
             padding: 40px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             border-radius: 10px;
@@ -112,13 +114,25 @@ session_start();
             <input type="password" id="password" name="password" placeholder="Contraseña" required>
         </div>
 
-        <div class="forgot-password" onclick="forgotPassword()">
-            ¿Se te olvidó la contraseña?
+        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+
+        <div class="forgot-password">
+            <a href="forgot_password.php">¿Se te olvidó la contraseña?</a>
         </div>
 
         <button type="submit" class="login-button">Iniciar Sesión</button>
     </form>
 </div>
+
+<!-- Incluye el script de reCAPTCHA v3 -->
+<script src="https://www.google.com/recaptcha/api.js?render=6LfrfGYqAAAAABKGK4VpzbiF58x532gyM7_fC7CZ"></script>
+<script>
+    grecaptcha.ready(function() {
+        grecaptcha.execute('6LfrfGYqAAAAABKGK4VpzbiF58x532gyM7_fC7CZ', {action: 'login'}).then(function(token) {
+            document.getElementById('g-recaptcha-response').value = token;
+        });
+    });
+</script>
 
 <script>
     // Función para alternar la visibilidad de la contraseña
@@ -150,72 +164,6 @@ session_start();
         <?php unset($_SESSION['error']); // Limpiar el error después de mostrarlo ?>
     <?php endif; ?>
 </script>
-<script>
-    // Función para la opción de "¿Se te olvidó la contraseña?"
-    async function forgotPassword() {
-        const { value: email } = await Swal.fire({
-            title: 'Recuperación de contraseña',
-            input: 'email',
-            inputLabel: 'Introduce tu correo electrónico',
-            inputPlaceholder: 'Ingresa tu correo electrónico',
-            showCancelButton: true,
-            confirmButtonText: 'Enviar',
-            cancelButtonText: 'Cancelar',
-            inputValidator: (value) => {
-                if (!value) {
-                    return '¡Necesitas ingresar un correo electrónico!';
-                }
-                if (!validateEmail(value)) {
-                    return 'Por favor, ingresa un correo @gmail.com válido';
-                }
-            }
-        });
-
-        if (email) {
-            // Verificar si el correo existe en la base de datos antes de enviar el correo de recuperación
-            const response = await fetch('verificar_correo.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: `email=${email}`
-            });
-
-            const result = await response.json(); // Suponemos que el servidor devuelve un JSON con la verificación
-
-            if (result.exists) {
-                // Si el correo existe, enviar el correo de recuperación
-                const sendEmailResponse = await fetch('recuperar_password.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
-                    },
-                    body: `email=${email}`
-                });
-
-                const emailResult = await sendEmailResponse.text();
-
-                // Mostrar mensaje de éxito o error según la respuesta
-                if (sendEmailResponse.ok) {
-                    Swal.fire('Correo enviado', 'Revisa tu correo para continuar con la recuperación.', 'success');
-                } else {
-                    Swal.fire('Error', 'No se pudo enviar el correo de recuperación. Inténtalo de nuevo.', 'error');
-                }
-            } else {
-                // Si el correo no existe, mostrar error
-                Swal.fire('Error', 'El correo no está registrado en el sistema.', 'error');
-            }
-        }
-    }
-
-    // Función para validar el formato de un correo electrónico
-    function validateEmail(email) {
-        // Asegura que el correo termine en @gmail.com
-        const re = /^[^\s@]+@gmail\.com$/;
-        return re.test(String(email).toLowerCase());
-    }
-</script>
-
 
 </body>
 </html>

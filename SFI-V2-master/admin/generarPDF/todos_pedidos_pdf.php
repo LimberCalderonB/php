@@ -1,8 +1,15 @@
 <?php
 require_once('../../../tcpdf/tcpdf/tcpdf.php');
-include_once('../../conexion.php'); // Conexión a la base de datos
+include_once('../../conexion.php');
 
-// Consultar la base de datos para obtener todos los pedidos
+// Recibir los filtros del formulario
+$estado = isset($_GET['estado']) ? $_GET['estado'] : null;
+$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
+$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
+$cantidad = isset($_GET['cantidad']) ? $_GET['cantidad'] : null;
+$filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
+
+// Definir consulta base
 $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, 
                CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente, 
                SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
@@ -19,12 +26,46 @@ $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido,
         LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (
             SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1
         )
-        GROUP BY p.idpedido, s.fecha, cliente, s.estado, responsable, v.fecha_venta
-        ORDER BY s.estado, pe.nombre, p.idpedido";
+        WHERE 1=1";
 
+if (!empty($estado)) {
+    $sql .= " AND s.estado = '$estado'";
+}
+
+if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+    $fecha_inicio = $conn->real_escape_string($fecha_inicio);
+    $fecha_fin = $conn->real_escape_string($fecha_fin);
+    $sql .= " AND s.fecha BETWEEN '$fecha_inicio' AND '$fecha_fin'";
+}
+
+$sql .= " GROUP BY p.idpedido, s.fecha, c.idcliente, s.estado, pe.idpersona";
+
+// Aplicar filtros específicos
+if ($filtro === 'mayor_cantidad') {
+    $sql .= " ORDER BY COUNT(pr.idproducto) DESC"; // Mayor cantidad
+} elseif ($filtro === 'menor_cantidad') {
+    $sql .= " ORDER BY COUNT(pr.idproducto) ASC"; // Menor cantidad
+} elseif ($filtro === 'mayor_precio') {
+    $sql .= " ORDER BY precio_total DESC"; // Mayor precio
+} elseif ($filtro === 'menor_precio') {
+    $sql .= " ORDER BY precio_total ASC"; // Menor precio
+} elseif ($filtro === 'disponibles') {
+    $sql .= " AND s.estado = 'disponible'"; // Productos disponibles
+} elseif ($filtro === 'agotados') {
+    $sql .= " AND s.estado = 'agotado'"; // Productos agotados
+}
+
+// Aplicar filtro por cantidad si está presente
+if (!empty($cantidad)) {
+    $sql .= " HAVING COUNT(pr.idproducto) >= $cantidad"; // Filtrar por cantidad mínima de productos
+}
+
+// Ejecutar la consulta principal
 $result = $conn->query($sql);
+
+// Verificar si se encontraron resultados
 if ($result->num_rows == 0) {
-    die('No se encontraron pedidos.');
+    die('No se encontraron pedidos con los filtros aplicados.');
 }
 
 // Crear una nueva instancia de TCPDF
@@ -46,8 +87,8 @@ $pdf->SetFooterMargin(10);
 $pdf->AddPage();
 
 // Agregar el logo en el lado derecho superior
-$image_file = dirname(__FILE__).'/logo/logo.jpg'; // Ruta relativa de tu logo
-$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
+$image_file = dirname(__FILE__) . '/logo/logo.jpg'; // Ruta relativa de tu logo
+$pdf->Image($image_file, 10, 10, 60, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
 
 // Espacio para separar el logo del contenido
 $pdf->Ln(30); // Aumenta el espacio si es necesario
@@ -60,7 +101,6 @@ $pdf->Cell(0, 15, 'Listado de Todos los Pedidos', 0, 1, 'C');
 $pdf->Ln(10);
 
 // Inicializar variables
-$current_estado = '';
 while ($row = $result->fetch_assoc()) {
     // Estado del pedido en mayúsculas y con color
     $estado = strtoupper($row['estado']);
@@ -87,7 +127,6 @@ while ($row = $result->fetch_assoc()) {
             <td><strong>Responsable:</strong></td>
             <td>{$row['responsable']}</td>
         </tr>
-        <br>
         <tr>
             <td><strong>Estado:</strong></td>
             <td style='color: rgb({$estado_color[0]}, {$estado_color[1]}, {$estado_color[2]});'><strong>$estado</strong></td>
@@ -126,18 +165,20 @@ while ($row = $result->fetch_assoc()) {
             $subtotal = $producto['precio_con_descuento'] != '-' ? $producto['precio_con_descuento'] : $producto['precio'];
             $pdf->Cell(40, 10, $producto['nombre'], 1);
             $pdf->Cell(35, 10, number_format($producto['precio'], 2) . ' BOB', 1);
-            $pdf->Cell(35, 10, number_format($producto['descuento'], 2) . '%', 1);
-            $pdf->Cell(35, 10, $producto['precio_con_descuento'] . ' BOB', 1);
-            $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
+            $pdf->Cell(35, 10, number_format($producto['descuento'], 2) . ' %', 1);
+            $pdf->Cell(35, 10, number_format($producto['precio_con_descuento'], 2) . ' BOB', 1);
+            $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1);
+            $pdf->Ln();
         }
 
-        // Total a pagar debajo de la tabla
+        // Espacio después de la tabla de productos
         $pdf->Ln(5);
-        $pdf->SetFont('helvetica', 'B', 12);
-        $pdf->Cell(0, 10, 'Total a Pagar: ' . number_format($row['precio_total'], 2) . ' BOB', 0, 1, 'R');
     }
+
+    // Espacio antes del siguiente pedido
+    $pdf->Ln(10);
 }
 
-// Cerrar y emitir el PDF
-$pdf->Output('todos_pedidos.pdf', 'I'); // 'I' muestra el PDF en el navegador
+// Salida del PDF
+$pdf->Output('pedidos.pdf', 'I');
 ?>

@@ -1,5 +1,6 @@
 {
     "require": {
-        "rosell-dk/webp-convert": "^2.9"
+        "rosell-dk/webp-convert": "^2.9",
+        "phpmailer/phpmailer": "^6.9"
     }
 }

@@ -24,7 +24,7 @@ if ($filtro === 'mayor_cantidad') {
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
             GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre
             ORDER BY cantidad_disponible DESC
-            LIMIT 1";
+            LIMIT 100";
 } elseif ($filtro === 'menor_cantidad') {
     // Consulta para obtener los productos con menor cantidad disponible
     $sql = "SELECT 
@@ -43,7 +43,7 @@ if ($filtro === 'mayor_cantidad') {
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
             GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre
             ORDER BY cantidad_disponible ASC
-            LIMIT 1";
+            LIMIT 100";
 } elseif ($filtro === 'mayor_precio') {
     // Consulta para obtener los productos con mayor precio
     $sql = "SELECT 
@@ -62,7 +62,7 @@ if ($filtro === 'mayor_cantidad') {
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
             GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre
             ORDER BY p.precio DESC
-            LIMIT 1"; // Ordenar por mayor precio
+            LIMIT 100"; // Ordenar por mayor precio
 } elseif ($filtro === 'menor_precio') {
     // Consulta para obtener los productos con menor precio
     $sql = "SELECT 
@@ -81,7 +81,7 @@ if ($filtro === 'mayor_cantidad') {
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
             GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre
             ORDER BY p.precio ASC
-            LIMIT 1"; // Ordenar por menor precio
+            LIMIT 100"; // Ordenar por menor precio
 } elseif ($filtro === 'disponibles') {
     // Consulta para obtener los productos con estado "disponible"
     $sql = "SELECT 
@@ -102,22 +102,24 @@ if ($filtro === 'mayor_cantidad') {
             GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre";
 } elseif ($filtro === 'agotados') {
     // Consulta para obtener los productos con estado "agotado"
-    $sql = "SELECT 
-    p.idproducto,
+                $sql = "SELECT 
+                p.idproducto,
                 p.nombre, 
                 p.precio, 
                 p.precioConDescuento,
                 p.talla,
                 IFNULL(p.descuento, 0) AS descuento,
                 c.nombre AS categoria_nombre, 
-                SUM(CASE WHEN a.estado = 'agotado' THEN a.cantidad ELSE 0 END) AS cantidad_disponible, 
+                -- Si todos los productos están agotados, cantidad será 0
+                IF(SUM(CASE WHEN a.estado = 'disponible' THEN a.cantidad ELSE 0 END) = 0, 0, SUM(a.cantidad)) AS cantidad_disponible,
                 MAX(p.fecha_actualizacion) AS fecha_actualizacion,
-                IF(SUM(CASE WHEN a.estado = 'agotado' THEN a.cantidad ELSE 0 END) > 0, 'disponible', 'agotado') AS estado
+                -- Verificamos si todos los productos del grupo tienen estado agotado
+                IF(SUM(CASE WHEN a.estado = 'disponible' THEN a.cantidad ELSE 0 END) = 0, 'agotado', 'disponible') AS estado
             FROM producto p
             JOIN almacen a ON p.idproducto = a.producto_idproducto
             JOIN categoria c ON a.categoria_idcategoria = c.idcategoria
-            WHERE a.estado = 'agotado'
-            GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre";
+            GROUP BY p.nombre, p.precio, p.precioConDescuento, p.talla, c.nombre
+            HAVING estado = 'agotado'";
 } else {
     // Consulta general para mostrar todos los productos
     $sql = "SELECT 
@@ -158,7 +160,7 @@ if ($result->num_rows > 0) {
 </div>
     <div class="menu-container">
         <div class="card card-todo" onclick="location.href='stock.php'">
-                <h3>Todos los Pedidos</h3>
+                <h3>Todos los Productos</h3>
                 <i class="fi fi-sr-globe"></i>
             </div>
         <div class="card card-completados" onclick="location.href='stock.php?filtro=mayor_cantidad'">
@@ -187,20 +189,21 @@ if ($result->num_rows > 0) {
         </div>
     </div>
     <div class="search-container text-center">
-    <form method="GET" action="">
-        <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." onkeyup="realTimeSearch(this.value)" />
-    </form>
-</div>
+        <form method="GET" action="">
+            <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." onkeyup="realTimeSearch(this.value)" />
+        </form>
+    </div>
 
 
     <div class="btn-container">
-        <a href="../generarPDF/stock_pdf.php" target="_blank">
-            <button class="btn-descargar">
-                DESCARGAR DATOS   
-                <i class="fi fi-rs-down-to-line"></i>
-            </button>
-        </a>
-    </div>
+    <a href="../generarPDF/stock_pdf.php?filtro=<?php echo urlencode($filtro); ?>" target="_blank">
+        <button class="btn-descargar">
+            DESCARGAR DATOS   
+            <i class="fi fi-rs-down-to-line"></i>
+        </button>
+    </a>
+</div>
+
 
 <div class="mdl-tabs__panel is-active" id="tabListAdmin">
     <div class="full-width divider-menu-h"></div>

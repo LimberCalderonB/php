@@ -118,8 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancelar_todo'])) {
             $estadoActual = $producto_pedido['estado'];
 
             // Si el producto está en un estado diferente a 'espera', restaurarlo
-            if ($estadoActual !== 'espera') {
-                $sql_restore = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+            if ($estadoActual !== 'agotado') {
+                $sql_restore = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
                 $stmt_restore = $conn->prepare($sql_restore);
                 $stmt_restore->bind_param("i", $idProductoPedido);
                 $stmt_restore->execute();
@@ -170,12 +170,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             $es_venta_pedido = isset($_SESSION['idpedido']) ? true : false;
             $pedido_venta_idpedido_venta = null;
 
+            // Verificar si se ha seleccionado un cliente
+            $cliente_id = isset($_POST['idcliente']) && !empty($_POST['idcliente']) ? intval($_POST['idcliente']) : null;
+
+
             if ($es_venta_pedido) {
                 $idpedido = $_SESSION['idpedido'];
 
-                // Actualizar el cliente seleccionado
-                if (!empty($_POST['idcliente'])) {
-                    $cliente_id = intval($_POST['idcliente']);
+                // Actualizar el cliente seleccionado en la solicitud (si existe)
+                if (!empty($cliente_id)) {
                     $sql = "UPDATE solicitud SET cliente_idcliente = ? WHERE idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
                     $stmt = $conn->prepare($sql);
                     $stmt->bind_param("ii", $cliente_id, $idpedido);
@@ -203,23 +206,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
                 $stmt->execute();
                 $pedido_venta_idpedido_venta = $stmt->insert_id;
 
-                // Actualizar el estado del pedido a 'completado' en la tabla solicitud
+                // Actualizar el estado del pedido a 'completado'
                 $sql = "UPDATE solicitud SET estado = 'completado' WHERE idsolicitud = (SELECT solicitud_idsolicitud FROM pedido WHERE idpedido = ?)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bind_param("i", $idpedido);
                 $stmt->execute();
             }
 
-            // Insertar la venta (colocamos NULL para venta normal)
+            // Insertar la venta, incluyendo el cliente si está disponible
             date_default_timezone_set('America/La_Paz');
             $fecha_venta = date("Y-m-d H:i:s");
 
-            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_venta_idpedido_venta) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO venta (usuario_idusuario, pago, fecha_venta, pedido_venta_idpedido_venta, cliente_idcliente) VALUES (?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            if (!$es_venta_pedido) {
-                $pedido_venta_idpedido_venta = NULL;
-            }
-            $stmt->bind_param("idsi", $usuario_idusuario, $total, $fecha_venta, $pedido_venta_idpedido_venta);
+            $stmt->bind_param("idsii", $usuario_idusuario, $total, $fecha_venta, $pedido_venta_idpedido_venta, $cliente_id);
             $stmt->execute();
             $venta_id = $stmt->insert_id;
 
@@ -247,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             // Confirmar la transacción
             $conn->commit();
 
-            // Limpiar la sesión de productos seleccionados, cliente y pedido
+            // Limpiar la sesión
             $_SESSION['productos_seleccionados'] = [];
             unset($_SESSION['idcliente']);
             unset($_SESSION['nombre_cliente']);
@@ -280,9 +280,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['realizar_venta']) && i
             $conn->rollback();
             echo "Error al realizar la venta: " . $e->getMessage();
         }
+
+        $_SESSION['productos_seleccionados'] = [];
+        unset($_SESSION['idcliente']);
+        unset($_SESSION['nombre_cliente']);
+        unset($_SESSION['idpedido']);
+
         $conn->close();
     }
 }
+
 
 
 
@@ -319,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                 foreach ($_SESSION['productos_seleccionados'] as $idproducto => $producto) {
                     if (in_array($idproducto, $productos_en_pedido)) {
                         // Si el producto ya está en el pedido, actualizar su estado
-                        $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                        $sql = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
                         $stmt = $conn->prepare($sql);
                         $stmt->bind_param("i", $idproducto);
                         $stmt->execute();
@@ -331,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                         $stmt->execute();
 
                         // Actualizar el estado del producto en la tabla almacen
-                        $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                        $sql = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
                         $stmt = $conn->prepare($sql);
                         $stmt->bind_param("i", $idproducto);
                         $stmt->execute();
@@ -377,7 +384,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                         throw new Exception("El cliente no existe.");
                     }
                 }
-                
 
                 // Confirmar la transacción para la actualización
                 $conn->commit();
@@ -387,9 +393,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                           title: 'Pedido actualizado correctamente',
                           showConfirmButton: false,
                           timer: 2000
+                        }).then(function() {
+                          window.location.reload();
                         });
                       </script>";
-                echo "<script>window.location.reload();</script>";
                 unset($_SESSION['productos_seleccionados']);
                 unset($_SESSION['idcliente']);
                 unset($_SESSION['idpedido']);
@@ -423,7 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                             $stmt->execute();
 
                             // Actualizar el estado del producto a 'espera' en la tabla almacen
-                            $sql = "UPDATE almacen SET estado = 'espera' WHERE producto_idproducto = ?";
+                            $sql = "UPDATE almacen SET estado = 'agotado' WHERE producto_idproducto = ?";
                             $stmt = $conn->prepare($sql);
                             $stmt->bind_param("i", $idproducto);
                             $stmt->execute();
@@ -454,20 +461,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
                                   title: 'Pedido guardado correctamente',
                                   showConfirmButton: false,
                                   timer: 2000
+                                }).then(function() {
+                                  window.location.reload();
                                 });
                               </script>";
-                        echo "<script>window.location.reload();</script>";
                     } else {
-                        throw new Exception("El cliente no existe.");
+                        echo "<script>
+                        Swal.fire({
+                          icon: 'error',
+                          title: 'El cliente no existe',
+                          showConfirmButton: true,
+                        });
+                      </script>";
                     }
                 } else {
-                    throw new Exception("Debe seleccionar un cliente.");
+                    echo "<script>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Seleccione un cliente existente.',
+                        showConfirmButton: true,
+                    });
+                  </script>";
                 }
             }
         } catch (Exception $e) {
             // Revertir la transacción en caso de error
             $conn->rollback();
-            echo "Error: " . $e->getMessage();
+            echo "<script>
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error: " . $e->getMessage() . "',
+                        showConfirmButton: true,
+                    });
+                  </script>";
         }
         $conn->close();
     }
@@ -519,11 +545,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
             CANCELAR TODO
         </button>
 
-        <!-- Botón "Ver Pedidos" -->
-        <button type="button" id="ver-pedidos" class="btn btn-ver-pedidos" onclick="location.href='pedidos.php'">
-            <i class="fi fi-rr-eye"></i>
-            VER PEDIDOS
-        </button>
+
     </form>
 </div>
 
@@ -565,8 +587,7 @@ function obtenerNombreCliente($conn, $idcliente) {
 ?>
 
 <div class="container">
-   
-    
+
     <div class="total-cost">
         <h5>Total: <?php echo number_format(@$total, 2); ?> Bs</h5>
     </div>

@@ -236,6 +236,7 @@ $conn->close();
 <div class="mdl-tabs__panel is-active" id="tabListProducts">
     <div class="mdl-grid">
         <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--8-col-tablet mdl-cell--12-col-desktop">
+            <!-- Buscador de productos -->
             <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
                 <label class="mdl-button mdl-js-button mdl-button--icon" for="searchProduct">
                     <i class="zmdi zmdi-search"></i>    
@@ -245,136 +246,111 @@ $conn->close();
                     <label class="mdl-textfield__label" for="searchProduct"></label>
                 </div>
             </div>
-            <!-- Menú de navegación por categorías -->
-            <div class="category-navigation">
-                <?php 
-                $categorias = array_unique(array_column($productos, 'categoria_nombre')); // Extraer categorías únicas
-                ?>
-                <ul class="category-menu">
-                    <li>
-                        <button class="category-btn" onclick="mostrarTodosProductos()">Todos</button>
-                    </li>
-                    <?php foreach ($categorias as $categoria): ?>
-                        <li>
-                            <button class="category-btn" onclick="filtrarProductosPorCategoria('<?php echo htmlspecialchars($categoria); ?>')">
-                                <?php echo htmlspecialchars($categoria); ?>
-                            </button>
-                        </li>
+
+            <!-- Resultados de productos -->
+            <div id="product-results" class="mdl-grid full-width text-center" style="display: flex; flex-wrap: wrap; justify-content: center; padding: 30px 0; gap: 20px;">
+                <?php if (!empty($productos)): ?>
+                    <?php foreach ($productos as $producto): ?>
+                        <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--4-col-tablet mdl-cell--3-col-desktop">
+                            <div class="mdl-card mdl-shadow--2dp full-width product-card" data-categoria="<?php echo htmlspecialchars($producto['categoria_nombre']); ?>">
+                                <div class="mdl-card__title">
+                                    <div class="product-images">
+                                        <?php
+                                        $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
+                                        $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
+                                        ?>
+                                        <?php if (!empty($producto['img1'])): ?>
+                                            <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
+                                        <?php endif; ?>
+                                        <?php if (!empty($producto['img2'])): ?>
+                                            <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
+                                        <?php endif; ?>
+                                        <?php if (!empty($producto['img3'])): ?>
+                                            <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
+                                        <?php endif; ?>
+                                    </div>
+                                    <button class="prev-button">
+                                        <i class="fi fi-rr-angle-small-left"></i>
+                                    </button>
+                                    <button class="next-button">
+                                        <i class="fi fi-rr-angle-small-right"></i>
+                                    </button>
+                                </div>
+                                <div class="mdl-card__supporting-text">
+                                    <div class="product-info">
+                                        <small>CAT: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
+                                        <small class="separator">|</small>
+                                        <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
+                                    </div>
+                                    <div class="btn-container">
+                                        <small>
+                                            <?php if ($producto['estado'] == 'agotado' || $producto['cantidad'] <= 0): ?>
+                                                Cantidad: 0
+                                            <?php else: ?>
+                                                Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                            <?php endif; ?>
+                                        </small>
+                                        <div class="btn-right">
+                                            <?php if ($producto['estado'] != 'agotado'): ?>
+                                                <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
+                                                    <span>Añadir</span>
+                                                    <i class="fi fi-sr-plus"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
+                                                    <span>Agotado</span>
+                                                    <i class="fi fi-sr-plus"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mdl-card__actions mdl-card--border">
+                                    <div class="product-infor">
+                                        <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
+
+                                    </div>
+                                    <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
+                                        <?php if ($producto['descuento'] > 0): ?>
+                                            <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
+                                            | Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
+                                            | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
+                                        <?php else: ?>
+                                            <?php echo htmlspecialchars($producto['precio']); ?>-Bs
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="btn-container">
+                                        <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
+                                            <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
+                                            <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
+                                            <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
+                                                <?php echo htmlspecialchars($producto['cantidad']); ?>
+                                            </span>
+                                            <button type="button" 
+                                                class="btn <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'success' : 'agotado'; ?>" 
+                                                onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')" 
+                                                <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? '' : 'disabled'; ?>>
+                                                <i class="fi fi-sr-shopping-cart"></i>
+                                                <span><?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'Enviar' : 'Agotado'; ?></span>
+                                            </button>
+                                        </form>
+                                        <div class="btn-right">
+                                            <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
+                                                <i class="zmdi zmdi-edit"></i>
+                                            </button>
+                                            <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
+                                                <i class="zmdi zmdi-delete"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     <?php endforeach; ?>
-                </ul>
+                <?php else: ?>
+                    <p>No se encontraron productos.</p>
+                <?php endif; ?>
             </div>
-            <div id="product-results" class="mdl-grid full-width text-center" style="display: flex; flex-wrap: wrap; justify-content: center; padding: 30px 0;">
-
-    <?php if (!empty($productos)): ?>
-        <?php foreach ($productos as $producto): ?>
-            <div class="mdl-cell mdl-cell--4-col-phone mdl-cell--4-col-tablet mdl-cell--3-col-desktop">
-                <div class="mdl-card mdl-shadow--2dp full-width product-card" data-categoria="<?php echo htmlspecialchars($producto['categoria_nombre']); ?>">
-                    <div class="mdl-card__title">
-                        <!-- Contenido de la tarjeta del producto -->
-                        <?php
-                        $nombreCategoria = isset($producto['categoria_nombre']) ? htmlspecialchars($producto['categoria_nombre']) : 'default';
-                        $directorioImagenes = 'img/categorias/' . $nombreCategoria . '/';
-                        ?>
-                        <div class="product-images">
-                            <?php if (!empty($producto['img1'])): ?>
-                                <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img1']); ?>" alt="img de producto 1" class="img-responsive product-image active">
-                            <?php endif; ?>
-                            <?php if (!empty($producto['img2'])): ?>
-                                <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img2']); ?>" alt="img de producto 2" class="img-responsive product-image">
-                            <?php endif; ?>
-                            <?php if (!empty($producto['img3'])): ?>
-                                <img src="<?php echo htmlspecialchars($directorioImagenes . $producto['img3']); ?>" alt="img de producto 3" class="img-responsive product-image">
-                            <?php endif; ?>
-                        </div>
-                        <button class="prev-button">
-                                            <i class="fi fi-rr-angle-small-left"></i>
-                                        </button>
-                                        <button class="next-button">
-                                            <i class="fi fi-rr-angle-small-right"></i>
-                                        </button>
-                    </div>
-                    <div class="mdl-card__supporting-text">
-                        <!-- Información del producto -->
-                        <div class="product-info">
-                            <small>CAT: <?php echo htmlspecialchars($producto['categoria_nombre']); ?></small>
-                            <small class="separator">|</small>
-                            <small>Talla: <?php echo htmlspecialchars($producto['talla']); ?></small>
-
-                        </div>
-                        <div class="btn-container">
-                            <small>
-                                <?php if ($producto['estado'] == 'agotado' || $producto['cantidad'] <= 0): ?>
-                                    Cantidad: 0 (Agotado)
-                                <?php else: ?>
-                                    Cantidad: <?php echo htmlspecialchars($producto['cantidad']); ?>
-                                <?php endif; ?>
-                            </small>
-                            <div class="btn-right">
-                                <?php if ($producto['estado'] != 'agotado'): ?>
-                                    <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
-                                        <span>Añadir</span>
-                                        <i class="fi fi-sr-plus"></i>
-                                    </button>
-                                <?php else: ?>
-                                    <button onclick="mostrarAlerta('<?php echo $producto['idproducto']; ?>')" class="btn-aniadir">
-                                        <span>Agotado</span>
-                                        <i class="fi fi-sr-plus"></i>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mdl-card__actions mdl-card--border">
-                        <!-- Precios y botones adicionales -->
-                        <div class="product-info">
-                            <small><?php echo htmlspecialchars($producto['nombre']); ?></small>
-                            <small class="separator">|</small>
-                            <small> <?php echo htmlspecialchars($producto['estado']); ?></small>
-                            <small class="separator">|</small>
-                            <small> <?php echo htmlspecialchars($producto['idproducto']); ?></small>
-                        </div>
-                        <div class="product-price <?php echo $producto['descuento'] > 0 ? 'discount' : ''; ?>">
-                            <?php if ($producto['descuento'] > 0): ?>
-                                <span class="original-price"><?php echo htmlspecialchars($producto['precio']); ?>-Bs</span> 
-                                | Des: <?php echo htmlspecialchars($producto['descuento']); ?>%
-                                | Ahora: <?php echo number_format($producto['precio'] - ($producto['precio'] * ($producto['descuento'] / 100)), 2); ?>-Bs
-                            <?php else: ?>
-                                <?php echo htmlspecialchars($producto['precio']); ?>-Bs
-                            <?php endif; ?>
-                        </div>
-                        <div class="btn-container">
-                            <form method="post" action="buscar_similares.php" id="formSeleccionar<?php echo $producto['idproducto']; ?>" style="display:inline;">
-                                <input type="hidden" name="idproducto" value="<?php echo $producto['idproducto']; ?>">
-                                <input type="hidden" name="cantidad" id="cantidad<?php echo $producto['idproducto']; ?>" value="">
-                                <span id="cantidadDisponible<?php echo $producto['idproducto']; ?>" style="display:none;">
-                                    <?php echo htmlspecialchars($producto['cantidad']); ?>
-                                </span>
-                                <button type="button" 
-                                    class="btn <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'success' : 'agotado'; ?>" 
-                                    onclick="seleccionarProducto('<?php echo $producto['idproducto']; ?>')" 
-                                    <?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? '' : 'disabled'; ?>>
-                                    <i class="fi fi-sr-shopping-cart"></i>
-                                    <span><?php echo ($producto['estado'] == 'disponible' && $producto['cantidad'] > 0) ? 'Enviar' : 'Agotado'; ?></span>
-                                </button>
-                            </form>
-
-                            <div class="btn-right">
-                                <button class="btn primary mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-update" onclick="location.href='editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>'">
-                                    <i class="zmdi zmdi-edit"></i>
-                                </button>
-                                <button class="btn danger mdl-button mdl-button--icon mdl-js-button mdl-js-ripple-effect btn-delete" data-id="<?php echo $producto['idproducto']; ?>">
-                                    <i class="zmdi zmdi-delete"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    <?php else: ?>
-        <p>No se encontraron productos.</p>
-    <?php endif; ?>
-</div>
         </div>
     </div>
 </div>
@@ -383,4 +359,53 @@ $conn->close();
 include_once "pie.php"; 
 include_once "validaciones/val_producto.php";
 ?>
+
+<script>
+function searchProduct() {
+    var input, filter, cards, productCard, i, txtValue;
+    input = document.getElementById('searchProduct');
+    filter = input.value.toUpperCase();
+    cards = document.getElementById("product-results");
+    productCard = cards.getElementsByClassName('product-card');
+
+    // Contadores para la reubicación
+    let matchedCards = [];
+    let unmatchedCards = [];
+
+    for (i = 0; i < productCard.length; i++) {
+        txtValue = productCard[i].textContent || productCard[i].innerText;
+        if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            matchedCards.push(productCard[i]);
+            productCard[i].style.display = ""; // Muestra la tarjeta
+        } else {
+            unmatchedCards.push(productCard[i]);
+            productCard[i].style.display = "none"; // Oculta la tarjeta
+        }
+    }
+
+    // Si hay productos que coinciden, reubícalos al centro
+    if (matchedCards.length > 0) {
+        // Eliminar todos los elementos existentes
+        while (cards.firstChild) {
+            cards.removeChild(cards.firstChild);
+        }
+
+        // Añadir los elementos coincidentes
+        matchedCards.forEach(function(card) {
+            cards.appendChild(card);
+        });
+    }
+}
+</script>
+
+<style>
+#product-results {
+    display: flex;
+    flex-wrap: wrap; /* Permite que las tarjetas se envuelvan en varias filas */
+    justify-content: center; /* Centra las tarjetas en el contenedor */
+    padding: 10px 0;
+    gap: 10px; /* Añade un espacio entre las tarjetas si lo deseas */
+}
+</style>
+
 

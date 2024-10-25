@@ -69,19 +69,19 @@ if ($result->num_rows > 0) {
         echo "<td>" . htmlspecialchars($row['fecha_venta']) . "</td>";
         echo "<td>" . htmlspecialchars($row['responsable']) . "</td>";
         echo "<td>" . htmlspecialchars(explode(', ', $row['productos'])[0]) . "...</td>"; // Mostrar solo el primer producto
+        echo "<td>" . htmlspecialchars($row['cantidad']) . "</td>";
         echo "<td>" . htmlspecialchars($row['precio_total']) . "</td>";
+
         echo "<td>
                 <div class='btn-container'>
 
-                    <a href='editar_venta.php?id=" . urlencode($row['idventa']) . "'>
-                        <button class='btn-editar btn-accion'>Editar</button>
-                    </a>
+
                     <form action='eliminar_venta.php' method='post' onsubmit='return confirm(\"¿Estás seguro de que deseas eliminar esta venta?\");'>
                         <input type='hidden' name='idventa' value='" . urlencode($row['idventa']) . "'>
                         <button class='btn-eliminar btn-accion'>Eliminar</button>
                     </form>
                     <a href='../generarPDF/venta.php?id=" . urlencode($row['idventa']) . "' target='_blank'>
-                        <button class='btn-reimprimir btn-accion'>PDF</button>
+                        <button class='btn-reimprimir btn-accion'>Detalles</button>
                     </a>
                 </div>
               </td>";

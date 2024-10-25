@@ -52,7 +52,7 @@ $pdf->AddPage();
 
 // Añadir logo
 $image_file = dirname(__FILE__) . '/logo/logo.jpg';
-$pdf->Image($image_file, 10, 10, 30, 25, 'JPG', '', 'T', false, 300, 'L', false, false, 0, false, false, false);
+$pdf->Image($image_file, 10, 10, 60, 25, 'JPG', '', 'T', false, 300, 'L', false, false, 0, false, false, false);
 
 // Título
 $pdf->SetFont('helvetica', 'B', 12);

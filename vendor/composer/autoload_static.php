@@ -11,6 +11,10 @@ class ComposerStaticInit37a10c04bedd209a0a3d4fcf239a7b47
         array (
             'WebPConvert\\' => 12,
         ),
+        'P' => 
+        array (
+            'PHPMailer\\PHPMailer\\' => 20,
+        ),
         'L' => 
         array (
             'LocateBinaries\\' => 15,
@@ -34,6 +38,10 @@ class ComposerStaticInit37a10c04bedd209a0a3d4fcf239a7b47
         'WebPConvert\\' => 
         array (
             0 => __DIR__ . '/..' . '/rosell-dk/webp-convert/src',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'LocateBinaries\\' => 
         array (

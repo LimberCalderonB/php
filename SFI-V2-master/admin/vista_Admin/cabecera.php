@@ -99,9 +99,9 @@ $conn->close();
 				<i class="zmdi zmdi-close btn-menu"></i> BIENVENIDO
 			</div>
 			<figure class="full-width navLateral-body-tittle-menu">
-				<div>
+				<!--<div>
 					<img src="<?php echo htmlspecialchars($user_data['foto']); ?>" alt="Avatar" class="img-responsive">
-				</div>
+				</div>-->
 				<figcaption>
 				<span>
                         <?php echo isset($user_data['nombre']) ? htmlspecialchars($user_data['nombre']) . ' ' . htmlspecialchars($user_data['apellido1']) . ' ' . htmlspecialchars($user_data['apellido2']): 'Nombre no disponible'; ?><br>
@@ -247,7 +247,7 @@ $conn->close();
 					</li>
 					<!--<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
-						<a href="inventario.php" class="full-width">
+						<a href="stock.php" class="full-width">
 							<div class="navLateral-body-cl">
 								<i class="zmdi zmdi-store"></i>
 							</div>
