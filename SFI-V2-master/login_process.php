@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $responseKeys = json_decode($response, true);
 
     // Verifica si el reCAPTCHA es válido y su puntuación
-    if ($responseKeys["success"] && $responseKeys["score"] >= 0.1) {
+    if ($responseKeys["success"] && $responseKeys["score"] >= 0.6) {
         // Si la puntuación es válida, procede con el login
         // Prepara la consulta para obtener el usuario por el nombre de usuario
         $query = "SELECT * FROM usuario WHERE nombreUsuario = ?";
