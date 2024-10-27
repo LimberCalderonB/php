@@ -15,23 +15,31 @@ $fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
 $cantidad = isset($_GET['cantidad']) ? $_GET['cantidad'] : null;
 $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
 
-// Construir la consulta SQL base
-// Construir la consulta SQL base
-$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta AS fecha_venta,
-        CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
-        GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
-        SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
-        COUNT(pr.idproducto) AS cantidad_productos, 
-        s.estado,
-        CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
+$sql = "SELECT 
+            p.idpedido, 
+            s.fecha AS fecha_pedido, 
+            v.fecha_venta AS fecha_venta, 
+            c.ci_cliente, 
+            CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente,
+            GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos,
+            SUM(IF(pr.precioConDescuento IS NOT NULL, pr.precioConDescuento, pr.precio)) AS precio_total,
+            COUNT(pr.idproducto) AS cantidad_productos, 
+            s.estado,
+            CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
         FROM pedido p
         JOIN solicitud s ON p.solicitud_idsolicitud = s.idsolicitud
         JOIN cliente c ON s.cliente_idcliente = c.idcliente
         JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
         JOIN producto pr ON ps.producto_idproducto = pr.idproducto
         JOIN usuario u ON p.usuario_idusuario = u.idusuario
-        LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (SELECT idpedido_venta FROM pedido_venta WHERE pedido_idpedido = p.idpedido LIMIT 1)
+        LEFT JOIN venta v ON v.pedido_venta_idpedido_venta = (
+            SELECT idpedido_venta 
+            FROM pedido_venta 
+            WHERE pedido_idpedido = p.idpedido 
+            LIMIT 1
+        )
         JOIN persona pe ON u.persona_idpersona = pe.idpersona";
+
 
 // Inicializar un arreglo para las condiciones
 $conditions = [];
@@ -122,6 +130,9 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                     <div class="card" onclick="location.href='pedidos.php?filtro=mayor_precio'">
                         <h3>Pedidos Con Mayor Precio</h3>
                     </div>
+                    <div class="card" onclick="location.href='pedidos.php?filtro=menor_precio'">
+                        <h3>Pedidos Con Menor Precio</h3>
+                    </div>
                 </div>
 
                 <!-- Buscador -->
@@ -159,9 +170,10 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                         <tr>
                             <th>Fecha de Pedido</th>
                             <th>Fecha de Venta</th>
-                            <th>Responsable</th>
                             <th>Cliente</th>
+                            <th>C.I.</th>
                             <th>Productos</th>
+                            <th>Cantidad</th>
                             <th>Precio Total</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -174,9 +186,10 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                                 echo "<tr>";
                                 echo "<td>" . $row['fecha_pedido'] . "</td>";
                                 echo "<td>" . $row['fecha_venta'] . "</td>";
-                                echo "<td>" . $row['responsable'] . "</td>";
                                 echo "<td>" . $row['cliente'] . "</td>";
+                                echo "<td>" . $row['ci_cliente'] . "</td>";
                                 echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>";
+                                echo "<td>" . $row['cantidad_productos'] . "</td>";
                                 echo "<td>" . $row['precio_total'] . "</td>";
                                 echo "<td class='" . ($row['estado'] == 'pendiente' ? 'estado-pendiente' : 'estado-completado') . "'>" . $row['estado'] . "</td>";
                                 echo "<td>

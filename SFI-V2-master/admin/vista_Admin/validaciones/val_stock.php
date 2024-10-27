@@ -72,47 +72,6 @@ function promptDelete(productId) {
     });
 }
 </script>
-<script>
-function realTimeSearch(query) {
-    if (query.length === 0) {
-        return;
-    }
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'buscador/search.php?query=' + encodeURIComponent(query), true);
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            const productos = JSON.parse(xhr.responseText);
-            const tbody = document.querySelector('tbody'); // Asegúrate de que este selector sea correcto
-
-            // Limpiar el contenido actual de la tabla
-            tbody.innerHTML = '';
-
-            // Añadir los resultados de la búsqueda a la tabla
-            productos.forEach(producto => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${producto.fecha_actualizacion}</td>
-                    <td>${producto.nombre}</td>
-                    <td>${producto.categoria_nombre}</td>
-                    <td>${producto.talla}</td>
-                    <td>${producto.precio}</td>
-                    <td>${producto.descuento}</td>
-                    <td class="${producto.estado === 'disponible' ? 'estado-disponible' : 'estado-agotado'}">${producto.estado}</td>
-                    <td>${producto.cantidad_disponible}</td>
-                    <td>
-                        <a href="#" class="btn-accion btn-editar">Editar</a>
-                        <a href="#" class="btn-accion btn-eliminar">Eliminar</a>
-                        <a href="#" class="btn-accion btn-detalles">Detalles</a>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-    };
-    xhr.send();
-}
-</script>
 
 
 

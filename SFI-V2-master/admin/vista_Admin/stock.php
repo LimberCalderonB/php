@@ -188,11 +188,11 @@ if ($result->num_rows > 0) {
             <i class="fi fi-sr-cross-circle"></i>
         </div>
     </div>
-    <div class="search-container text-center">
+    <!--<div class="search-container text-center">
         <form method="GET" action="">
             <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." onkeyup="realTimeSearch(this.value)" />
         </form>
-    </div>
+    </div>-->
 
 
     <div class="btn-container">
@@ -257,3 +257,44 @@ if ($result->num_rows > 0) {
 include_once "pie.php";
 include_once "validaciones/val_stock.php";
 ?>
+<script>
+function realTimeSearch(query) {
+    if (query.length === 0) {
+        return;
+    }
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', 'buscador/search.php?query=' + encodeURIComponent(query), true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            const productos = JSON.parse(xhr.responseText);
+            const tbody = document.querySelector('tbody'); // Asegúrate de que este selector sea correcto
+
+            // Limpiar el contenido actual de la tabla
+            tbody.innerHTML = '';
+
+            // Añadir los resultados de la búsqueda a la tabla
+            productos.forEach(producto => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${producto.fecha_actualizacion}</td>
+                    <td>${producto.nombre}</td>
+                    <td>${producto.categoria_nombre}</td>
+                    <td>${producto.talla}</td>
+                    <td>${producto.precio}</td>
+                    <td>${producto.descuento}</td>
+                    <td class="${producto.estado === 'disponible' ? 'estado-disponible' : 'estado-agotado'}">${producto.estado}</td>
+                    <td>${producto.cantidad_disponible}</td>
+                    <td>
+                        <a href="editar_producto.php?idproducto=<?php echo $producto['idproducto']; ?>" class="btn-accion btn-editar">Editar</a>
+                        <button class="btn-accion btn-eliminar" data-id="<?php echo $producto['idproducto']; ?>">Eliminar</button>
+                        <a href="../generarPDF/detalle_producto_pdf.php?idproducto=<?php echo $producto['idproducto']; ?>" target="_blank" class="btn-accion btn-detalles">Detalles</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    };
+    xhr.send();
+}
+</script>

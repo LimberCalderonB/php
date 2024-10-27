@@ -21,13 +21,14 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
 <script>
     function confirmDeletion(idusuario) {
         Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            title: "¿Estás seguro?",
+            text: "¡No podrás revertir esto!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!"
+            confirmButtonText: "Sí, ¡elimínalo!",
+            cancelButtonText: "Cancelar"
         }).then((result) => {
             if (result.isConfirmed) {
                 // Enviar solicitud AJAX para eliminar
@@ -42,25 +43,25 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
                         let data = JSON.parse(response);
                         if (data.success) {
                             Swal.fire({
-                                title: "Deleted!",
-                                text: "The record has been deleted.",
+                                title: "¡Eliminado!",
+                                text: "El registro ha sido eliminado.",
                                 icon: "success"
                             }).then(() => {
                                 window.location.reload(); // Recargar la página para reflejar cambios
                             });
                         } else {
                             Swal.fire({
-                                title: 'Error!',
+                                title: "¡Error!",
                                 text: data.message,
-                                icon: 'error'
+                                icon: "error"
                             });
                         }
                     },
                     error: function() {
                         Swal.fire({
-                            title: 'Error!',
-                            text: 'An error occurred while processing your request.',
-                            icon: 'error'
+                            title: "¡Error!",
+                            text: "Ocurrió un error al procesar tu solicitud.",
+                            icon: "error"
                         });
                     }
                 });
@@ -68,6 +69,7 @@ if(isset($_SESSION['registro']) && $_SESSION['registro'] == true){
         });
     }
 </script>
+
 
 <!--VALIDACIONES DE CAMPO DE PERSONAL
 <script>

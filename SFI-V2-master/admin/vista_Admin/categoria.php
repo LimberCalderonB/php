@@ -75,7 +75,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'new-category') {
                                         <span class='mdl-list__item-primary-content'>
                                             <i class='zmdi zmdi-label mdl-list__item-avatar'></i>
                                             <span><?php echo $count . ". " . htmlspecialchars($row['nombre']); ?></span> 
-                                            <span class='mdl-list__item-sub-title'>ID: <?php echo $row['idcategoria']; ?></span> 
+
                                         </span>
                                         <span class='mdl-list__item-secondary-action'>
                                             <!-- EDITAR -->

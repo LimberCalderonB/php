@@ -136,12 +136,39 @@
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--12-col text-center">
-                                    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="btn-addProduct">
+                                    <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" 
+                                            id="btn-addProduct" 
+                                            disabled 
+                                            onclick="disableButton()">
                                         <i class="zmdi zmdi-plus"></i>
                                     </button>
                                     <div class="mdl-tooltip" for="btn-addProduct">Agregar Producto</div>
                                 </div>
 
+                                <script>
+                                    // Función para verificar los campos requeridos
+                                    function checkRequiredFields() {
+                                        const nombre = document.getElementById("nombre").value.trim();
+                                        const precio = document.getElementById("precio").value.trim();
+                                        const cantidad = document.getElementById("cantidad").value.trim();
+                                        const categoria = document.getElementById("categoria_idcategoria").value;
+                                        const btnAddProduct = document.getElementById("btn-addProduct");
+
+                                        // Habilita el botón solo si todos los campos requeridos están llenos
+                                        btnAddProduct.disabled = !(nombre && precio && cantidad && categoria);
+                                    }
+
+                                    // Función para deshabilitar el botón una vez presionado
+                                    function disableButton() {
+                                        document.getElementById("btn-addProduct").disabled = true;
+                                    }
+
+                                    // Eventos de escucha para verificar los campos en tiempo real
+                                    document.getElementById("nombre").addEventListener("input", checkRequiredFields);
+                                    document.getElementById("precio").addEventListener("input", checkRequiredFields);
+                                    document.getElementById("cantidad").addEventListener("input", checkRequiredFields);
+                                    document.getElementById("categoria_idcategoria").addEventListener("change", checkRequiredFields);
+                                </script>
                             </form>
                         </div>
                     </div>

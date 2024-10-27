@@ -9,10 +9,11 @@ $busqueda = $conn->real_escape_string($busqueda); // Escapar para evitar SQL Inj
 $keywords = explode(' ', $busqueda);
 
 // Construir la consulta de búsqueda
-$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta, 
+$sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta, c.ci_cliente,
         CONCAT(c.nombre_cliente, ' ', c.apellido_cliente, ' ', c.apellido2_cliente) AS cliente, 
         GROUP_CONCAT(pr.nombre SEPARATOR ', ') AS productos, 
-        precio_total, 
+        precio_total,
+        COUNT(pr.idproducto) AS cantidad_productos,  -- Contar productos
         s.estado,
         CONCAT(pe.nombre, ' ', pe.apellido1, ' ', pe.apellido2) AS responsable
  FROM pedido p
@@ -36,17 +37,15 @@ $sql = "SELECT p.idpedido, s.fecha AS fecha_pedido, v.fecha_venta,
      JOIN producto pr ON ps.producto_idproducto = pr.idproducto
      GROUP BY ps.solicitud_idsolicitud
  ) AS precios ON s.idsolicitud = precios.solicitud_idsolicitud
- WHERE 1=1 ";
+ WHERE 1=1";
 
 // Añadir una condición para cada palabra clave
 foreach ($keywords as $word) {
     $sql .= " AND (c.nombre_cliente LIKE '%$word%' OR 
                    c.apellido_cliente LIKE '%$word%' OR 
                    c.apellido2_cliente LIKE '%$word%' OR 
+                   c.ci_cliente LIKE '%$word%' OR 
                    pr.nombre LIKE '%$word%' OR 
-                   pe.nombre LIKE '%$word%' OR 
-                   pe.apellido1 LIKE '%$word%' OR 
-                   pe.apellido2 LIKE '%$word%' OR 
                    s.estado LIKE '%$word%' OR 
                    s.fecha LIKE '%$word%' OR 
                    v.fecha_venta LIKE '%$word%' OR 
@@ -66,9 +65,10 @@ if ($result->num_rows > 0) {
         echo "<tr>";
         echo "<td>" . $row['fecha_pedido'] . "</td>"; // Fecha del pedido
         echo "<td>" . $row['fecha_venta'] . "</td>"; 
-        echo "<td>" . $row['responsable'] . "</td>";
         echo "<td>" . $row['cliente'] . "</td>";
+        echo "<td>" . $row['ci_cliente'] . "</td>";
         echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>";
+        echo "<td>" . $row['cantidad_productos'] . "</td>";
         echo "<td>" . $row['precio_total'] . "</td>";
         echo "<td class='" . ($row['estado'] == 'pendiente' ? 'estado-pendiente' : 'estado-completado') . "'>" . $row['estado'] . "</td>";
         echo "<td>
@@ -79,7 +79,7 @@ if ($result->num_rows > 0) {
                     </form>
                     <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
                         <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-                        <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Cancelar</button>
+                        <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Anular</button>
                     </form>
                     <a href='#' class='btn-accion btn-detalles'>Detalles</a>
                 </div>
