@@ -121,16 +121,17 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                         <h3>Pedidos Pendientes</h3>
                         <i class="fi fi-ss-order-history"></i>
                     </div>
-                    <div class="card" onclick="location.href='pedidos.php?filtro=mayor_cantidad'">
+                    <div class="card card-mayor" onclick="location.href='pedidos.php?filtro=mayor_cantidad'">
                         <h3>Pedido Con Mayor Cantidad</h3>
+                        
                     </div>
-                    <div class="card" onclick="location.href='pedidos.php?filtro=menor_cantidad'">
+                    <div class="card card-menor" onclick="location.href='pedidos.php?filtro=menor_cantidad'">
                         <h3>Pedido Con Menor Cantidad</h3>
                     </div>
-                    <div class="card" onclick="location.href='pedidos.php?filtro=mayor_precio'">
+                    <div class="card card-mayorprecio" onclick="location.href='pedidos.php?filtro=mayor_precio'">
                         <h3>Pedidos Con Mayor Precio</h3>
                     </div>
-                    <div class="card" onclick="location.href='pedidos.php?filtro=menor_precio'">
+                    <div class="card card-menorprecio" onclick="location.href='pedidos.php?filtro=menor_precio'">
                         <h3>Pedidos Con Menor Precio</h3>
                     </div>
                 </div>
@@ -157,8 +158,7 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                     <div class="btn-container col-12">
                         <form method="get" action="../generarPDF/todos_pedidos_pdf.php" target="_blank">
                             <input type="hidden" name="estado" value="<?php echo isset($_GET['estado']) ? $_GET['estado'] : ''; ?>">
-                            <input type="hidden" name="fecha_inicio" value="<?php echo isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : ''; ?>">
-                            <input type="hidden" name="fecha_fin" value="<?php echo isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : ''; ?>">
+
                             <input type="hidden" name="cantidad" value="<?php echo isset($_GET['cantidad']) ? $_GET['cantidad'] : ''; ?>">
                             <input type="hidden" name="filtro" value="<?php echo isset($_GET['filtro']) ? $_GET['filtro'] : ''; ?>">
                             <button type="submit" class="btn-exportar">Descargar Datos PDF</button>
@@ -696,6 +696,21 @@ include_once "pie.php";
     background-color: #F44336; /* Color rojo para menos vendidos */
     color: white;
 }
-
+.card-mayor {
+    background-color: #877677; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-menor {
+    background-color: #12525d; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-mayorprecio {
+    background-color: #111f34; /* Color rojo para menos vendidos */
+    color: white;
+}
+.card-menorprecio {
+    background-color: #9d4173; /* Color rojo para menos vendidos */
+    color: white;
+}
 
 </style>

@@ -102,7 +102,7 @@ if (isset($_POST['idproducto']) && isset($_POST['cantidad'])) {
             }
 
             $conn->commit();
-            header("Location: pagos.php");
+            header("Location: productos.php");
             exit();
         } else {
             throw new Exception("Producto no encontrado.");

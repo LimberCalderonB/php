@@ -56,10 +56,10 @@ $estado = strtoupper($row['estado']);
 $estado_color = ($estado == 'COMPLETADO') ? [124, 179, 66] : [183, 28, 28];
 $html = "<h4>Información del Pedido</h4> <!-- Cambiado de h2 a h3 para reducir tamaño -->
 <table border='1' cellpadding='3'> <!-- Reducir el cellpadding -->
-    <h4><tr><td><strong>Fecha del Pedido:</strong></td><td>{$row['fecha_pedido']}</td></tr></h4>
-    <h4><tr><td><strong>Fecha de Venta:</strong></td><td>{$row['fecha_venta']}</td></tr></h4>
-    <h4><tr><td><strong>Cliente:</strong></td><td>{$row['cliente']}</td></tr></h4>
-    <h4><tr><td><strong>Responsable:</strong></td><td>{$row['responsable']}</td></tr></h4>
+    <tr><td><strong>Fecha del Pedido:</strong></td><td>{$row['fecha_pedido']}</td></tr>
+    <tr><td><strong>Fecha de Venta:</strong></td><td>{$row['fecha_venta']}</td></tr>
+    <tr><td><strong>Cliente:</strong></td><td>{$row['cliente']}</td></tr>
+    <tr><td><strong>Responsable:</strong></td><td>{$row['responsable']}</td></tr>
     <tr><td><strong>Estado:</strong></td><td style='color: rgb({$estado_color[0]}, {$estado_color[1]}, {$estado_color[2]});'><strong>$estado</strong></td></tr>
 </table>";
 $pdf->writeHTML($html, true, false, true, false, '');
@@ -89,7 +89,7 @@ if ($result_productos->num_rows > 0) {
     $pdf->Cell(30, 10, 'Precio Unitario', 1, 0, 'C', 1);
     $pdf->Cell(25, 10, 'Descuento (%)', 1, 0, 'C', 1);
     $pdf->Cell(35, 10, 'Precio con Desc.', 1, 0, 'C', 1);
-    $pdf->Cell(35, 10, 'Subtotal', 1, 1, 'C', 1);
+    $pdf->Cell(30, 10, 'Subtotal', 1, 1, 'C', 1);
 
     while ($producto = $result_productos->fetch_assoc()) {
         $subtotal = ($producto['precio_con_descuento'] != '-' ? $producto['precio_con_descuento'] : $producto['precio']) * $producto['cantidad'];
@@ -98,7 +98,7 @@ if ($result_productos->num_rows > 0) {
         $pdf->Cell(30, 10, number_format($producto['precio'], 2) . ' BOB', 1);
         $pdf->Cell(25, 10, number_format($producto['descuento'], 2) . '%', 1);
         $pdf->Cell(35, 10, $producto['precio_con_descuento'] . ' BOB', 1);
-        $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
+        $pdf->Cell(30, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
     }
 
     $pdf->Ln(5);

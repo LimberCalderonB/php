@@ -9,12 +9,13 @@ if ($idventa <= 0) {
     die('ID de venta no válido.');
 }
 
-// Consulta para obtener la información general de la venta
+// Consulta para obtener la información general de la venta, incluyendo el CI
 $sqlVentaDirecta = "
-    SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1
+    SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, p.apellido2, c.ci_cliente, c.nombre_cliente, c.apellido_cliente, c.apellido2_cliente
     FROM venta v
     JOIN usuario u ON v.usuario_idusuario = u.idusuario
     JOIN persona p ON u.persona_idpersona = p.idpersona
+    JOIN cliente c ON v.cliente_idcliente = c.idcliente  -- Verifica que este campo esté presente
     WHERE v.idventa = ?
 ";
 
@@ -31,8 +32,8 @@ if (!$ventaDirecta) {
 
 // Consulta para obtener los productos de la venta, incluyendo precios y descuentos
 $sqlProductos = "
-    SELECT pr.nombre AS producto, pr.precio AS precio_producto, 
-           IFNULL(pr.descuento, 0) AS descuento,
+    SELECT pr.nombre AS producto, COUNT(vp.producto_idproducto) AS cantidad, 
+           pr.precio AS precio_producto, IFNULL(pr.descuento, 0) AS descuento,
            CASE 
                WHEN pr.descuento > 0 THEN pr.precio - (pr.precio * pr.descuento / 100) 
                ELSE pr.precio 
@@ -40,6 +41,7 @@ $sqlProductos = "
     FROM venta_producto vp
     JOIN producto pr ON vp.producto_idproducto = pr.idproducto
     WHERE vp.venta_idventa = ?
+    GROUP BY pr.nombre, pr.precio, pr.descuento
 ";
 
 $stmtProductos = $conn->prepare($sqlProductos);
@@ -88,20 +90,29 @@ $pdf->Cell(0, 12, 'Detalles de la Venta', 0, 10, 'C');
 $pdf->Ln(10);
 
 // Información general de la venta
-$html = "
-<h2>Información de la Venta</h2>
-<table border='1' cellpadding='4'>
+$pdf->SetFont('helvetica', 'B', 8); // Título en negrita, tamaño 8
+$html = "<h2>Información de la Venta</h2>"; // Sin estilo de tamaño
+
+$pdf->SetFont('helvetica', '', 10); // Texto normal, tamaño 7
+$html .= "
+<table border='1' cellpadding='3'>
     <tr>
         <td><strong>Fecha de Venta:</strong></td>
         <td>{$ventaDirecta['fecha_venta']}</td>
     </tr>
+
     <tr>
-        <td><strong>Responsable:</strong></td>
-        <td>{$ventaDirecta['nombre']} {$ventaDirecta['apellido1']}</td>
+        <td><strong>Cliente:</strong></td>
+        <td>{$ventaDirecta['nombre_cliente']} {$ventaDirecta['apellido_cliente']} {$ventaDirecta['apellido2_cliente']}</td>
+    </tr>
+    <tr>
+        <td><strong>CI:</strong></td>
+        <td>{$ventaDirecta['ci_cliente']}</td>
     </tr>
 </table>";
 
 $pdf->writeHTML($html, true, false, true, false, '');
+
 
 // Espacio antes de la tabla de productos
 $pdf->Ln(10);
@@ -112,32 +123,34 @@ $pdf->Cell(0, 10, 'Detalles de Productos', 0, 1, 'C');
 $pdf->Ln(5);
 
 // Configurar el estilo de la tabla de productos
-$pdf->SetFont('helvetica', '', 10);
+$pdf->SetFont('helvetica', '', 9); // Cambié a tamaño 9 para los textos
 
 // Crear la tabla de productos con las funciones nativas de TCPDF
 $pdf->SetFillColor(240, 240, 240); // Color de fondo para el encabezado
-$pdf->Cell(40, 10, 'Producto', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Precio Unitario', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Descuento (%)', 1, 0, 'C', 1);
-$pdf->Cell(37, 10, 'Precio con Descuento', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Subtotal', 1, 1, 'C', 1);
+$pdf->Cell(40, 8, 'Producto', 1, 0, 'C', 1);
+$pdf->Cell(20, 8, 'Cantidad', 1, 0, 'C', 1);
+$pdf->Cell(30, 8, 'Precio Unitario', 1, 0, 'C', 1);
+$pdf->Cell(30, 8, 'Descuento (%)', 1, 0, 'C', 1);
+$pdf->Cell(32, 8, 'Precio con Descuento', 1, 0, 'C', 1);
+$pdf->Cell(30, 8, 'Subtotal', 1, 1, 'C', 1);
 
 // Llenar la tabla con los productos
 while ($producto = $resultProductos->fetch_assoc()) {
-    $subtotal = $producto['precio_con_descuento'];
+    $subtotal = $producto['precio_con_descuento'] * $producto['cantidad'];
     $sumaTotal += $subtotal;
 
-    $pdf->Cell(40, 10, $producto['producto'], 1);
-    $pdf->Cell(35, 10, number_format($producto['precio_producto'], 2) . ' BOB', 1);
-    $pdf->Cell(35, 10, number_format($producto['descuento'], 2) . '%', 1);
-    $pdf->Cell(37, 10, number_format($producto['precio_con_descuento'], 2) . ' BOB', 1);
-    $pdf->Cell(35, 10, number_format($subtotal, 2) . ' BOB', 1, 1);
+    $pdf->Cell(40, 8, $producto['producto'], 1);
+    $pdf->Cell(20, 8, $producto['cantidad'], 1);
+    $pdf->Cell(30, 8, number_format($producto['precio_producto'], 2) . ' BOB', 1);
+    $pdf->Cell(30, 8, number_format($producto['descuento'], 2) . '%', 1);
+    $pdf->Cell(32, 8, number_format($producto['precio_con_descuento'], 2) . ' BOB', 1);
+    $pdf->Cell(30, 8, number_format($subtotal, 2) . ' BOB', 1, 1);
 }
 
 // Espacio antes del total
 $pdf->Ln(5);
-$pdf->SetFont('helvetica', 'B', 12);
-$pdf->Cell(0, 10, 'Total de la Venta: ' . number_format($sumaTotal, 2) . ' BOB', 0, 1, 'R');
+$pdf->SetFont('helvetica', 'B', 10); // Cambié a tamaño 10 para el total
+$pdf->Cell(50, 10, 'Total de la Venta: ' . number_format($sumaTotal, 2) . ' BOB', 0, 1, 'R');
 
 // Cerrar y emitir el PDF
 $pdf->Output('venta_' . $idventa . '.pdf', 'I');

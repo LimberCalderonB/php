@@ -4,8 +4,7 @@ include_once('../../conexion.php');
 
 // Recibir los filtros del formulario
 $estado = isset($_GET['estado']) ? $_GET['estado'] : null;
-$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : null;
-$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : null;
+
 $cantidad = isset($_GET['cantidad']) ? $_GET['cantidad'] : null;
 $filtro = isset($_GET['filtro']) ? $_GET['filtro'] : null;
 

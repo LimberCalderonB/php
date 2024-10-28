@@ -18,8 +18,11 @@ $offset = ($page - 1) * $limit;
 
 // Agregar condiciones de filtro de fecha en las consultas SQL
 $fechaCondicion = "";
+$params = [];
 if ($fechaInicio && $fechaFin) {
     $fechaCondicion = "WHERE v.fecha_venta BETWEEN ? AND ?";
+    $params[] = $fechaInicio;
+    $params[] = $fechaFin;
 }
 
 // Obtener ventas directas con filtro de fecha
@@ -32,16 +35,16 @@ $sqlDirectas = "
            COALESCE(cl.apellido_cliente, cl_solicitud.apellido_cliente) AS cliente_apellido1, 
            COALESCE(cl.apellido2_cliente, cl_solicitud.apellido2_cliente) AS cliente_apellido2, 
            GROUP_CONCAT(DISTINCT pr.nombre SEPARATOR ', ') AS productos, 
-           SUM(pr.precio) AS precio_total,  -- Total del precio de los productos
-           COUNT(vp.venta_idventa) AS cantidad_total  -- Contar la cantidad de productos en la venta
+           SUM(pr.precio) AS precio_total,  
+           COUNT(vp.venta_idventa) AS cantidad_total  
     FROM venta v
     JOIN usuario u ON v.usuario_idusuario = u.idusuario
-    JOIN persona p ON u.persona_idpersona = p.idpersona  -- Responsable de la venta
-    LEFT JOIN cliente cl ON v.cliente_idcliente = cl.idcliente  -- Cliente directo de la venta
-    LEFT JOIN pedido_venta pv ON v.pedido_venta_idpedido_venta = pv.idpedido_venta  -- Relación con pedido_venta
-    LEFT JOIN pedido ped ON pv.pedido_idpedido = ped.idpedido  -- Relación con pedido
-    LEFT JOIN solicitud sol ON ped.solicitud_idsolicitud = sol.idsolicitud  -- Relación con solicitud
-    LEFT JOIN cliente cl_solicitud ON sol.cliente_idcliente = cl_solicitud.idcliente  -- Cliente de la solicitud (pedido)
+    JOIN persona p ON u.persona_idpersona = p.idpersona  
+    LEFT JOIN cliente cl ON v.cliente_idcliente = cl.idcliente  
+    LEFT JOIN pedido_venta pv ON v.pedido_venta_idpedido_venta = pv.idpedido_venta  
+    LEFT JOIN pedido ped ON pv.pedido_idpedido = ped.idpedido  
+    LEFT JOIN solicitud sol ON ped.solicitud_idsolicitud = sol.idsolicitud  
+    LEFT JOIN cliente cl_solicitud ON sol.cliente_idcliente = cl_solicitud.idcliente  
     JOIN venta_producto vp ON v.idventa = vp.venta_idventa
     JOIN producto pr ON vp.producto_idproducto = pr.idproducto
     $fechaCondicion
@@ -52,14 +55,20 @@ $sqlDirectas = "
 $stmtDirectas = $conn->prepare($sqlDirectas);
 
 if ($fechaInicio && $fechaFin) {
-    $stmtDirectas->bind_param('ssii', $fechaInicio, $fechaFin, $offset, $limit);
+    $params[] = $offset;
+    $params[] = $limit;
+    $stmtDirectas->bind_param('ssii', ...$params);
 } else {
-    $stmtDirectas->bind_param('ii', $offset, $limit);
+    $params = [$offset, $limit];
+    $stmtDirectas->bind_param('ii', ...$params);
 }
 
 $stmtDirectas->execute();
 $resultDirectas = $stmtDirectas->get_result();
 $ventasDirectas = $resultDirectas->fetch_all(MYSQLI_ASSOC);
+
+// Procesar resultados antes de continuar
+$stmtDirectas->close(); // Cerrar el statement para liberar los recursos
 
 // Obtener total de ventas directas
 $sqlTotalDirectas = "SELECT COUNT(*) as total FROM venta v $fechaCondicion";
@@ -67,13 +76,18 @@ $stmtTotalDirectas = $conn->prepare($sqlTotalDirectas);
 
 if ($fechaInicio && $fechaFin) {
     $stmtTotalDirectas->bind_param('ss', $fechaInicio, $fechaFin);
+    $stmtTotalDirectas->execute();
+    $totalVentasDirectas = $stmtTotalDirectas->get_result()->fetch_assoc()['total'];
+} else {
+    $stmtTotalDirectas->execute(); // Solo ejecutamos sin parámetros
+    $totalVentasDirectas = $stmtTotalDirectas->get_result()->fetch_assoc()['total'];
 }
-$stmtTotalDirectas->execute();
-$totalVentasDirectas = $stmtTotalDirectas->get_result()->fetch_assoc()['total'];
+
 $totalPagesDirectas = ceil($totalVentasDirectas / $limit);
 
 // Paginación con fechas
 ?>
+
 
 <?php
 $masVendidos = isset($_GET['mas_vendidos']) && $_GET['mas_vendidos'] == 'true';
@@ -140,11 +154,11 @@ $clientesLeales = $stmtClientesLeales->get_result()->fetch_all(MYSQLI_ASSOC);
     </div>-->
 </div>
 
-<div class="search-container text-center">
+<!--<div class="search-container text-center">
     <form method="GET" action="">
         <input type="text" name="busqueda" class="search-input" placeholder="Buscador..." value="<?php echo isset($_GET['busqueda']) ? htmlspecialchars($_GET['busqueda']) : ''; ?>" />
     </form>
-</div>
+</div>-->
 
 <!-- Filtro de Fechas -->
 <div class="container row">
@@ -161,13 +175,18 @@ $clientesLeales = $stmtClientesLeales->get_result()->fetch_all(MYSQLI_ASSOC);
     </div>
 
     <!-- Botón de Exportar -->
-    <div class="btn-container col-12">
+    <?php if ($masVendidos): ?>
+        <form method="post" action="../generarPDF/mas_vendidos_pdf.php" target="_blank">
+            <input type="hidden" name="productosMasVendidos" value="<?php echo htmlspecialchars(json_encode($productosMasVendidos)); ?>">
+            <button type="submit" class="btn-exportar">Exportar Productos Más Vendidos a PDF</button>
+        </form>
+    <?php else: ?>
         <form method="post" action="../generarPDF/todo_venta_pdf.php" target="_blank">
             <input type="hidden" name="ventasDirectas" value="<?php echo htmlspecialchars(json_encode($ventasDirectas)); ?>">
             <input type="hidden" name="ventasPedidos" value="<?php echo htmlspecialchars(json_encode($ventasPedidos)); ?>">
-            <button type="submit" class="btn-exportar">Detalles PDF</button>
+            <button type="submit" class="btn-exportar">Exportar Ventas Directas a PDF</button>
         </form>
-    </div>
+    <?php endif; ?>
 </div>
 
 <?php
