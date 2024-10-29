@@ -74,7 +74,7 @@ if (isset($_GET['idcliente'])) {
             <!-- Segundo Apellido -->
             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['apellido2_cliente']) ? 'is-invalid' : ''; ?>">
-                    <input class="mdl-textfield__input" type="text" id="apellido2_cliente" name="apellido2_cliente" value="<?php echo htmlspecialchars($datos['apellido2_cliente'] ?? ''); ?>" required>
+                    <input class="mdl-textfield__input" type="text" id="apellido2_cliente" name="apellido2_cliente" value="<?php echo htmlspecialchars($datos['apellido2_cliente'] ?? ''); ?>" >
                     <label class="mdl-textfield__label" for="apellido2_cliente">Segundo Apellido</label>
                     <?php if (isset($errores['apellido2_cliente'])): ?>
                         <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['apellido2_cliente']); ?></span>
@@ -84,42 +84,25 @@ if (isset($_GET['idcliente'])) {
 
             <!-- Campo Celular -->
             <div class="mdl-cell mdl-cell--5-col mdl-cell--8-col-tablet">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['celular_cliente']) ? 'is-invalid' : ''; ?>">
-                    <input class="mdl-textfield__input" type="number" id="celular_cliente" name="celular_cliente" value="<?php echo htmlspecialchars($datos['celular_cliente'] ?? ''); ?>" required>
-                    <label class="mdl-textfield__label" for="celular_cliente">Celular</label>
-                    <?php if (isset($errores['celular_cliente'])): ?>
-                        <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['celular_cliente']); ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['celular_cliente']) ? 'is-invalid' : ''; ?>">
+        <input class="mdl-textfield__input" type="number" id="celular_cliente" name="celular_cliente" 
+               value="<?php echo htmlspecialchars($datos['celular_cliente'] ?? ''); ?>" 
+               minlength="8" maxlength="8" required 
+               oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8);">
+        <label class="mdl-textfield__label" for="celular_cliente">Celular</label>
+        <?php if (isset($errores['celular_cliente'])): ?>
+            <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['celular_cliente']); ?></span>
+        <?php endif; ?>
+    </div>
+</div>
+
 
             <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                 <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['ci_cliente']) ? 'is-invalid' : ''; ?>">
-                    <input class="mdl-textfield__input" type="text" id="ci_cliente" name="ci_cliente" value="<?php echo htmlspecialchars($datos['ci_cliente'] ?? ''); ?>">
+                    <input class="mdl-textfield__input" type="text" id="ci_cliente" name="ci_cliente" value="<?php echo htmlspecialchars($datos['ci_cliente'] ?? ''); ?>"maxlength="12">
                     <label class="mdl-textfield__label" for="ci_cliente">CI</label>
                     <?php if (isset($errores['ci_cliente'])): ?>
                         <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['ci_cliente']); ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
-
-            <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
-                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['departamento_cliente']) ? 'is-invalid' : ''; ?>">
-                    <select class="mdl-textfield__input" id="departamento_cliente" name="departamento_cliente">
-                        <option value="" disabled selected></option>
-                        <option value="Chuquisaca" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Chuquisaca') ? 'selected' : ''; ?>>Chuquisaca</option>
-                        <option value="La Paz" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'La Paz') ? 'selected' : ''; ?>>La Paz</option>
-                        <option value="Cochabamba" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Cochabamba') ? 'selected' : ''; ?>>Cochabamba</option>
-                        <option value="Oruro" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Oruro') ? 'selected' : ''; ?>>Oruro</option>
-                        <option value="Potosí" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Potosí') ? 'selected' : ''; ?>>Potosí</option>
-                        <option value="Tarija" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Tarija') ? 'selected' : ''; ?>>Tarija</option>
-                        <option value="Santa Cruz" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Santa Cruz') ? 'selected' : ''; ?>>Santa Cruz</option>
-                        <option value="Beni" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Beni') ? 'selected' : ''; ?>>Beni</option>
-                        <option value="Pando" <?php echo (isset($datos['departamento_cliente']) && $datos['departamento_cliente'] == 'Pando') ? 'selected' : ''; ?>>Pando</option>
-                    </select>
-                    <label class="mdl-textfield__label" for="departamento_cliente">Seleccione el departamento</label>
-                    <?php if (isset($errores['departamento_cliente'])): ?>
-                        <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['departamento_cliente']); ?></span>
                     <?php endif; ?>
                 </div>
             </div>

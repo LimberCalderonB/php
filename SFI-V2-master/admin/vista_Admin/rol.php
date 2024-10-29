@@ -112,7 +112,6 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'new-role') {
                                         <span class='mdl-list__item-primary-content'>
                                             <i class='zmdi zmdi-account mdl-list__item-avatar'></i> <!-- Ícono de usuario -->
                                             <span><?php echo $count . ". " . $row['nombre']; ?></span> <!-- Mostrar el nombre del rol -->
-                                            <span class='mdl-list__item-sub-title'>ID: <?php echo $row['idrol']; ?></span> <!-- Mostrar el ID del rol -->
                                         </span>
                                         <span class='mdl-list__item-secondary-action'>
                                             <?php if ($row['nombre'] !== 'Administrador') { ?> <!-- Mostrar solo si el rol no es de administrador -->

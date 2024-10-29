@@ -63,7 +63,7 @@ unset($_SESSION['form_data']);
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['apellido1']) ? 'is-invalid' : ''; ?>" id="apellido1-field">
                                 <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" value="<?php echo isset($data['apellido1']) ? htmlspecialchars($data['apellido1']) : ''; ?>">
-                                <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
+                                <label class="mdl-textfield__label" for="apellido1">Primer Apellido</label>
                                 <span class="mdl-textfield__error" id="apellido1-error"><?php echo isset($errors['apellido1']) ? htmlspecialchars($errors['apellido1']) : ''; ?></span>
                             </div>
                         </div>
@@ -71,13 +71,13 @@ unset($_SESSION['form_data']);
                         <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['apellido2']) ? 'is-invalid' : ''; ?>" id="apellido2-field">
                                 <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2" value="<?php echo isset($data['apellido2']) ? htmlspecialchars($data['apellido2']) : ''; ?>">
-                                <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
+                                <label class="mdl-textfield__label" for="apellido2">Segundo Apellido</label>
                                 <span class="mdl-textfield__error" id="apellido2-error"><?php echo isset($errors['apellido2']) ? htmlspecialchars($errors['apellido2']) : ''; ?></span>
                             </div>
                         </div>
                         <div class="mdl-cell mdl-cell--4-col">
                             <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['ci']) ? 'is-invalid' : ''; ?>" id="ci-field">
-                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo isset($data['ci']) ? htmlspecialchars($data['ci']) : ''; ?>" maxlength="7">
+                                <input class="mdl-textfield__input" type="text" id="ci" name="ci" value="<?php echo isset($data['ci']) ? htmlspecialchars($data['ci']) : ''; ?>" maxlength="12">
                                 <label class="mdl-textfield__label" for="ci">DNI</label>
                                 <span class="mdl-textfield__error" id="ci-error"><?php echo isset($errors['ci']) ? htmlspecialchars($errors['ci']) : ''; ?></span>
                             </div>
@@ -120,15 +120,15 @@ unset($_SESSION['form_data']);
                         </div>
 
                         <div class="mdl-cell mdl-cell--6-col mdl-cell--8-col-tablet">
-                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errors['pass']) ? 'is-invalid' : ''; ?>" id="pass-field">
-                                <input class="mdl-textfield__input" type="text" id="pass" name="pass" value="<?php echo isset($data['pass']) ? htmlspecialchars($data['pass']) : ''; ?>">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="pass-field">
+                                <input class="mdl-textfield__input" type="text" id="pass" name="pass">
                                 <label class="mdl-textfield__label" for="pass">Contraseña</label>
                                 <span class="mdl-textfield__error" id="pass-error"><?php echo isset($errors['pass']) ? htmlspecialchars($errors['pass']) : ''; ?></span>
                             </div>
                         </div>
 
 
-                        <div class="mdl-cell mdl-cell--12-col">
+                        <!--<div class="mdl-cell mdl-cell--12-col">
                             <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; ELEGIR FOTO DE PERFIL</legend><br>
                         </div>
 
@@ -138,9 +138,9 @@ unset($_SESSION['form_data']);
                                 <input type="file" id="foto" name="foto" class="input-file">
                             </label>
                             <span class="mdl-textfield__error" id="avatar-error">Debe seleccionar una foto de perfil</span>
-                        </div>
+                        </div>-->
 
-                        <div class="mdl-cell mdl-cell--12-col">
+                        <!--<div class="mdl-cell mdl-cell--12-col">
                             <div id="preview-container" style="width: 190px; height: 180px; text-align: center; border: 2px dashed #ccc; padding: 10px;">
                                 <?php if (!empty($data['foto']) && file_exists('' . $data['foto'])): ?>
                                     <img id="preview-image" src="<?php echo '' . $data['foto']; ?>" alt="Foto de perfil actual" style="width: 190px; height: 180px;">
@@ -148,7 +148,7 @@ unset($_SESSION['form_data']);
                                     <p>No hay foto de perfil disponible.</p>
                                 <?php endif; ?>
                             </div>
-                        </div>
+                        </div>-->
 
                             <div class="mdl-cell mdl-cell--12-col">
                                 <p class="text-center">

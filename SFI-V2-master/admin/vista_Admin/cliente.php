@@ -88,7 +88,10 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
 
                                 <div class="mdl-cell mdl-cell--5-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['celular_cliente']) ? 'is-invalid' : ''; ?>">
-                                        <input class="mdl-textfield__input" type="number" id="celular_cliente" name="celular_cliente" value="<?php echo htmlspecialchars($datos['celular_cliente'] ?? ''); ?>">
+                                        <input class="mdl-textfield__input" type="number" id="celular_cliente" name="celular_cliente" 
+                                            value="<?php echo htmlspecialchars($datos['celular_cliente'] ?? ''); ?>"
+                                            minlength="8" maxlength="8"
+                                            oninput="if(this.value.length > 8) this.value = this.value.slice(0, 8);">
                                         <label class="mdl-textfield__label" for="celular_cliente">Celular</label>
                                         <?php if (isset($errores['celular_cliente'])): ?>
                                             <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['celular_cliente']); ?></span>
@@ -98,14 +101,15 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
 
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['ci_cliente']) ? 'is-invalid' : ''; ?>">
-                                        <input class="mdl-textfield__input" type="text" id="ci_cliente" name="ci_cliente" value="<?php echo htmlspecialchars($datos['ci_cliente'] ?? ''); ?>">
+                                        <input class="mdl-textfield__input" type="text" id="ci_cliente" name="ci_cliente" maxlength="12" value="<?php echo htmlspecialchars($datos['ci_cliente'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="ci_cliente">CI</label>
                                         <?php if (isset($errores['ci_cliente'])): ?>
                                             <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['ci_cliente']); ?></span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
+
+                                <!--<div class="mdl-cell mdl-cell--3-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label <?php echo isset($errores['departamento_cliente']) ? 'is-invalid' : ''; ?>">
                                         <select class="mdl-textfield__input" id="departamento_cliente" name="departamento_cliente">
                                             <option value="" disabled selected></option>
@@ -124,7 +128,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                                             <span class="mdl-textfield__error" style="color:red;"><?php echo htmlspecialchars($errores['departamento_cliente']); ?></span>
                                         <?php endif; ?>
                                     </div>
-                                </div>
+                                </div>-->
                             </div>
                             <p class="text-center">
                                 <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored bg-primary" id="agregar" type="submit">
@@ -150,7 +154,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                 </div>
                 <div class="full-width panel-content">
                     <form action="#">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+                        <!--<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
                             <label class="mdl-button mdl-js-button mdl-button--icon" for="searchAdmin">
                                 <i class="zmdi zmdi-search"></i>
                             </label>
@@ -158,7 +162,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                                 <input class="mdl-textfield__input" type="text" id="searchAdmin" name="searchAdmin" placeholder="Buscar...">
                                 <label class="mdl-textfield__label"></label>
                             </div>
-                        </div>
+                        </div>-->
                     </form>
                     <?php
                         // Consultar la lista de clientes desde la tabla cliente
@@ -174,7 +178,7 @@ if (isset($_GET['tab']) && $_GET['tab'] === 'list-cliente') {
                     <span class="mdl-list__item-primary-content">
 
                         <span><?php echo htmlspecialchars($row['nombre_cliente']) . ' ' . htmlspecialchars($row['apellido_cliente']) . ' ' . htmlspecialchars($row['apellido2_cliente']); ?></span>
-                        <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['celular_cliente']) . '| CI : ' . htmlspecialchars($row['ci_cliente']) . ' ' . htmlspecialchars($row['departamento_cliente']); ?></span>
+                        <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['celular_cliente']) . '| CI : ' . htmlspecialchars($row['ci_cliente']) ?></span>
                     </span>
                     <div class="btn-right">
                         <button class='mdl-button mdl-js-button mdl-button--icon' 

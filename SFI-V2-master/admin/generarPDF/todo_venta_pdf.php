@@ -3,8 +3,23 @@ require_once('../../../tcpdf/tcpdf/tcpdf.php');
 include_once('../../conexion.php');
 
 // Parámetros para la paginación
+// Parámetros para la paginación
 $offset = 0;  // Ajustar según sea necesario
 $limit = 10;  // Cantidad de resultados por página
+
+// Inicializar la condición de fecha
+$fechaCondition = '';
+
+// Obtener las fechas del formulario
+$fechaInicio = isset($_POST['fecha_inicio']) ? $_POST['fecha_inicio'] : null;
+$fechaFin = isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : null;
+
+// Ajustar la fecha de fin para incluir todo el día
+if ($fechaInicio && $fechaFin) {
+    $fechaFin = date('Y-m-d', strtotime($fechaFin));
+    $fechaCondition = " AND v.fecha_venta BETWEEN ? AND ?";
+}
+
 
 // Consulta para ventas directas (excluyendo las que pertenecen a pedidos)
 $sqlDirectas = "
@@ -19,16 +34,22 @@ SELECT v.idventa, v.fecha_venta, p.nombre AS nombre_usuario, p.apellido1 AS apel
     JOIN venta_producto vp ON v.idventa = vp.venta_idventa
     JOIN producto pr ON vp.producto_idproducto = pr.idproducto
     WHERE v.pedido_venta_idpedido_venta IS NULL
+    $fechaCondition
     GROUP BY v.idventa
     ORDER BY v.fecha_venta DESC
     LIMIT ?, ?
 ";
 
 $stmtDirectas = $conn->prepare($sqlDirectas);
-$stmtDirectas->bind_param('ii', $offset, $limit);
+if ($fechaInicio && $fechaFin) {
+    $stmtDirectas->bind_param('ssii', $fechaInicio, $fechaFin, $offset, $limit);
+} else {
+    $stmtDirectas->bind_param('ii', $offset, $limit);
+}
 $stmtDirectas->execute();
 $resultDirectas = $stmtDirectas->get_result();
 $ventasDirectas = $resultDirectas->fetch_all(MYSQLI_ASSOC);
+
 
 // Consulta para ventas asociadas a pedidos
 $sqlPedidos = "
@@ -45,13 +66,19 @@ $sqlPedidos = "
     JOIN cliente c ON s.cliente_idcliente = c.idcliente
     JOIN producto_solicitud ps ON s.idsolicitud = ps.solicitud_idsolicitud
     JOIN producto pr ON ps.producto_idproducto = pr.idproducto
+    WHERE 1=1
+    $fechaCondition
     GROUP BY v.idventa
     ORDER BY v.fecha_venta DESC
     LIMIT ?, ?
 ";
 
 $stmtPedidos = $conn->prepare($sqlPedidos);
-$stmtPedidos->bind_param('ii', $offset, $limit);
+if ($fechaInicio && $fechaFin) {
+    $stmtPedidos->bind_param('ssii', $fechaInicio, $fechaFin, $offset, $limit);
+} else {
+    $stmtPedidos->bind_param('ii', $offset, $limit);
+}
 $stmtPedidos->execute();
 $resultPedidos = $stmtPedidos->get_result();
 $ventasPedidos = $resultPedidos->fetch_all(MYSQLI_ASSOC);
@@ -167,7 +194,10 @@ if (!empty($ventasDirectas)) {
 
 // Agregar contenido de ventas asociadas a pedidos
 if (!empty($ventasPedidos)) {
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', '', 10);
     $pdf->Cell(0, 10, 'Ventas Asociadas a Pedidos', 0, 1, 'C');
+
     foreach ($ventasPedidos as $ventaPedido) {
         $htmlVentaPedido = '
             <h4>Detalles de la Venta Asociada a Pedido</h4>
@@ -178,7 +208,7 @@ if (!empty($ventasPedidos)) {
                 </tr>
                 <tr>
                     <th>Cliente:</th>
-                    <td>' . htmlspecialchars($ventaPedido['nombre_cliente']) . ' ' . htmlspecialchars($ventaPedido['apellido_cliente']) . ' ' . htmlspecialchars($ventaPedido['apellido2_cliente']) . '</td>
+                    <td>' . htmlspecialchars($ventaPedido['nombre_cliente']) . ' ' . htmlspecialchars($ventaPedido['apellido_cliente']) . '</td>
                 </tr>
                 <tr>
                     <th>CI Cliente:</th>
@@ -186,7 +216,7 @@ if (!empty($ventasPedidos)) {
                 </tr>
             </table>
             <br>
-            <h4>Productos de la Venta</h4>
+            <h4>Productos de la Venta Asociada a Pedido</h4>
             <table border="1" cellpadding="5" class="tabla-ventas">
                 <thead>
                     <tr>
@@ -204,16 +234,17 @@ if (!empty($ventasPedidos)) {
         // Consulta para obtener los productos relacionados con la venta asociada a pedido
         $sqlProductosPedidos = "
             SELECT pr.nombre AS producto, COUNT(ps.producto_idproducto) AS cantidad, 
-           pr.precio AS precio_producto, IFNULL(pr.descuento, 0) AS descuento, 
-           CASE WHEN pr.descuento > 0 THEN pr.precio - (pr.precio * pr.descuento / 100) 
-                ELSE pr.precio END AS precio_con_descuento
-    FROM venta_producto vp
-    JOIN producto pr ON vp.producto_idproducto = pr.idproducto
-    JOIN pedido_venta pv ON vp.venta_idventa = pv.pedido_idpedido
-    JOIN pedido p ON pv.pedido_idpedido = p.idpedido
-    JOIN producto_solicitud ps ON p.idpedido = ps.solicitud_idsolicitud
-    WHERE vp.venta_idventa = ?
-    GROUP BY pr.nombre, pr.talla, pr.descuento 
+                   pr.precio AS precio_producto, IFNULL(pr.descuento, 0) AS descuento, 
+                   CASE WHEN pr.descuento > 0 THEN pr.precio - (pr.precio * pr.descuento / 100) 
+                        ELSE pr.precio END AS precio_con_descuento
+            FROM producto_solicitud ps
+            JOIN producto pr ON ps.producto_idproducto = pr.idproducto
+            JOIN solicitud s ON ps.solicitud_idsolicitud = s.idsolicitud
+            JOIN pedido ped ON s.idsolicitud = ped.solicitud_idsolicitud
+            JOIN pedido_venta pv ON ped.idpedido = pv.pedido_idpedido
+            JOIN venta v ON pv.idpedido_venta = v.pedido_venta_idpedido_venta
+            WHERE v.idventa = ?
+            GROUP BY pr.nombre, pr.talla, pr.descuento
         ";
 
         $stmtProductosPedidos = $conn->prepare($sqlProductosPedidos);
@@ -250,9 +281,11 @@ if (!empty($ventasPedidos)) {
     }
 }
 
-// Cerrar la conexión
+// Cerrar conexión
+$stmtDirectas->close();
+$stmtPedidos->close();
 $conn->close();
 
-// Cerrar y generar el PDF
+// Salida del PDF
 $pdf->Output('informe_ventas.pdf', 'I');
 ?>

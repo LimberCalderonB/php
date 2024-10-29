@@ -20,10 +20,11 @@ $pass = $_POST['pass'] ?? '';
 $foto = isset($_FILES['foto']) ? $_FILES['foto'] : null;
 
 // Validar DNI
-if (empty($ci) || !preg_match('/^\d{7}$/', $ci)) {
-    $errors['ci'] = 'El DNI debe tener 7 dígitos numéricos.';
+// Validar DNI
+if (empty($ci) || !preg_match('/^[a-zA-Z0-9-]{7,12}$/', $ci)) {
+    $errors['ci'] = 'El DNI debe tener entre 7 y 12 caracteres, incluyendo letras, números y el guion "-".';
 } else {
-    // Verificar si el DNI ya existe
+    // Verificar si el DNI ya existe en la base de datos
     $query = "SELECT COUNT(*) AS count FROM persona WHERE ci = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('s', $ci);
@@ -35,6 +36,7 @@ if (empty($ci) || !preg_match('/^\d{7}$/', $ci)) {
     }
 }
 
+
 // Validar Nombre
 if (empty($nombre) || !preg_match('/^[a-zA-Z]+$/', $nombre)) {
     $errors['nombre'] = 'El nombre es obligatorio y solo debe contener letras.';
@@ -42,12 +44,12 @@ if (empty($nombre) || !preg_match('/^[a-zA-Z]+$/', $nombre)) {
 
 // Validar Apellido Paterno
 if (empty($apellido1) || !preg_match('/^[a-zA-Z]+$/', $apellido1)) {
-    $errors['apellido1'] = 'El apellido paterno es obligatorio y solo debe contener letras.';
+    $errors['apellido1'] = 'El apellido es obligatorio y solo debe contener letras.';
 }
 
 // Validar Apellido Materno
 if (!empty($apellido2) && !preg_match('/^[a-zA-Z]*$/', $apellido2)) {
-    $errors['apellido2'] = 'El apellido materno debe contener solo letras.';
+    $errors['apellido2'] = 'El apellidodebe contener solo letras.';
 }
 
 // Validar Rol

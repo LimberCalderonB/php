@@ -223,7 +223,7 @@ $conn->close();
 							</div>
 						</a>
 					</li>
-					<li class="full-width divider-menu-h"></li>
+					<!--<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
 						<a href="reportes.php" class="full-width">
 							<div class="navLateral-body-cl">
@@ -233,29 +233,29 @@ $conn->close();
 								REPORTES
 							</div>
 						</a>
-					</li>
+					</li>-->
 					<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
 						<a href="pedidos.php" class="full-width">
 							<div class="navLateral-body-cl">
-								<i class="zmdi zmdi-shopping-cart"></i>
+							<i class="fi fi-ss-order-history"></i>
 							</div>
 							<div class="navLateral-body-cr">
 								PEDIDOS
 							</div>
 						</a>
 					</li>
-					<!--<li class="full-width divider-menu-h"></li>
+					<li class="full-width divider-menu-h"></li>
 					<li class="full-width">
 						<a href="stock.php" class="full-width">
 							<div class="navLateral-body-cl">
 								<i class="zmdi zmdi-store"></i>
 							</div>
 							<div class="navLateral-body-cr">
-								INVENTARIO
+								Stock
 							</div>
 						</a>
-					</li>-->
+					</li>
 					
 				</ul>
 			</nav>

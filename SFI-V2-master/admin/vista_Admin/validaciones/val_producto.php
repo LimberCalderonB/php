@@ -2,7 +2,7 @@
 <style>
 .product-card {
     flex: 1 1 30%; /* Cada producto ocupa 30% del ancho disponible */
-    min-width: 230px;
+    min-width: 240px;
     max-width: 170px;
     margin-bottom: 15px; /* Reducido el espacio entre tarjetas */
     display: flex;
@@ -82,7 +82,7 @@
 .product-info {
     display: flex;
     align-items: center;
-    font-size: 0.75rem; /* Reducido el tamaño */
+    font-size: 0.95rem; /* Reducido el tamaño */
 }
 
 .product-info small {

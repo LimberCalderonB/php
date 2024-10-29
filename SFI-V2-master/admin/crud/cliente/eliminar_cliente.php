@@ -24,7 +24,7 @@ if (isset($_POST['idcliente'])) {
     } catch (Exception $e) {
         // Si hay un error, revertimos la transacción
         mysqli_rollback($conn);
-        echo json_encode(['success' => false, 'message' => 'Error al eliminar el cliente: ' . $e->getMessage()]);
+        echo json_encode(['success' => false, 'message' => 'Error al eliminar el cliente. Ya que tiene tareas asociadas.']);
     }
 }
 ?>

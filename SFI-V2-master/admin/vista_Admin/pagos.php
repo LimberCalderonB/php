@@ -521,9 +521,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
 
         <!-- Botón deshabilitado por defecto -->
         <button id="realizar-venta" name="realizar_venta" class="btn btn-realizar-venta" disabled>
-            <i class="fi fi-rr-dollar"></i>
             REALIZAR VENTA
-        </button>
+        </button>   
 
         <!-- Checkbox para habilitar el botón de guardar pedido -->
         <div class="form-check">
@@ -535,13 +534,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
 
         <!-- Botón para guardar pedido deshabilitado por defecto -->
         <button id="guardar-pedido" name="guardar_pedido" class="btn btn-guardar-pedido" disabled>
-            <i class="fi fi-rr-save"></i>
             GUARDAR PEDIDO
         </button>
 
         <!-- Botón para cancelar todo -->
         <button type="submit" name="cancelar_todo" class="btn btn-danger">
-            <i class="fi fi-rr-trash"></i>
             CANCELAR TODO
         </button>
 
@@ -553,10 +550,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['guardar_pedido']) && i
 <div class="container text-center" style="position: relative;">
     <!-- Campo de búsqueda de clientes -->
     <!-- Campo de búsqueda de clientes deshabilitado por defecto -->
-    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control" disabled 
+    <input type="text" id="buscar" placeholder="Buscar cliente..." class="form-control"  
         value="<?php echo isset($_SESSION['idcliente']) ? obtenerNombreCliente($conn, $_SESSION['idcliente']) : ''; ?>">
-
-
     <div id="resultados" class="mt-2" style="display: none;"></div> 
 </div>
 

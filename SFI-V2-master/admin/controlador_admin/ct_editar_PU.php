@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 
     // Validar DNI
-    if (empty($ci) || !preg_match('/^\d{7}$/', $ci)) {
-        $errors['ci'] = 'El DNI debe tener 7 dígitos numéricos.';
+    if (empty($ci) || !preg_match('/^[a-zA-Z0-9-]{7,12}$/', $ci)) {
+        $errors['ci'] = 'El DNI debe tener entre 7 y 12 caracteres, incluyendo letras, números y el guion "-".';
     } else {
         // Verificar si el DNI ya existe para otro usuario
         $query = "SELECT COUNT(*) AS count FROM persona WHERE ci = ? AND idpersona != (SELECT persona_idpersona FROM usuario WHERE idusuario = ?)";
@@ -75,33 +75,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors['idRol'] = 'El campo Rol es obligatorio.';
     }
 
-    // Validar Nombre de Usuario
-    if (empty($nombreUsuario)) {
-        $errors['nombreUsuario'] = 'El nombre de usuario es obligatorio.';
-    } else if (!filter_var($nombreUsuario, FILTER_VALIDATE_EMAIL)) {
-        $errors['nombreUsuario'] = 'El nombre de usuario debe ser un correo electrónico válido.';
-    } else if (!preg_match('/@gmail\.com$/', $nombreUsuario)) {
-        $errors['nombreUsuario'] = 'El nombre de usuario debe ser una dirección de Gmail (@gmail.com).';
-    } else {
-        // Verificar si el nombre de usuario ya existe
-        $query = "SELECT COUNT(*) AS count FROM usuario WHERE nombreUsuario = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('s', $nombreUsuario);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-        if ($row['count'] > 0) {
-            $errors['nombreUsuario'] = 'El nombre de usuario ya está registrado.';
-        }
+// Validar Nombre de Usuario
+if (empty($nombreUsuario)) {
+    $errors['nombreUsuario'] = 'El nombre de usuario es obligatorio.';
+} else if (!filter_var($nombreUsuario, FILTER_VALIDATE_EMAIL)) {
+    $errors['nombreUsuario'] = 'El nombre de usuario debe ser un correo electrónico válido.';
+} else if (!preg_match('/@gmail\.com$/', $nombreUsuario)) {
+    $errors['nombreUsuario'] = 'El nombre de usuario debe ser una dirección de Gmail (@gmail.com).';
+} else {
+    // Verificar si el nombre de usuario ya existe en otro usuario
+    $query = "SELECT COUNT(*) AS count FROM usuario WHERE nombreUsuario = ? AND idusuario != ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('si', $nombreUsuario, $idUsuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    if ($row['count'] > 0) {
+        $errors['nombreUsuario'] = 'El nombre de usuario ya está registrado.';
     }
-    
-
-    // Validar Contraseña
-    if (empty($pass)) {
-        $errors['pass'] = 'La contraseña es obligatoria.';
-    } elseif (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/', $pass)) {
+}
+// Validar Contraseña solo si no está vacía (en caso de edición)
+if (!empty($pass)) {
+    if (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/', $pass)) {
         $errors['pass'] = 'La contraseña debe tener al menos 8 caracteres, incluyendo letras, números y símbolos.';
+    } else {
+        // Hashear la contraseña nueva
+        $pass_hashed = password_hash($pass, PASSWORD_DEFAULT);
     }
+} else {
+    // Si el campo de contraseña está vacío, usamos la contraseña actual de la base de datos
+    $query = "SELECT pass FROM usuario WHERE idusuario = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('i', $idusuario);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        $pass_hashed = $row['pass']; // Usamos la contraseña existente
+    } else {
+        $errors['pass'] = 'No se encontró la contraseña del usuario.';
+    }
+}
+
 
     // Manejo de archivo de foto
     $fotoDestPath = null;

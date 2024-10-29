@@ -1,6 +1,7 @@
 <script>// Escuchar cambios en el checkbox
 document.getElementById('habilitar-venta').addEventListener('change', function() {
     var botonRealizarVenta = document.getElementById('realizar-venta');
+    
 
     if (this.checked) {
         // Si el checkbox está marcado, habilitar el botón y cambiar el color
@@ -18,7 +19,7 @@ document.getElementById('habilitar-venta').addEventListener('change', function()
     // Checkbox para habilitar el botón de Guardar Pedido y el buscador
     const checkboxPedido = document.getElementById('habilitar-pedido');
     const btnGuardarPedido = document.getElementById('guardar-pedido');
-    const campoBuscar = document.getElementById('buscar');
+
     
     checkboxPedido.addEventListener('change', function () {
         if (this.checked) {

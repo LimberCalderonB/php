@@ -14,16 +14,16 @@ class ModeloCliente {
     }
 
     // Función para agregar cliente
-    public function agregarCliente($nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente) {
+    public function agregarCliente($nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente) {
         $nombre = $this->conexion->GetConnection()->real_escape_string($nombre_cliente);
         $apellido1 = $this->conexion->GetConnection()->real_escape_string($apellido_cliente);
         $apellido2 = $this->conexion->GetConnection()->real_escape_string($apellido2_cliente);
         $celular = $this->conexion->GetConnection()->real_escape_string($celular_cliente);
         $ci = $this->conexion->GetConnection()->real_escape_string($ci_cliente);
-        $departamento = $this->conexion->GetConnection()->real_escape_string($departamento_cliente);
+        //$departamento = $this->conexion->GetConnection()->real_escape_string($departamento_cliente);
     
-        $sql = "INSERT INTO cliente (nombre_cliente, apellido_cliente, apellido2_cliente, celular_cliente, ci_cliente, departamento_cliente)
-                VALUES ('$nombre', '$apellido1', '$apellido2', '$celular', '$ci', '$departamento')";
+        $sql = "INSERT INTO cliente (nombre_cliente, apellido_cliente, apellido2_cliente, celular_cliente, ci_cliente)
+                VALUES ('$nombre', '$apellido1', '$apellido2', '$celular', '$ci')";
         
         $this->conexion->ExecuteQuery($sql);
     
@@ -33,25 +33,6 @@ class ModeloCliente {
             return false;
         }
     }
-    
-    
-
-    // Función para verificar si el celular ya existe
-    public function existeCelular($celular_cliente) {
-        $celular_cliente = $this->conexion->GetConnection()->real_escape_string($celular_cliente);
-        $sql = "SELECT COUNT(*) as count FROM cliente WHERE celular_cliente = '$celular_cliente'";
-        $resultado = $this->conexion->ExecuteQuery($sql);
-        $row = $resultado->fetch_assoc();
-        return $row['count'] > 0;
-    }
-
-    public function existeci($ci_cliente) {
-        $ci_cliente = $this->conexion->GetConnection()->real_escape_string($ci_cliente);
-        $sql = "SELECT COUNT(*) as count FROM cliente WHERE ci_cliente = '$ci_cliente'";
-        $resultado = $this->conexion->ExecuteQuery($sql);
-        $row = $resultado->fetch_assoc();
-        return $row['count'] > 0;
-    }
 
     // Función para obtener los datos de un cliente por su ID
     public function obtenerClientePorId($idCliente) {
@@ -60,5 +41,24 @@ class ModeloCliente {
         $resultado = $this->conexion->ExecuteQuery($sql);
         return $resultado->fetch_assoc();
     }
+    public function verificarCiExistente($ci_cliente, $idcliente = null) {
+        $ci = $this->conexion->GetConnection()->real_escape_string($ci_cliente);
+        $sql = "SELECT COUNT(*) AS count FROM cliente WHERE ci_cliente = ?";
+        if ($idcliente) {
+            $sql .= " AND idcliente != ?";
+        }
+    
+        $stmt = $this->conexion->GetConnection()->prepare($sql);
+        if ($idcliente) {
+            $stmt->bind_param("si", $ci, $idcliente);
+        } else {
+            $stmt->bind_param("s", $ci);
+        }
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        return $row['count'] > 0;
+    }
+    
 }
 ?>

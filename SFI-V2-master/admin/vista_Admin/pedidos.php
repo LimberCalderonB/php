@@ -122,17 +122,20 @@ $totalPaginas = ceil($totalPedidos / $filasPorPagina);
                         <i class="fi fi-ss-order-history"></i>
                     </div>
                     <div class="card card-mayor" onclick="location.href='pedidos.php?filtro=mayor_cantidad'">
-                        <h3>Pedido Con Mayor Cantidad</h3>
-                        
+                        <h3>Mayor Cantidad</h3>
+                        <i class="fi fi-sr-layer-plus"></i>
                     </div>
                     <div class="card card-menor" onclick="location.href='pedidos.php?filtro=menor_cantidad'">
-                        <h3>Pedido Con Menor Cantidad</h3>
+                        <h3>Menor Cantidad</h3>
+                        <i class="fi fi-ss-layer-minus"></i>
                     </div>
                     <div class="card card-mayorprecio" onclick="location.href='pedidos.php?filtro=mayor_precio'">
-                        <h3>Pedidos Con Mayor Precio</h3>
+                        <h3>Mayor Precio</h3>
+                        <i class="fi fi-ss-coins"></i>
                     </div>
                     <div class="card card-menorprecio" onclick="location.href='pedidos.php?filtro=menor_precio'">
-                        <h3>Pedidos Con Menor Precio</h3>
+                        <h3>Menor Precio</h3>
+                        <i class="fi fi-ss-cheap-stack"></i>
                     </div>
                 </div>
 

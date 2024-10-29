@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido2_cliente = $_POST['apellido2_cliente'] ?? '';
     $celular_cliente = $_POST['celular_cliente'] ?? '';
     $ci_cliente = $_POST['ci_cliente'] ?? ''; // Campo nuevo
-    $departamento_cliente = $_POST['departamento_cliente'] ?? ''; // Campo nuevo
 
     // Validaciones básicas
     if (empty($idcliente)) {
@@ -28,22 +27,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (empty($celular_cliente)) {
         $errores['celular_cliente'] = "El celular es requerido.";
+    } elseif (strlen($celular_cliente) !== 8) { // Validación para el celular
+        $errores['celular_cliente'] = "El celular debe tener exactamente 8 dígitos.";
     }
     if (empty($ci_cliente)) {
         $errores['ci_cliente'] = "El CI es requerido."; // Validación para el nuevo campo
-    }
-    if (empty($departamento_cliente)) {
-        $errores['departamento_cliente'] = "El departamento es requerido."; // Validación para el nuevo campo
+    } elseif (strlen($ci_cliente) < 7 || strlen($ci_cliente) > 12) { // Validación para el CI
+        $errores['ci_cliente'] = "El CI debe tener entre 7 y 12 dígitos.";
     }
 
     // Si no hay errores, verificar existencia del celular y CI
     if (empty($errores)) {
         $modelo = new ModeloCliente();
-
-        // Verificar existencia de celular
-        if ($modelo->verificarCelularExistente($celular_cliente, $idcliente)) {
-            $errores['celular_cliente'] = "El celular ya está registrado.";
-        }
 
         // Verificar existencia de CI
         if ($modelo->verificarCIExistente($ci_cliente, $idcliente)) {
@@ -52,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Si aún no hay errores, proceder a actualizar
         if (empty($errores)) {
-            $resultado = $modelo->actualizarCliente($idcliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente);
+            $resultado = $modelo->actualizarCliente($idcliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente);
 
             if ($resultado) {
                 $_SESSION['mensaje'] = "Cliente actualizado exitosamente.";

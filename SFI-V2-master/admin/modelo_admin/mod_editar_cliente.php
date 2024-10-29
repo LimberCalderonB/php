@@ -8,22 +8,8 @@ class ModeloCliente {
             die("Conexión fallida: " . $this->conn->connect_error);
         }
     }
-
-    // Método para verificar si el celular ya existe en la base de datos
-    public function verificarCelularExistente($celular_cliente, $idcliente) {
-        $query = "SELECT COUNT(*) FROM cliente WHERE celular_cliente = ? AND idcliente != ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("si", $celular_cliente, $idcliente);
-        $stmt->execute();
-        $stmt->bind_result($count);
-        $stmt->fetch();
-        $stmt->close();
-
-        return $count > 0; // Retorna true si ya existe
-    }
-
-    // Método para verificar si el CI ya existe en la base de datos
     public function verificarCIExistente($ci_cliente, $idcliente) {
+        // Verificar si el CI ya existe en la base de datos, excluyendo el cliente actual
         $query = "SELECT COUNT(*) FROM cliente WHERE ci_cliente = ? AND idcliente != ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("si", $ci_cliente, $idcliente);
@@ -31,15 +17,14 @@ class ModeloCliente {
         $stmt->bind_result($count);
         $stmt->fetch();
         $stmt->close();
-
-        return $count > 0; // Retorna true si ya existe
+        return $count > 0; // Retorna verdadero si ya existe
     }
 
-    public function actualizarCliente($idcliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente) {
+    public function actualizarCliente($idcliente, $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente) {
         // Actualizar datos del cliente
-        $query_cliente = "UPDATE cliente SET nombre_cliente = ?, apellido_cliente = ?, apellido2_cliente = ?, celular_cliente = ?, ci_cliente = ?, departamento_cliente = ? WHERE idcliente = ?";
+        $query_cliente = "UPDATE cliente SET nombre_cliente = ?, apellido_cliente = ?, apellido2_cliente = ?, celular_cliente = ?, ci_cliente = ? WHERE idcliente = ?";
         $stmt_cliente = $this->conn->prepare($query_cliente);
-        $stmt_cliente->bind_param("ssssssi", $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $departamento_cliente, $idcliente);
+        $stmt_cliente->bind_param("sssssi", $nombre_cliente, $apellido_cliente, $apellido2_cliente, $celular_cliente, $ci_cliente, $idcliente);
     
         $resultado_cliente = $stmt_cliente->execute();
         

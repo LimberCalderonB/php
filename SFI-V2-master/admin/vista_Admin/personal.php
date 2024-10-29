@@ -41,7 +41,7 @@ unset($_SESSION['form_data']);
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['apellido1']) ? ' is-invalid' : ''; ?>" id="apellido1-field">
                                         <input class="mdl-textfield__input" type="text" id="apellido1" name="apellido1" value="<?php echo htmlspecialchars($form_data['apellido1'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="apellido1">Apellido Paterno</label>
+                                        <label class="mdl-textfield__label" for="apellido1">Primer Apellido</label>
                                         <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['apellido1'] ?? ''); ?></span>
                                     </div>
                                 </div>
@@ -49,17 +49,18 @@ unset($_SESSION['form_data']);
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['apellido2']) ? ' is-invalid' : ''; ?>" id="apellido2-field">
                                         <input class="mdl-textfield__input" type="text" id="apellido2" name="apellido2"  value="<?php echo htmlspecialchars($form_data['apellido2'] ?? ''); ?>">
-                                        <label class="mdl-textfield__label" for="apellido2">Apellido Materno</label>
+                                        <label class="mdl-textfield__label" for="apellido2">Segundo Apellido</label>
                                         <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['apellido2'] ?? ''); ?></span>
                                     </div>
                                 </div>
                                 <div class="mdl-cell mdl-cell--4-col">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['ci']) ? ' is-invalid' : ''; ?>" id="ci-field">
-                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci"  maxlength="7" value="<?php echo htmlspecialchars($form_data['ci'] ?? ''); ?>">
+                                        <input class="mdl-textfield__input" type="text" id="ci" name="ci" maxlength="12" value="<?php echo htmlspecialchars($form_data['ci'] ?? ''); ?>">
                                         <label class="mdl-textfield__label" for="ci">DNI</label>
                                         <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['ci'] ?? ''); ?></span>
                                     </div>
                                 </div>
+
 
                                 <div class="mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet">
                                     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label<?php echo isset($errors['celular']) ? ' is-invalid' : ''; ?>" id="celular-field">
@@ -70,7 +71,7 @@ unset($_SESSION['form_data']);
                                 </div>
 
                                 <div class="mdl-cell mdl-cell--4-col">
-                                    <div class="mdl-textfield mdl-js-textfield" id="idRol-field">
+                                    <div class="mdl-textfield mdl-js-textfield <?php echo isset($errors['idRol']) ? 'is-invalid' : ''; ?>" id="idRol-field">
                                         <select class="mdl-textfield__input" name="idRol" id="idRol" onchange="redirectIfNewRole(this)">
                                             <option value="" disabled selected>Selecciona Rol</option>
                                             <?php
@@ -82,8 +83,9 @@ unset($_SESSION['form_data']);
                                             <!-- Opción para añadir nuevo rol -->
                                             <option value="new-role" class="new-role-option">+ Añadir Nuevo Rol</option>
                                         </select>
-                                        <span class="mdl-textfield__error" id="idRol-error">
-                                            <?php echo $errores['idRol'] ?? ''; ?>
+                                        <!-- Error message -->
+                                        <span class="mdl-textfield__error" style="display: block; color: red;">
+                                            <?php echo htmlspecialchars($errors['idRol'] ?? ''); ?>
                                         </span>
                                     </div>
                                 </div>
@@ -116,7 +118,7 @@ unset($_SESSION['form_data']);
                                         <span class="mdl-textfield__error"><?php echo htmlspecialchars($errors['pass'] ?? ''); ?></span>
                                     </div>
                                 </div>
-                                <div class="mdl-cell mdl-cell--12-col">
+                                <!--<div class="mdl-cell mdl-cell--12-col">
                                     <legend class="text-condensedLight"><i class="zmdi zmdi-border-color"></i> &nbsp; Elegir Foto de Usuario</legend><br>
                                 </div>
 
@@ -128,12 +130,12 @@ unset($_SESSION['form_data']);
                                     <span class="mdl-textfield__error" id="avatar-error">Debe seleccionar una foto de perfil</span>
                                 </div>
 
-                                <!-- Contenedor para la previsualización de la imagen -->
+                                Contenedor para la previsualización de la imagen 
                                 <div class="mdl-cell mdl-cell--12-col mdl-cell--8-col-tablet">
                                     <div id="preview-container" style="width: 190px; height: 180px; text-align: center; border: 2px dashed #ccc; padding: 10px;">
                                         <img id="preview" src="#" style="width: 100%; height: 100%; opacity: 0.3; display: none;">
                                     </div>
-                                </div>
+                                </div>-->
 
                             </div>
                             <p class="text-center">
@@ -158,7 +160,7 @@ unset($_SESSION['form_data']);
                 </div>
                 <div class="full-width panel-content">
                     <form action="#">
-                        <div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
+                        <!--<div class="mdl-textfield mdl-js-textfield mdl-textfield--expandable">
                             <label class="mdl-button mdl-js-button mdl-button--icon" for="searchAdmin">
                                 <i class="zmdi zmdi-search"></i>
                             </label>
@@ -166,7 +168,7 @@ unset($_SESSION['form_data']);
                                 <input class="mdl-textfield__input" type="text" id="searchAdmin" name="searchAdmin">
                                 <label class="mdl-textfield__label"></label>
                             </div>
-                        </div>
+                        </div>-->
                     </form>
                     <?php
                         $query_personal = "SELECT p.foto, p.nombre, p.apellido1, p.apellido2, p.ci, u.idusuario, r.nombre AS rol 
@@ -182,7 +184,7 @@ unset($_SESSION['form_data']);
                         ?>
                                 <div class="mdl-list__item mdl-list__item--two-line">
                                     <span class="mdl-list__item-primary-content">
-                                        <img src="<?php echo htmlspecialchars($row['foto']); ?>" class="mdl-list__item-avatar" alt="Foto">
+                                        <!--<img src="<?php echo htmlspecialchars($row['foto']); ?>" class="mdl-list__item-avatar" alt="Foto">-->
                                         <span><?php echo htmlspecialchars($row['rol']) . ' | ' . htmlspecialchars($row['nombre']) . ' ' . htmlspecialchars($row['apellido1']) . ' ' . htmlspecialchars($row['apellido2']); ?></span>
                                         <span class="mdl-list__item-sub-title"><?php echo htmlspecialchars($row['ci']); ?></span>
                                     </span>

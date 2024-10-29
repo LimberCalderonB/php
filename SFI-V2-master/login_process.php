@@ -35,13 +35,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Verifica la contraseña ingresada con la contraseña encriptada
             if (password_verify($password, $user['pass'])) {
-                // La contraseña es correcta, inicia la sesión
-                $_SESSION['usuario_id'] = $user['idusuario'];
-                $_SESSION['nombreUsuario'] = $user['nombreUsuario'];
+                // La contraseña es correcta; verifica si el usuario tiene rol de administrador (idrol = 1)
+                $privilegeQuery = "SELECT * FROM privilegio WHERE usuario_idusuario = ? AND rol_idrol = 1";
+                $privilegeStmt = $conn->prepare($privilegeQuery);
+                $privilegeStmt->bind_param('i', $user['idusuario']);
+                $privilegeStmt->execute();
+                $privilegeResult = $privilegeStmt->get_result();
 
-                // Redirige al usuario al panel de control o página de inicio
-                header("Location: admin/vista_Admin/home.php");
-                exit();
+                if ($privilegeResult->num_rows > 0) {
+                    // El usuario tiene el rol de administrador
+                    $_SESSION['usuario_id'] = $user['idusuario'];
+                    $_SESSION['nombreUsuario'] = $user['nombreUsuario'];
+
+                    // Redirige al usuario al panel de control o página de inicio
+                    header("Location: admin/vista_Admin/home.php");
+                    exit();
+                } else {
+                    // Si el usuario no tiene el rol de administrador
+                    $_SESSION['error'] = "Acceso denegado. Solo los administradores autorizados pueden ingresar.";
+                    header("Location: index.php");
+                    exit();
+                }
             } else {
                 // La contraseña es incorrecta
                 $_SESSION['error'] = "Contraseña incorrecta";

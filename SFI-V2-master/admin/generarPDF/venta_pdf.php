@@ -11,13 +11,33 @@ if ($idventa <= 0) {
 
 // Consulta para obtener la información general de la venta, incluyendo el CI
 $sqlVentaDirecta = "
-    SELECT v.idventa, v.fecha_venta, p.nombre, p.apellido1, p.apellido2, c.ci_cliente, c.nombre_cliente, c.apellido_cliente, c.apellido2_cliente
+
+    SELECT v.idventa, 
+           v.fecha_venta, 
+           p.nombre AS responsable_nombre, 
+           p.apellido1 AS responsable_apellido, 
+           COALESCE(cl.nombre_cliente, cl_solicitud.nombre_cliente) AS cliente_nombre, 
+           COALESCE(cl.apellido_cliente, cl_solicitud.apellido_cliente) AS cliente_apellido1, 
+           COALESCE(cl.apellido2_cliente, cl_solicitud.apellido2_cliente) AS cliente_apellido2, 
+           COALESCE(cl.ci_cliente, cl_solicitud.ci_cliente) AS ci_cliente,  -- Asegúrate de incluir el CI aquí
+           SUM(pr.precio) AS precio_total,  
+           COUNT(vp.venta_idventa) AS cantidad_total  
     FROM venta v
     JOIN usuario u ON v.usuario_idusuario = u.idusuario
-    JOIN persona p ON u.persona_idpersona = p.idpersona
-    JOIN cliente c ON v.cliente_idcliente = c.idcliente  -- Verifica que este campo esté presente
+    JOIN persona p ON u.persona_idpersona = p.idpersona  
+    LEFT JOIN cliente cl ON v.cliente_idcliente = cl.idcliente  
+    LEFT JOIN pedido_venta pv ON v.pedido_venta_idpedido_venta = pv.idpedido_venta  
+    LEFT JOIN pedido ped ON pv.pedido_idpedido = ped.idpedido  
+    LEFT JOIN solicitud sol ON ped.solicitud_idsolicitud = sol.idsolicitud  
+    LEFT JOIN cliente cl_solicitud ON sol.cliente_idcliente = cl_solicitud.idcliente  
+    JOIN venta_producto vp ON v.idventa = vp.venta_idventa
+    JOIN producto pr ON vp.producto_idproducto = pr.idproducto
     WHERE v.idventa = ?
+    GROUP BY v.idventa
 ";
+
+
+
 
 $stmtVentaDirecta = $conn->prepare($sqlVentaDirecta);
 $stmtVentaDirecta->bind_param('i', $idventa);
@@ -76,7 +96,7 @@ $pdf->SetFooterMargin(10);
 $pdf->AddPage();
 
 // Agregar el logo en el lado derecho superior
-$image_file = dirname(__FILE__).'/logo/logo.jpg'; // Cambia la ruta de tu logo si es necesario
+$image_file = dirname(__FILE__) . '/logo/logo.jpg'; // Cambia la ruta de tu logo si es necesario
 $pdf->Image($image_file, 10, 10, 60, 25, 'JPG', '', 'T', false, 30, 'L', false, false, 0, false, false, false);
 
 // Espacio para separar el logo del contenido
@@ -93,26 +113,24 @@ $pdf->Ln(10);
 $pdf->SetFont('helvetica', 'B', 8); // Título en negrita, tamaño 8
 $html = "<h2>Información de la Venta</h2>"; // Sin estilo de tamaño
 
-$pdf->SetFont('helvetica', '', 10); // Texto normal, tamaño 7
+$pdf->SetFont('helvetica', '', 10); // Texto normal, tamaño 10
 $html .= "
 <table border='1' cellpadding='3'>
     <tr>
         <td><strong>Fecha de Venta:</strong></td>
         <td>{$ventaDirecta['fecha_venta']}</td>
     </tr>
-
-    <tr>
+      <tr>
         <td><strong>Cliente:</strong></td>
-        <td>{$ventaDirecta['nombre_cliente']} {$ventaDirecta['apellido_cliente']} {$ventaDirecta['apellido2_cliente']}</td>
+        <td>" . (!empty($ventaDirecta['cliente_nombre']) ? "{$ventaDirecta['cliente_nombre']} {$ventaDirecta['cliente_apellido1']} {$ventaDirecta['cliente_apellido2']}" : 'Sin Cliente') . "</td>
     </tr>
     <tr>
         <td><strong>CI:</strong></td>
-        <td>{$ventaDirecta['ci_cliente']}</td>
+        <td>" . (!empty($ventaDirecta['ci_cliente']) ? $ventaDirecta['ci_cliente'] : 'Sin CI') . "</td>
     </tr>
 </table>";
 
 $pdf->writeHTML($html, true, false, true, false, '');
-
 
 // Espacio antes de la tabla de productos
 $pdf->Ln(10);

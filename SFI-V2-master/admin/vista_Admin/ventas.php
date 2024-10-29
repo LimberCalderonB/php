@@ -178,13 +178,15 @@ $clientesLeales = $stmtClientesLeales->get_result()->fetch_all(MYSQLI_ASSOC);
     <?php if ($masVendidos): ?>
         <form method="post" action="../generarPDF/mas_vendidos_pdf.php" target="_blank">
             <input type="hidden" name="productosMasVendidos" value="<?php echo htmlspecialchars(json_encode($productosMasVendidos)); ?>">
-            <button type="submit" class="btn-exportar">Exportar Productos Más Vendidos a PDF</button>
+            <button type="submit" class="btn-exportar">Ver en PDF</button>
         </form>
     <?php else: ?>
         <form method="post" action="../generarPDF/todo_venta_pdf.php" target="_blank">
             <input type="hidden" name="ventasDirectas" value="<?php echo htmlspecialchars(json_encode($ventasDirectas)); ?>">
             <input type="hidden" name="ventasPedidos" value="<?php echo htmlspecialchars(json_encode($ventasPedidos)); ?>">
-            <button type="submit" class="btn-exportar">Exportar Ventas Directas a PDF</button>
+            <input type="hidden" name="fecha_inicio" value="<?php echo htmlspecialchars($fechaInicio); ?>">
+            <input type="hidden" name="fecha_fin" value="<?php echo htmlspecialchars($fechaFin); ?>">
+            <button type="submit" class="btn-exportar">Ver en PDF</button>
         </form>
     <?php endif; ?>
 </div>
@@ -216,12 +218,11 @@ if (!$masVendidos) {
     echo '<div class="full-width panel-tittle bg-primary text-center tittles">Ventas Directas</div>';
     echo '<div class="table-responsive" style="max-height: 400px; overflow-y: auto;">';  // Contenedor con scroll
     echo '<table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width centered-table">';
-    echo '<thead><tr><th>Fecha</th><th>Responsable</th><th>Cliente</th><th>Productos</th><th>Precio Total</th><th>Cantidad Total</th><th>Detalles</th></tr></thead><tbody>';
+    echo '<thead><tr><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Precio Total</th><th>Cantidad Total</th><th>Detalles</th></tr></thead><tbody>';
 
     foreach ($ventasDirectas as $venta) {
         echo '<tr>';
         echo '<td>' . htmlspecialchars($venta['fecha_venta']) . '</td>';
-        echo '<td>' . htmlspecialchars($venta['responsable_nombre'] . ' ' . $venta['responsable_apellido']) . '</td>';
         echo '<td>' . htmlspecialchars($venta['cliente_nombre'] . ' ' . $venta['cliente_apellido1'] . ' ' . $venta['cliente_apellido2']) . '</td>';
         echo '<td>' . htmlspecialchars($venta['productos']) . '</td>';
         echo '<td>' . htmlspecialchars($venta['precio_total']) . '</td>';
@@ -240,7 +241,7 @@ if (!$masVendidos) {
                         <ul class="pagination">
                             <?php for ($i = 1; $i <= $totalPagesDirectas; $i++): ?>
                                 <li class="page-item <?php if ($i == $page) echo 'active'; ?>">
-                                    <a class="page-link" href="?page=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode(date('Y-m-d', strtotime($fechaFin . ' -1 day'))); ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>&fecha_inicio=<?php echo urlencode($fechaInicio); ?>&fecha_fin=<?php echo urlencode(date(strtotime($fechaFin))); ?>">
                                         <?php echo $i; ?>
                                     </a>
                                 </li>
@@ -252,7 +253,10 @@ if (!$masVendidos) {
 <?php
 include_once "pie.php";
 include_once "validaciones/val_ventas.php";
+
 ?>
+
+
 
 <script>
 function confirmDelete(idventa) {
