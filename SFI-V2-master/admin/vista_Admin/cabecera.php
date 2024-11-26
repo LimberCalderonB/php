@@ -252,7 +252,7 @@ $conn->close();
 								<i class="zmdi zmdi-store"></i>
 							</div>
 							<div class="navLateral-body-cr">
-								Stock
+								STOCK
 							</div>
 						</a>
 					</li>

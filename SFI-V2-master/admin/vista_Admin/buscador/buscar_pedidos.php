@@ -81,7 +81,8 @@ if ($result->num_rows > 0) {
                         <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
                         <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Anular</button>
                     </form>
-                    <a href='#' class='btn-accion btn-detalles'>Detalles</a>
+                    <a href='../generarPDF/pedidos_pdf.php?idpedido=" . $row['idpedido'] . "' class='btn-accion btn-detalles'>Detalles</a>
+
                 </div>
             </td>";
         echo "</tr>";
