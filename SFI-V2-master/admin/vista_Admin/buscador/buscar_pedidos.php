@@ -64,7 +64,7 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo "<tr>";
         echo "<td>" . $row['fecha_pedido'] . "</td>"; // Fecha del pedido
-        echo "<td>" . $row['fecha_venta'] . "</td>"; 
+        echo "<td>" . $row['fecha_venta'] . "</td>";
         echo "<td>" . $row['cliente'] . "</td>";
         echo "<td>" . $row['ci_cliente'] . "</td>";
         echo "<td>" . obtenerProductos($row['idpedido'], $conn) . "</td>";
@@ -72,24 +72,32 @@ if ($result->num_rows > 0) {
         echo "<td>" . $row['precio_total'] . "</td>";
         echo "<td class='" . ($row['estado'] == 'pendiente' ? 'estado-pendiente' : 'estado-completado') . "'>" . $row['estado'] . "</td>";
         echo "<td>
-                <div style='display: flex; gap: 5px;'>
-                    <form method='POST' action='pedidos/atender_pedido.php'>
-                        <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-                        <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
-                    </form>
-                    <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
-                        <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
-                        <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Anular</button>
-                    </form>
-                    <a href='../generarPDF/pedidos_pdf.php?idpedido=" . $row['idpedido'] . "' class='btn-accion btn-detalles'>Detalles</a>
+                <div style='display: flex; gap: 5px;'>";
+        
+        // Verificar el estado del pedido
+        if ($row['estado'] != 'completado') {
+            echo "<form method='POST' action='pedidos/atender_pedido.php'>
+                    <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
+                    <button type='submit' name='atender_pedido' class='btn-accion btn-editar'>Atender</button>
+                  </form>
+                  <form action='pedidos/cancelar_pedido.php' method='POST' style='display:inline;' onsubmit='return confirmCancel(event, this);'>
+                    <input type='hidden' name='idpedido' value='" . $row['idpedido'] . "'>
+                    <button type='submit' name='cancelar_pedido' class='btn-accion btn-eliminar'>Anular</button>
+                  </form>";
+        } else {
+            echo "<button class='btn-accion btn-editar' disabled>Atender</button>
+                  <button class='btn-accion btn-eliminar' disabled>Anular</button>";
+        }
 
-                </div>
+        echo "<a href='../generarPDF/pedidos_pdf.php?idpedido=" . $row['idpedido'] . "' class='btn-accion btn-detalles'>Detalles</a>";
+        echo "</div>
             </td>";
         echo "</tr>";
     }
 } else {
     echo "<tr><td colspan='8'>No se encontraron resultados.</td></tr>";
 }
+
 
 // Función para obtener productos asociados
 function obtenerProductos($idpedido, $conn) {
